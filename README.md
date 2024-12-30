@@ -4,6 +4,8 @@ DOSContainer aims to provide a command line generator for 100% vintage-compatibl
 floppy and hard disk images for IBM-PC and compatibles. This aims to support my
 retro computing hobby and the collection building that goes with it.
 
+> :warning: **I'm importing and cleaning up an older version of my codebase. Broken builds abound!**
+
 ## What's the point?
 
 The DOS computing environment consisted of huge numbers of hardware configurations
