@@ -1,0 +1,8 @@
+[package]
+name = "disk"
+version = "0.1.18"
+edition = "2021"
+description = "DOSContainer disk management library."
+authors = ["Bas v.d. Wiel <bas@area536.com>"]
+
+[dependencies]
