@@ -63,7 +63,6 @@ pub enum HardDiskType {
     CUSTOM,
 }
 
-
 impl FromStr for HardDiskType {
     type Err = ();
 
@@ -84,7 +83,6 @@ impl FromStr for HardDiskType {
 }
 
 impl HardDiskType {
-
     /// Get the physical geometries for a predefined hard disk type, or an invalid set for
     /// the CUSTOM type. If you use CUSTOM, you must set the geometry to something sensible yourself.
     pub fn geometry(&self) -> Result<Geometry, DiskError> {

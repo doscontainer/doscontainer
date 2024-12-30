@@ -1,10 +1,10 @@
 use std::{
-    fmt, fs::{File, OpenOptions}, path::PathBuf
+    fmt,
+    fs::{File, OpenOptions},
+    path::PathBuf,
 };
 
-use crate::{
-    disktype::DiskType, error::DiskError, geometry::Geometry, Disk
-};
+use crate::{disktype::DiskType, error::DiskError, geometry::Geometry, Disk};
 
 #[derive(Debug)]
 pub struct Floppy {
@@ -46,7 +46,7 @@ impl Disk for Floppy {
     fn file(&self) -> &File {
         &self.file
     }
-    
+
     fn disktype(&self) -> DiskType {
         self.disktype.clone()
     }

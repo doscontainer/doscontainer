@@ -1,11 +1,11 @@
 use crate::DiskError;
 
-#[derive(Clone,Debug)]
-        pub struct Geometry {
-            cylinders: usize,
-            heads: usize,
-            sectors: usize,
-        }
+#[derive(Clone, Debug)]
+pub struct Geometry {
+    cylinders: usize,
+    heads: usize,
+    sectors: usize,
+}
 
 impl Geometry {
     pub fn new(cylinders: usize, heads: usize, sectors: usize) -> Result<Geometry, DiskError> {
