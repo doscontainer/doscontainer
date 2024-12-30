@@ -59,6 +59,9 @@ pub enum FileSystemError {
     /// Month is out of range for FAT data structures.
     MonthOutOfRange,
 
+    /// No clusters allocated to this entry
+    NoAllocatedClusters,
+
     /// Found an orphaned directory or file entry with no valid parent.
     OrphanedEntry { path: String },
 
@@ -148,6 +151,9 @@ impl std::fmt::Display for FileSystemError {
             }
             FileSystemError::MonthOutOfRange => {
                 write!(f, "Month is out of range.")
+            }
+            FileSystemError::NoAllocatedClusters => {
+                write!(f, "No clusters allocated to this entry.")
             }
             FileSystemError::OrphanedEntry { path } => {
                 write!(f, "Orphaned entry at path '{}'", path)

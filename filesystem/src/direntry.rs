@@ -2,11 +2,12 @@ use chrono::{DateTime, Local};
 use operatingsystem::OperatingSystem;
 use uuid::Uuid;
 
-use crate::error::FileSystemError;
+use crate::{attributes::Attributes, error::FileSystemError};
 
 pub struct DirEntry {
     entry_type: DirEntryType,
     extension: Option<String>,
+    attributes: Attributes,
     file_size: usize,
     last_modified_time: DateTime<Local>,
     name: Option<String>,
@@ -60,8 +61,8 @@ impl DirEntry {
         match self.entry_type {
             DirEntryType::EmptyPlaceholder => Ok(Self::serialize_placeholder(os)),
             DirEntryType::Directory => Ok(self.serialize_directory(os)?),
-            DirEntryType::File => Ok(self.serialize_file(os)),
-            DirEntryType::SysFile => self.serialize_sysfile(),
+            DirEntryType::File => Ok(self.serialize_file(os)?),
+            DirEntryType::SysFile => Ok(self.serialize_sysfile(os)),
             DirEntryType::VolumeLabel => self.serialize_volume_label(),
         }
     }
@@ -99,7 +100,7 @@ impl DirEntry {
                 output.extend(self.ext_as_bytes());
                 output.push(self.type_as_byte());
                 output.extend(std::iter::repeat(0).take(10));
-                output.extend(self.startcluster_as_bytes()); // 2 bytes for start cluster
+                output.extend(self.startcluster_as_bytes()?); // 2 bytes for start cluster
                 output.extend(std::iter::repeat(0).take(8)); // Filesize is zero
                 Ok(output)
             }
@@ -126,7 +127,7 @@ impl DirEntry {
     ///
     /// # Errors
     /// - If `self.last_modified()` returns `None`, default values are used for date and time.
-    fn serialize_file(&self, os: &OperatingSystem) -> Vec<u8> {
+    fn serialize_file(&self, os: &OperatingSystem) -> Result<Vec<u8>, FileSystemError> {
         let mut output = Vec::with_capacity(32); // Preallocate 32 bytes for efficiency.
 
         // Add common fields (name, extension, type).
@@ -170,9 +171,18 @@ impl DirEntry {
         }
 
         // Add start cluster and file size.
-        output.extend(self.startcluster_as_bytes()); // 2 bytes for start cluster.
+        output.extend(self.startcluster_as_bytes()?); // 2 bytes for start cluster.
         output.extend(&(self.file_size as u32).to_le_bytes()); // 4 bytes for file size.
 
+        Ok(output)
+    }
+
+    /// Serialize a system file. This is just a file, with the sole exception of its attributes.
+    fn serialize_sysfile(&self, os: &OperatingSystem) -> Vec<u8> {
+        let mut output = self.serialize_file(os);
+        // The attribute byte lives at byte 11 in the serialized output
+        output[11] =
+            Attributes::from_preset(crate::attributes::AttributesPreset::SystemFile).as_byte();
         output
     }
 
@@ -204,5 +214,63 @@ impl DirEntry {
         bytes.push(marker); // First byte is the marker
         bytes.extend(std::iter::repeat(filler).take(31)); // Fill the remaining bytes
         bytes
+    }
+
+    /// Helper function to convert a string into a FAT-compatible byte array of a given length.
+    ///
+    /// - Non-ASCII characters and invalid FAT characters are removed from the input.
+    /// - The string is truncated to the specified length.
+    /// - All characters are converted to uppercase ASCII.
+    /// - The resulting byte array is padded with spaces (`b' '`) if its length is less than the specified length.
+    ///
+    /// # Parameters
+    /// - `input`: The input string to convert.
+    /// - `length`: The length of the resulting byte array.
+    ///
+    /// # Returns
+    /// A `Vec<u8>` containing the FAT-compatible byte array representation of the input string.
+    fn to_fat_bytes(input: &str, length: usize) -> Vec<u8> {
+        // Define the set of valid FAT characters
+        const VALID_FAT_CHARACTERS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&'()-@^_`{}~";
+
+        // Create a buffer, filtering out invalid characters, converting to uppercase, and limiting to the specified length
+        let mut output: Vec<u8> = input
+            .chars()
+            .filter(|c| c.is_ascii()) // Keep only ASCII characters
+            .map(|c| c.to_ascii_uppercase() as u8) // Convert to uppercase
+            .filter(|b| VALID_FAT_CHARACTERS.contains(b)) // Filter out invalid FAT characters
+            .take(length) // Limit to the specified length
+            .collect();
+
+        // Pad with spaces to ensure the length is exactly the specified length
+        output.resize(length, b' ');
+        output
+    }
+
+    /// Convert the filename part of the entry to a set of bytes
+    fn name_as_bytes(&self) -> Vec<u8> {
+        let input_str = self.name.as_deref().unwrap_or("");
+        Self::to_fat_bytes(input_str, 8)
+    }
+
+    /// Convert the extension part of the entry to a set of bytes
+    fn ext_as_bytes(&self) -> Vec<u8> {
+        let input_str = self.extension.as_deref().unwrap_or("");
+        Self::to_fat_bytes(input_str, 3)
+    }
+
+    /// Converts the first allocated cluster to a byte array (Little Endian).
+    ///
+    /// This method assumes that `allocated_clusters` contains at least one element.
+    /// If the cluster list is empty, the method will return an error or a default value (e.g., 0).
+    ///
+    /// # Returns
+    /// - A `Vec<u8>` representing the start cluster in Little Endian byte order.
+    fn startcluster_as_bytes(&self) -> Result<Vec<u8>, FileSystemError> {
+        if let Some(start_cluster) = self.allocated_clusters.get(0) {
+            Ok(start_cluster.to_le_bytes().to_vec())
+        } else {
+            Err(FileSystemError::NoAllocatedClusters) // Handle case with no allocated clusters
+        }
     }
 }
