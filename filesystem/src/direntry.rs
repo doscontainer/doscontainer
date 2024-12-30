@@ -1,4 +1,4 @@
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Datelike, Local, Timelike};
 use operatingsystem::OperatingSystem;
 use uuid::Uuid;
 
@@ -62,8 +62,8 @@ impl DirEntry {
             DirEntryType::EmptyPlaceholder => Ok(Self::serialize_placeholder(os)),
             DirEntryType::Directory => Ok(self.serialize_directory(os)?),
             DirEntryType::File => Ok(self.serialize_file(os)?),
-            DirEntryType::SysFile => Ok(self.serialize_sysfile(os)),
-            DirEntryType::VolumeLabel => self.serialize_volume_label(),
+            DirEntryType::SysFile => Ok(self.serialize_sysfile(os)?),
+            DirEntryType::VolumeLabel => Ok(self.serialize_volume_label()?),
         }
     }
 
@@ -98,7 +98,7 @@ impl DirEntry {
                 let mut output = Vec::new();
                 output.extend(self.name_as_bytes());
                 output.extend(self.ext_as_bytes());
-                output.push(self.type_as_byte());
+                output.push(self.attributes.as_byte());
                 output.extend(std::iter::repeat(0).take(10));
                 output.extend(self.startcluster_as_bytes()?); // 2 bytes for start cluster
                 output.extend(std::iter::repeat(0).take(8)); // Filesize is zero
@@ -133,40 +133,40 @@ impl DirEntry {
         // Add common fields (name, extension, type).
         output.extend(self.name_as_bytes()); // 8 bytes for name.
         output.extend(self.ext_as_bytes()); // 3 bytes for extension.
-        output.push(self.type_as_byte()); // 1 byte for type.
+        output.push(self.attributes.as_byte()); // 1 byte for type.
+
+        // Handle date/time serialization
+        let (fat_date, fat_time) = match self.last_modified() {
+            Ok((date, time)) => (date, time),
+            Err(_) => return Err(FileSystemError::MissingDateTime),
+        };
+
+        let serialize_date_time = |reserved_bytes: usize, fat_date: u16, fat_time: u16| {
+            let mut temp_output = Vec::with_capacity(reserved_bytes + 4);
+            temp_output.extend(std::iter::repeat(0).take(reserved_bytes)); // Reserved bytes
+            temp_output.extend(fat_time.to_le_bytes()); // 2 bytes for time
+            temp_output.extend(fat_date.to_le_bytes()); // 2 bytes for date
+            temp_output
+        };
 
         // Match logic based on the operating system.
         match os {
             // IBM PC-DOS 1.10 and 2.00: Record date and time.
             OperatingSystem::IBMDOS110 | OperatingSystem::IBMDOS200 => {
-                if let Some((fat_date, fat_time)) = self.last_modified() {
-                    output.extend(std::iter::repeat(0).take(10)); // Reserved 10 bytes.
-                    output.extend(fat_time.to_le_bytes()); // 2 bytes for time.
-                    output.extend(fat_date.to_le_bytes()); // 2 bytes for date.
-                } else {
-                    output.extend(std::iter::repeat(0).take(14)); // Fallback for missing date/time.
-                }
+                output.extend(serialize_date_time(10, fat_date, fat_time)); // Reserved 10 bytes for DOS 2.00
             }
 
             // IBM PC-DOS 1.00: Only record the date (no time field).
             OperatingSystem::IBMDOS100 => {
-                if let Some((fat_date, _)) = self.last_modified() {
-                    output.extend(std::iter::repeat(0).take(12)); // Reserved 12 bytes.
-                    output.extend(fat_date.to_le_bytes()); // 2 bytes for date.
-                } else {
-                    output.extend(std::iter::repeat(0).take(14)); // Fallback for missing date.
-                }
+                let mut temp_output = Vec::with_capacity(14);
+                temp_output.extend(std::iter::repeat(0).take(12)); // Reserved 12 bytes
+                temp_output.extend(fat_date.to_le_bytes()); // 2 bytes for date
+                output.extend(temp_output);
             }
 
             // Other operating systems: Use default serialization.
             _ => {
-                if let Some((fat_date, fat_time)) = self.last_modified() {
-                    output.extend(std::iter::repeat(0).take(10)); // Reserved 10 bytes.
-                    output.extend(fat_time.to_le_bytes()); // 2 bytes for time.
-                    output.extend(fat_date.to_le_bytes()); // 2 bytes for date.
-                } else {
-                    output.extend(std::iter::repeat(0).take(14)); // Fallback for missing date/time.
-                }
+                output.extend(serialize_date_time(10, fat_date, fat_time)); // Default serialization for other OS
             }
         }
 
@@ -178,12 +178,12 @@ impl DirEntry {
     }
 
     /// Serialize a system file. This is just a file, with the sole exception of its attributes.
-    fn serialize_sysfile(&self, os: &OperatingSystem) -> Vec<u8> {
-        let mut output = self.serialize_file(os);
+    fn serialize_sysfile(&self, os: &OperatingSystem) -> Result<Vec<u8>, FileSystemError> {
+        let mut output = self.serialize_file(os)?;
         // The attribute byte lives at byte 11 in the serialized output
         output[11] =
             Attributes::from_preset(crate::attributes::AttributesPreset::SystemFile).as_byte();
-        output
+        Ok(output)
     }
 
     /// Serializes a placeholder directory entry for a given operating system.
@@ -214,6 +214,46 @@ impl DirEntry {
         bytes.push(marker); // First byte is the marker
         bytes.extend(std::iter::repeat(filler).take(31)); // Fill the remaining bytes
         bytes
+    }
+
+    /// Serializes a `DirEntry` of type `VolumeLabel` to a byte array in the FAT file system format.
+    ///
+    /// This method takes a `DirEntry` representing a volume label and converts it into a 32-byte array
+    /// suitable for inclusion in the FAT directory structure. Volume label entries have specific characteristics
+    /// that differ from regular file entries:
+    ///
+    /// - The name is limited to 8 characters and the extension to 3 characters, with the extension padded
+    ///   with spaces (if necessary).
+    /// - The attributes byte is set to `0x08`, which indicates a volume label.
+    /// - The file size is always `0` (as volume labels are not files).
+    /// - The start cluster is usually set to `0` (reserved for volume labels).
+    /// - The modification time and date are set to `0` as volume labels do not have modification times.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Vec<u8>` representing the 32-byte serialized FAT directory entry for the volume label.
+    fn serialize_volume_label(&self) -> Result<Vec<u8>, FileSystemError> {
+        // Initialize a vector to hold the serialized bytes
+        let mut output = Vec::with_capacity(32); // A FAT directory entry is always 32 bytes
+
+        // Volume labels are always 8.3 format, so we limit the name to 8 characters and extension to 3
+        output.extend(self.name_as_bytes()); // 8 bytes for name
+        output.extend(self.ext_as_bytes()); // 3 bytes for extension
+
+        // Set the attributes byte for volume label (0x08 is used for volume labels in FAT)
+        output.push(0x08); // Volume label attribute
+
+        // Reserved bytes (10 bytes reserved for use by FAT)
+        output.extend(std::iter::repeat(0).take(10));
+
+        // Volume labels don't have a modification time or date, so we use 0 for both.
+        output.extend(std::iter::repeat(0).take(4)); // 2 bytes for time and 2 for date
+
+        // Volume labels have no file size, so we set the start cluster to 0 and size to 0
+        output.extend(self.startcluster_as_bytes()?); // 2 bytes for start cluster (usually 0 for volume labels)
+        output.extend(&[0, 0, 0, 0]); // 4 bytes for file size, set to 0
+
+        Ok(output)
     }
 
     /// Helper function to convert a string into a FAT-compatible byte array of a given length.
@@ -272,5 +312,58 @@ impl DirEntry {
         } else {
             Err(FileSystemError::NoAllocatedClusters) // Handle case with no allocated clusters
         }
+    }
+
+    /// Converts the last modified time to the FAT date and time format (16-bit values).
+    ///
+    /// This method takes the `last_modified_time` of the entry, converts it into the
+    /// FAT date and time formats, and returns them as a tuple of 16-bit values.
+    ///
+    /// The FAT date format consists of:
+    /// - 7 bits for the year (relative to 1980, with a range of 0 to 127)
+    /// - 4 bits for the month (1-12)
+    /// - 5 bits for the day (1-31)
+    ///
+    /// The FAT time format consists of:
+    /// - 5 bits for the hour (0-23)
+    /// - 6 bits for the minute (0-59)
+    /// - 5 bits for the second (0-29), which is the number of 2-second intervals
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing a tuple `(fat_date, fat_time)` where:
+    /// - `fat_date` is the 16-bit date value (packed as year, month, and day).
+    /// - `fat_time` is the 16-bit time value (packed as hour, minute, and second).
+    ///
+    /// If any of the date or time values are out of range, an appropriate error is returned.
+    pub fn last_modified(&self) -> Result<(u16, u16), FileSystemError> {
+        // Get year, month, and day
+        let year = self.last_modified_time.year() - 1980; // Years since 1980
+        let month = self.last_modified_time.month(); // 1-12
+        let day = self.last_modified_time.day(); // 1-31
+
+        // Validate values
+        if !(0..=127).contains(&year) {
+            return Err(FileSystemError::YearOutOfRange);
+        }
+        if !(1..=12).contains(&month) {
+            return Err(FileSystemError::MonthOutOfRange);
+        }
+        if !(1..=31).contains(&day) {
+            return Err(FileSystemError::DayOutOfRange);
+        }
+
+        // Create FAT date (16 bits)
+        let fat_date = ((year as u16) << 9) | ((month as u16) << 5) | (day as u16);
+
+        // Get hours, minutes, and seconds
+        let hour = self.last_modified_time.hour(); // 0-23
+        let minute = self.last_modified_time.minute(); // 0-59
+        let second = self.last_modified_time.second() / 2; // Seconds divided by 2 (0-29)
+
+        // Create FAT time (16 bits)
+        let fat_time = ((hour as u16) << 11) | ((minute as u16) << 5) | (second as u16);
+
+        Ok((fat_date, fat_time))
     }
 }

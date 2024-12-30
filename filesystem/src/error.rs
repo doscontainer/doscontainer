@@ -56,6 +56,9 @@ pub enum FileSystemError {
     /// Time is invalid
     InvalidTime,
 
+    /// Missing date/time
+    MissingDateTime,
+
     /// Month is out of range for FAT data structures.
     MonthOutOfRange,
 
@@ -148,6 +151,9 @@ impl std::fmt::Display for FileSystemError {
             }
             FileSystemError::InvalidTime => {
                 write!(f, "Inavlid time.")
+            }
+            FileSystemError::MissingDateTime => {
+                write!(f, "Missing date/time.")
             }
             FileSystemError::MonthOutOfRange => {
                 write!(f, "Month is out of range.")
