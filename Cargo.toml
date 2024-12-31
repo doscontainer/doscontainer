@@ -1,4 +1,4 @@
 [workspace]
-members = ["disk", "filesystem", "operatingsystem",]
+members = [ "cli", "core","disk", "filesystem", "operatingsystem",]
 resolver = "2"
 
