@@ -46,6 +46,42 @@ impl Pool {
             }
         }
 
+        // Ensure only one parentless entry exists in the pool
+        if entry.parent().is_none() {
+            if self.entries.iter().any(|e| e.parent().is_none()) {
+                return Err(FileSystemError::DuplicateEntry);
+            }
+        }
+
+        // Ensure only one VolumeLabel entry exists in the pool and that it has the root directory as its parent
+        if entry.entry_type() == DirEntryType::VolumeLabel {
+            // Check if the VolumeLabel has a parent and if that parent is the root directory
+            if let Some(parent_id) = entry.parent() {
+                if let Some(parent_entry) = self.entry_by_id(parent_id) {
+                    if parent_entry.entry_type() != DirEntryType::Directory {
+                        return Err(FileSystemError::VolumeLabelParentError); // Parent must be a directory
+                    }
+                    // Ensure the parent is the root directory (the one with no parent)
+                    if parent_entry.parent().is_some() {
+                        return Err(FileSystemError::VolumeLabelParentError); // Parent must be the root directory
+                    }
+                } else {
+                    return Err(FileSystemError::EntryDoesNotExist); // Parent entry does not exist
+                }
+            } else {
+                return Err(FileSystemError::VolumeLabelParentError); // VolumeLabel must have a parent
+            }
+
+            // Ensure only one VolumeLabel entry exists
+            if self
+                .entries
+                .iter()
+                .any(|e| e.entry_type() == DirEntryType::VolumeLabel)
+            {
+                return Err(FileSystemError::TooManyVolumeLabels);
+            }
+        }
+
         // Ensure the entry's ID is unique in the pool
         if self.entries.iter().any(|e| e.id() == entry.id()) {
             return Err(FileSystemError::DuplicateEntry);

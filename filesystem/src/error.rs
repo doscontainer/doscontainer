@@ -87,6 +87,9 @@ pub enum FileSystemError {
     /// The volume already has a label, and a new one cannot be set.
     VolumeLabelAlreadyExists,
 
+    /// Error with the parentage of the VolumeLabel: parent must be the root dir
+    VolumeLabelParentError,
+
     /// The given year is out of range for the FAT data structures.
     YearOutOfRange,
 }
@@ -184,6 +187,9 @@ impl std::fmt::Display for FileSystemError {
             }
             FileSystemError::VolumeLabelAlreadyExists => {
                 write!(f, "Volume label already exists")
+            }
+            FileSystemError::VolumeLabelParentError => {
+                write!(f, "Volume label's parent must be the root directory.")
             }
             FileSystemError::YearOutOfRange => {
                 write!(f, "Year is out of range for FAT.")
