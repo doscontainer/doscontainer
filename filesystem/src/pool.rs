@@ -59,6 +59,12 @@ impl Pool {
                     if parent_entry.entry_type() != DirEntryType::Directory {
                         return Err(FileSystemError::EntryCanNotHaveChildren);
                     }
+                    // Directories can have children, but not the special cases of "." and ".."
+                    if let Some(parent_name) = parent_entry.name() {
+                        if parent_name == ".." || parent_name == "." {
+                            return Err(FileSystemError::EntryCanNotHaveChildren);
+                        }
+                    }
                 }
                 None => {
                     return Err(FileSystemError::EntryDoesNotExist);
@@ -71,8 +77,43 @@ impl Pool {
         Ok(())
     }
 
+    /// Retrieve a directory entry by its unique identifier.
+    ///
+    /// This function searches for a directory entry in the pool by its unique `Uuid`.
+    /// It returns a reference to the entry if found, or `None` if no entry with the
+    /// given ID exists in the pool.
+    ///
+    /// # Parameters
+    ///
+    /// * `id` - The `Uuid` of the directory entry to search for.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(&DirEntry)` if a directory entry with the specified ID is found.
+    /// * `None` if no directory entry with the given ID exists in the pool.
     pub fn entry_by_id(&self, id: Uuid) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.id() == id)
+    }
+
+    /// Retrieve the root directory entry from the pool.
+    ///
+    /// This function looks for the directory entry that has no parent, which is
+    /// typically the root directory of a filesystem. It assumes that there is only
+    /// one root directory in the pool. If no root directory exists, it returns `None`.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(&DirEntry)` if the root directory is found (the entry with no parent).
+    /// * `None` if no root directory is found, which could happen if the pool is empty
+    ///   or the root directory has not been added yet.
+    ///
+    /// # Assumptions
+    ///
+    /// The function assumes that there is **only one root directory** in the pool. If
+    /// your filesystem allows for multiple root directories, this function would need
+    /// to be adjusted accordingly.
+    pub fn root_dir(&self) -> Option<&DirEntry> {
+        self.entries.iter().find(|entry| entry.parent().is_none())
     }
 }
 

@@ -477,4 +477,8 @@ impl DirEntry {
     pub fn id(&self) -> Uuid {
         self.uuid
     }
+
+    pub fn name(&self) -> &Option<String> {
+        &self.name
+    }
 }
