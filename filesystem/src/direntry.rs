@@ -33,7 +33,13 @@ impl Default for DirEntry {
 }
 
 impl DirEntry {
-    /// Generate a new DirEntry instance.
+    /// Generate a new `DirEntry` instance based on the given `DirEntryType`.
+    /// 
+    /// # Arguments
+    /// * `entrytype` - Specifies the type of directory entry to create, such as a file, directory, or placeholder.
+    ///
+    /// # Returns
+    /// A `DirEntry` instance corresponding to the provided `DirEntryType`.
     pub fn new(entrytype: DirEntryType) -> Self {
         match entrytype {
             DirEntryType::EmptyPlaceholder => Self::new_placeholder(),
@@ -44,6 +50,7 @@ impl DirEntry {
         }
     }
 
+    /// Generate a new `DirEntry` instance representing a directory.
     fn new_directory() -> Self {
         DirEntry {
             entry_type: DirEntryType::Directory,
@@ -58,6 +65,7 @@ impl DirEntry {
         }
     }
 
+    /// Generate a new `DirEntry` instance representing an empty placeholder.
     fn new_placeholder() -> Self {
         DirEntry {
             entry_type: DirEntryType::EmptyPlaceholder,
@@ -72,6 +80,7 @@ impl DirEntry {
         }
     }
 
+    /// Generate a new `DirEntry` instance representing a regular file.
     fn new_file() -> Self {
         DirEntry {
             entry_type: DirEntryType::File,
@@ -86,6 +95,7 @@ impl DirEntry {
         }        
     }
 
+    /// Generate a new `DirEntry` instance representing a system file.
     fn new_sysfile() -> Self {
         DirEntry {
             entry_type: DirEntryType::SysFile,
@@ -100,6 +110,7 @@ impl DirEntry {
         }
     }
 
+    /// Generate a new `DirEntry` instance representing a volume label.
     fn new_volumelabel() -> Self {
         DirEntry {
             entry_type: DirEntryType::VolumeLabel,
@@ -113,6 +124,7 @@ impl DirEntry {
             uuid: Uuid::new_v4(),
         }
     }
+}
 
     /// Serializes the `DirEntry` into a sequence of bytes that the FAT filesystem uses to
     /// populate the on-disk directory structures for OS'es that support them.
