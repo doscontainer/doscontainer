@@ -124,7 +124,6 @@ impl DirEntry {
             uuid: Uuid::new_v4(),
         }
     }
-}
 
     /// Serializes the `DirEntry` into a sequence of bytes that the FAT filesystem uses to
     /// populate the on-disk directory structures for OS'es that support them.
