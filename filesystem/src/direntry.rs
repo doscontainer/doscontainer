@@ -469,4 +469,12 @@ impl DirEntry {
     pub fn entry_type(&self) -> DirEntryType {
         self.entry_type
     }
+
+    pub fn parent(&self) -> Option<Uuid> {
+        self.parent
+    }
+
+    pub fn id(&self) -> Uuid {
+        self.uuid
+    }
 }

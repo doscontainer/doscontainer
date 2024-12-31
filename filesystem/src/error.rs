@@ -17,6 +17,9 @@ pub enum FileSystemError {
     /// The directory with the specified name already exists.
     DirectoryAlreadyExists { name: String },
 
+    /// Generic error for duplicate entries.
+    DuplicateEntry,
+
     /// Attempted to access an entry that does not exist.
     EntryDoesNotExist,
 
@@ -112,6 +115,9 @@ impl std::fmt::Display for FileSystemError {
             }
             FileSystemError::DirectoryAlreadyExists { name } => {
                 write!(f, "Directory '{}' already exists", name)
+            }
+            FileSystemError::DuplicateEntry => {
+                write!(f, "Duplicate entry.")
             }
             FileSystemError::EntryCanNotHaveChildren => {
                 write!(f, "Entries of this type can not have children.")

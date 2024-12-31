@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::{
     direntry::{DirEntry, DirEntryType},
     error::FileSystemError,
@@ -34,14 +36,43 @@ impl Pool {
     pub fn add_entry(&mut self, entry: DirEntry) -> Result<(), FileSystemError> {
         // Special case: pool is empty, we only allow adding a root directory entry.
         if self.entries.is_empty() {
+            // First entry must be a directory
             if entry.entry_type() != DirEntryType::Directory {
                 return Err(FileSystemError::InvalidEntryType);
+            }
+            // First entry must not have a parent
+            if entry.parent().is_some() {
+                return Err(FileSystemError::InvalidEntryType);
+            }
+        }
+
+        // Ensure the entry's ID is unique in the pool
+        if self.entries.iter().any(|e| e.id() == entry.id()) {
+            return Err(FileSystemError::DuplicateEntry);
+        }
+
+        // Ensure the entry's parent is present in the pool and is of a type that's allowed to have children
+        if let Some(parent_id) = entry.parent() {
+            match self.entry_by_id(parent_id) {
+                Some(parent_entry) => {
+                    // Ensure the parent is of a type that's allowed to have children
+                    if parent_entry.entry_type() != DirEntryType::Directory {
+                        return Err(FileSystemError::EntryCanNotHaveChildren);
+                    }
+                }
+                None => {
+                    return Err(FileSystemError::EntryDoesNotExist);
+                }
             }
         }
 
         // Add the entry to the pool
         self.entries.push(entry);
         Ok(())
+    }
+
+    pub fn entry_by_id(&self, id: Uuid) -> Option<&DirEntry> {
+        self.entries.iter().find(|entry| entry.id() == id)
     }
 }
 
