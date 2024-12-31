@@ -25,7 +25,95 @@ pub enum DirEntryType {
     VolumeLabel,
 }
 
+/// The default DirEntry is a Directory
+impl Default for DirEntry {
+    fn default() -> Self {
+        Self::new(DirEntryType::Directory)
+    }
+}
+
 impl DirEntry {
+    /// Generate a new DirEntry instance.
+    pub fn new(entrytype: DirEntryType) -> Self {
+        match entrytype {
+            DirEntryType::EmptyPlaceholder => Self::new_placeholder(),
+            DirEntryType::Directory => Self::new_directory(),
+            DirEntryType::File => Self::new_file(),
+            DirEntryType::SysFile => Self::new_sysfile(),
+            DirEntryType::VolumeLabel => Self::new_volumelabel(),
+        }
+    }
+
+    fn new_directory() -> Self {
+        DirEntry {
+            entry_type: DirEntryType::Directory,
+            extension: None,
+            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::Directory),
+            file_size: 0,
+            last_modified_time: chrono::Local::now(),
+            name: None,
+            parent: None,
+            allocated_clusters: Vec::new(),
+            uuid: Uuid::new_v4(),
+        }
+    }
+
+    fn new_placeholder() -> Self {
+        DirEntry {
+            entry_type: DirEntryType::EmptyPlaceholder,
+            extension: None,
+            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::EmptyPlaceholder),
+            file_size: 0,
+            last_modified_time: chrono::Local::now(),
+            name: None,
+            parent: None,
+            allocated_clusters: Vec::new(),
+            uuid: Uuid::new_v4(),
+        }
+    }
+
+    fn new_file() -> Self {
+        DirEntry {
+            entry_type: DirEntryType::File,
+            extension: None,
+            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::RegularFile),
+            file_size: 0,
+            last_modified_time: chrono::Local::now(),
+            name: None,
+            parent: None,
+            allocated_clusters: Vec::new(),
+            uuid: Uuid::new_v4(),
+        }        
+    }
+
+    fn new_sysfile() -> Self {
+        DirEntry {
+            entry_type: DirEntryType::SysFile,
+            extension: None,
+            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::SystemFile),
+            file_size: 0,
+            last_modified_time: chrono::Local::now(),
+            name: None,
+            parent: None,
+            allocated_clusters: Vec::new(),
+            uuid: Uuid::new_v4(),
+        }
+    }
+
+    fn new_volumelabel() -> Self {
+        DirEntry {
+            entry_type: DirEntryType::VolumeLabel,
+            extension: None,
+            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::VolumeLabel),
+            file_size: 0,
+            last_modified_time: chrono::Local::now(),
+            name: None,
+            parent: None,
+            allocated_clusters: Vec::new(),
+            uuid: Uuid::new_v4(),
+        }
+    }
+
     /// Serializes the `DirEntry` into a sequence of bytes that the FAT filesystem uses to
     /// populate the on-disk directory structures for OS'es that support them.
     ///
