@@ -465,4 +465,8 @@ impl DirEntry {
 
         Ok((fat_date, fat_time))
     }
+
+    pub fn entry_type(&self) -> DirEntryType {
+        self.entry_type
+    }
 }
