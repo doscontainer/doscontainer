@@ -4,6 +4,7 @@ pub mod error;
 pub mod floppy;
 pub mod geometry;
 mod sector;
+pub mod volume;
 
 use std::{
     fs::File,
@@ -12,6 +13,7 @@ use std::{
 
 use chs::CHS;
 use disktype::DiskType;
+use volume::Volume;
 
 use crate::{error::DiskError, geometry::Geometry, sector::Sector};
 
@@ -21,6 +23,43 @@ pub trait Disk {
     fn sector_size(&self) -> Result<usize, DiskError>;
     fn file(&self) -> &File;
     fn disktype(&self) -> DiskType;
+    fn volumes(&self) -> &Vec<Volume>;
+    fn volumes_mut(&mut self) -> &mut Vec<Volume>;
+
+    fn add_volume(&mut self, start_sector: usize, end_sector: usize) -> Result<(), DiskError> {
+        match self.disktype() {
+            // Floppies have fixed, well-known sizes and will only ever have one volume
+            // that spans the entire usable storage area of the disk. We ignore the input
+            // values for start_sector and end_sector for these types of disk.
+            DiskType::F35_1440
+            | DiskType::F35_2880
+            | DiskType::F35_720
+            | DiskType::F525_1200
+            | DiskType::F525_160
+            | DiskType::F525_180
+            | DiskType::F525_320
+            | DiskType::F525_360 => {
+                // Make sure we don't have any existing volumes yet.
+                if !self.volumes().is_empty() {
+                    return Err(DiskError::VolumeAlreadyExists);
+                }
+
+                // Create a volume that spans the entire medium
+                if let Some(disk_size) = self.disktype().sector_count() {
+                    let volume = Volume::new(0, disk_size)?;
+                    self.volumes_mut().push(volume);
+                } else {
+                    return Err(DiskError::InvalidVolumeSize);
+                }
+            }
+            // Hard disks support from 1 to 4 volumes (for now) and come in many sizes
+            DiskType::HardDisk => {
+                // Hard disks are not supported yet, but code should go here eventually.
+                todo!()
+            }
+        }
+        Ok(())
+    }
 
     /// Wipes the disk for use with IBM hardware by filling the specified portion of the disk with `0xF6` byte values.
     ///

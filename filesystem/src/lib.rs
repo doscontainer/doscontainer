@@ -7,6 +7,7 @@ mod attributes;
 mod cluster;
 mod direntry;
 mod error;
+mod fat12;
 mod pool;
 
 // Cluster index into the FAT
@@ -17,6 +18,6 @@ pub enum FileType {
     SystemFile,
 }
 pub trait FileSystem {
-    fn mkfile<P: AsRef<Path>,D: AsRef<[u8]>>(&mut self, path: P, data: D, filetype: FileType) -> Result<Vec<ClusterIndex>, FileSystemError>;
+    fn mkfile<P: AsRef<Path>>(&mut self, path: P, size: usize, filetype: FileType) -> Result<Vec<ClusterIndex>, FileSystemError>;
     fn mkdir<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<ClusterIndex>, FileSystemError>;
 }

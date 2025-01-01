@@ -10,12 +10,16 @@ pub enum DiskError {
     InvalidDiskType,
     InvalidGeometry,
     InvalidSectorSize,
+    InvalidVolumeCount,
+    InvalidVolumeSize,
     IoError(std::io::Error),
     MismatchedDataLength,
+    SectorCountUnavailable,
     SectorDoesNotExist,
     SectorOutOfRange,
     UnsupportedDiskType,
     UnsupportedOperatingSystem,
+    VolumeAlreadyExists,
 }
 
 impl fmt::Display for DiskError {
@@ -27,15 +31,19 @@ impl fmt::Display for DiskError {
             DiskError::InvalidDiskType => write!(f, "You cannot use this type of disk here."),
             DiskError::InvalidGeometry => write!(f, "Invalid geometry."),
             DiskError::InvalidSectorSize => write!(f, "Invalid sector size."),
+            DiskError::InvalidVolumeCount => write!(f, "Invalid volume count."),
+            DiskError::InvalidVolumeSize => write!(f, "Invalid volume size."),
             DiskError::MismatchedDataLength => {
                 write!(f, "Trying to write an invalid amount of data.")
             }
+            DiskError::SectorCountUnavailable => write!(f, "Sector count unavailable for this type of disk."),
             DiskError::SectorDoesNotExist => {
                 write!(f, "Tried to access a sector that does not exist.")
             }
             DiskError::SectorOutOfRange => write!(f, "Sector out of range."),
             DiskError::UnsupportedDiskType => write!(f, "Unsupported disk type."),
             DiskError::UnsupportedOperatingSystem => write!(f, "Unsupported operating system."),
+            DiskError::VolumeAlreadyExists => write!(f, "A volume already exists"),
             DiskError::IoError(_) => write!(f, "IO Error!"),
         }
     }

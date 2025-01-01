@@ -4,11 +4,12 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{disktype::DiskType, error::DiskError, geometry::Geometry, Disk};
+use crate::{disktype::DiskType, error::DiskError, geometry::Geometry, volume::Volume, Disk};
 
 #[derive(Debug)]
 pub struct Floppy {
     disktype: DiskType,
+    volumes: Vec<Volume>,
     file: File,
 }
 
@@ -50,6 +51,15 @@ impl Disk for Floppy {
     fn disktype(&self) -> DiskType {
         self.disktype.clone()
     }
+
+    fn volumes(&self) -> &Vec<Volume> {
+        &self.volumes
+    }
+    
+    fn volumes_mut(&mut self) -> &mut Vec<Volume> {
+        &mut self.volumes
+    }
+    
 }
 
 impl Floppy {
@@ -64,7 +74,7 @@ impl Floppy {
             | DiskType::F525_180
             | DiskType::F525_320
             | DiskType::F525_360 => (512, disktype.sector_count().unwrap()),
-            _ => return Err(DiskError::InvalidDiskType),
+            _ => return Err(DiskError::InvalidDiskType), // Hard disks exist of course, but not as floppies!
         };
 
         let new_file = OpenOptions::new()
@@ -79,6 +89,7 @@ impl Floppy {
         Ok(Floppy {
             file: new_file,
             disktype,
+            volumes: Vec::new(),
         })
     }
 }
