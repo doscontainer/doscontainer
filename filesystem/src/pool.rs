@@ -121,6 +121,43 @@ impl Pool {
         Ok(())
     }
 
+    /// Retrieves the direct descendants of a given entry.
+    ///
+    /// This function returns a vector containing the IDs of all entries in the file system
+    /// whose parent is the specified entry. The parent-child relationship is determined
+    /// by the `parent` field of each entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The unique identifier (`Uuid`) of the entry whose descendants are to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Uuid>)` - A vector of IDs representing the direct descendants of the given entry.
+    /// * `Err(FileSystemError::EntryDoesNotExist)` - Returned if no entry with the specified ID exists.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following cases:
+    /// - The `id` does not correspond to any entry in the file system.
+    ///
+    /// # Performance
+    ///
+    /// This function performs a linear scan of the `entries` collection, which may be
+    /// inefficient for very large file systems. Consider optimizing the storage of
+    /// entries if performance becomes a concern.
+    pub fn direct_descendants(&self, id: Uuid) -> Result<Vec<Uuid>, FileSystemError> {
+        if !self.entries.iter().any(|entry| entry.id() == id) {
+            return Err(FileSystemError::EntryDoesNotExist);
+        }
+        Ok(self
+            .entries
+            .iter()
+            .filter(|entry| entry.parent() == Some(id))
+            .map(|entry| entry.id())
+            .collect())
+    }
+
     /// Retrieve a directory entry by its unique identifier.
     ///
     /// This function searches for a directory entry in the pool by its unique `Uuid`.
