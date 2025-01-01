@@ -101,6 +101,14 @@ impl Pool {
                             return Err(FileSystemError::EntryCanNotHaveChildren);
                         }
                     }
+
+                    // Find and remove exactly one EmptyPlaceholder child if present
+                    if let Some(pos) = self.entries.iter().position(|e| {
+                        e.parent() == Some(parent_id)
+                            && e.entry_type() == DirEntryType::EmptyPlaceholder
+                    }) {
+                        self.entries.remove(pos);
+                    }
                 }
                 None => {
                     return Err(FileSystemError::EntryDoesNotExist);
