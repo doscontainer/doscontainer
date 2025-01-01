@@ -122,7 +122,7 @@ pub trait Disk {
     }
 
     /// Read a sector from an LBA address (index) inside the Disk.
-    fn read_lba(&mut self, index: u32) -> Result<Sector, DiskError> {
+    fn read_lba(&self, index: u32) -> Result<Sector, DiskError> {
         // Bounds check: sector must exist.
         if index as usize > self.sector_count()? {
             return Err(DiskError::SectorDoesNotExist);

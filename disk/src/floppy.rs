@@ -77,6 +77,7 @@ impl Floppy {
             _ => return Err(DiskError::InvalidDiskType), // Hard disks exist of course, but not as floppies!
         };
 
+        // Instantiate the backing store file
         let new_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -86,10 +87,15 @@ impl Floppy {
             .map_err(DiskError::IoError)?;
         new_file.set_len(sector_size as u64 * sector_count as u64)?;
 
-        Ok(Floppy {
+        // Create an empty floppy struct
+        let mut floppy = Floppy {
             file: new_file,
             disktype,
             volumes: Vec::new(),
-        })
+        };
+
+        // Floppies get a default volume from the outset
+        floppy.add_volume(0,1)?;
+        Ok(floppy)
     }
 }

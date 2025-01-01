@@ -17,6 +17,7 @@ pub enum DiskError {
     SectorCountUnavailable,
     SectorDoesNotExist,
     SectorOutOfRange,
+    SectorOverflow,
     UnsupportedDiskType,
     UnsupportedOperatingSystem,
     VolumeAlreadyExists,
@@ -41,6 +42,7 @@ impl fmt::Display for DiskError {
                 write!(f, "Tried to access a sector that does not exist.")
             }
             DiskError::SectorOutOfRange => write!(f, "Sector out of range."),
+            DiskError::SectorOverflow => write!(f, "Unable to write more data than a sector will hold."),
             DiskError::UnsupportedDiskType => write!(f, "Unsupported disk type."),
             DiskError::UnsupportedOperatingSystem => write!(f, "Unsupported operating system."),
             DiskError::VolumeAlreadyExists => write!(f, "A volume already exists"),
