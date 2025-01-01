@@ -466,6 +466,10 @@ impl DirEntry {
         Ok((fat_date, fat_time))
     }
 
+    pub fn set_parent(&mut self, parent: Uuid) {
+        self.parent = Some(parent);
+    }
+
     pub fn entry_type(&self) -> DirEntryType {
         self.entry_type
     }

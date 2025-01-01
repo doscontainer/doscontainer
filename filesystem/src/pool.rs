@@ -248,7 +248,9 @@ mod tests {
     fn test_add_entry_to_non_empty_pool() {
         let mut pool = Pool::new().unwrap();
 
-        let file_entry = DirEntry::new(DirEntryType::File);
+        let mut file_entry = DirEntry::new(DirEntryType::File);
+        let parent_uuid = pool.root_dir().unwrap().id();
+        file_entry.set_parent(parent_uuid);
         assert!(
             pool.add_entry(file_entry).is_ok(),
             "Should allow adding a file entry to a non-empty pool."
@@ -263,10 +265,13 @@ mod tests {
     #[test]
     fn test_multiple_entries_in_pool() {
         let mut pool = Pool::new().unwrap();
+        let parent_uuid = pool.root_dir().unwrap().id();
 
-        let subdir = DirEntry::new(DirEntryType::Directory);
-        let file_entry = DirEntry::new(DirEntryType::File);
-
+        let mut subdir = DirEntry::new(DirEntryType::Directory);
+        subdir.set_parent(parent_uuid);
+        let mut file_entry = DirEntry::new(DirEntryType::File);
+        file_entry.set_parent(parent_uuid);
+        
         assert!(
             pool.add_entry(subdir).is_ok(),
             "Should allow adding a directory entry to a non-empty pool."
