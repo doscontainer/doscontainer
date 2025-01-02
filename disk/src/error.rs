@@ -21,6 +21,7 @@ pub enum DiskError {
     UnsupportedDiskType,
     UnsupportedOperatingSystem,
     VolumeAlreadyExists,
+    VolumeDoesNotExist,
 }
 
 impl fmt::Display for DiskError {
@@ -46,6 +47,7 @@ impl fmt::Display for DiskError {
             DiskError::UnsupportedDiskType => write!(f, "Unsupported disk type."),
             DiskError::UnsupportedOperatingSystem => write!(f, "Unsupported operating system."),
             DiskError::VolumeAlreadyExists => write!(f, "A volume already exists"),
+            DiskError::VolumeDoesNotExist => write!(f, "Volume does not exist."),
             DiskError::IoError(_) => write!(f, "IO Error!"),
         }
     }

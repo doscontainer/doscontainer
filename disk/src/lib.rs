@@ -95,6 +95,66 @@ pub trait Disk {
         Ok(())
     }
 
+    /// Writes a sector to the specified volume on the disk.
+    ///
+    /// # Parameters
+    /// - `volume_index`: The index of the volume to write to. This corresponds to the volume's position
+    ///   in the disk's list of volumes.
+    /// - `sector_index`: The sector index within the volume to write to.
+    /// - `data`: A byte slice containing the data to write. The size of the data must match the disk's
+    ///   sector size.
+    ///
+    /// # Returns
+    /// - `Ok(())`: The write operation was successful.
+    /// - `Err(DiskError)`: An error occurred during the operation. Possible errors include:
+    ///     - `DiskError::VolumeDoesNotExist`: The specified `volume_index` does not correspond to a
+    ///       valid volume.
+    ///     - `DiskError::SectorOutOfRange`: The specified `sector_index` is out of bounds for the
+    ///       selected volume or the computed logical block address (LBA) exceeds disk limits.
+    ///     - `DiskError::SectorOverflow`: The size of the provided `data` exceeds the disk's sector size.
+    ///
+    /// # Errors
+    /// This function performs several validation checks and may return the following errors:
+    /// - **Volume existence**: If `volume_index` does not reference a valid volume, a
+    ///   `DiskError::VolumeDoesNotExist` error is returned.
+    /// - **Sector bounds**: If `sector_index` is greater than or equal to the number of sectors in the
+    ///   selected volume, a `DiskError::SectorOutOfRange` error is returned.
+    /// - **Sector size**: If the size of the `data` slice exceeds the disk's sector size, a
+    ///   `DiskError::SectorOverflow` error is returned.
+    fn volume_write_sector(
+        &mut self,
+        volume_index: usize,
+        sector_index: usize,
+        data: &[u8],
+    ) -> Result<(), DiskError> {
+        // Ensure we have a volume at the requested index
+        if self.volumes().len() <= volume_index {
+            return Err(DiskError::VolumeDoesNotExist);
+        }
+
+        let volume = &self.volumes()[volume_index];
+
+        // Ensure we're writing within bounds of the volume itself
+        if sector_index > volume.size() {
+            return Err(DiskError::SectorOutOfRange);
+        }
+
+        // Ensure the data fits the disk's sector size
+        if data.len() > self.sector_size()? {
+            return Err(DiskError::SectorOverflow);
+        }
+
+        // Perform the sector translation
+        let lba = volume
+            .start_sector()
+            .checked_add(sector_index)
+            .ok_or(DiskError::SectorOutOfRange)?;
+
+        // Perform the write
+        self.write_lba(lba.try_into()?, data)?;
+        Ok(())
+    }
+
     /// Write a sector to a CHS address
     fn write_chs(&mut self, address: &CHS, data: &[u8]) -> Result<(), DiskError> {
         // Convert to LBA
