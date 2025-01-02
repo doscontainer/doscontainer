@@ -406,7 +406,7 @@ impl DirEntry {
     /// # Returns
     /// - A `Vec<u8>` representing the start cluster in Little Endian byte order.
     fn startcluster_as_bytes(&self) -> Result<Vec<u8>, FileSystemError> {
-        if let Some(start_cluster) = self.allocated_clusters.get(0) {
+        if let Some(start_cluster) = self.allocated_clusters.first() {
             Ok(start_cluster.to_le_bytes().to_vec())
         } else {
             Err(FileSystemError::NoAllocatedClusters) // Handle case with no allocated clusters

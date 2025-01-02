@@ -72,6 +72,6 @@ impl Volume {
             .checked_add(index)
             .ok_or(DiskError::SectorOutOfRange)?;
 
-        Ok(disk.read_lba(lba.try_into()?)?)
+        disk.read_lba(lba.try_into()?)
     }
 }

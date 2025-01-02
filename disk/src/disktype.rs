@@ -44,8 +44,8 @@ impl fmt::Display for DiskType {
     }
 }
 
-/// Represents different types of hard disks. A Disk always has a DiskType to indicate what it is.
-/// Only if the DiskType is HardDisk you should also set a HardDiskType. The default HardDiskType
+/// Represents different types of hard disks. A Disk always has a `DiskType` to indicate what it is.
+/// Only if the `DiskType` is `HardDisk` you should also set a `HardDiskType`. The default `HardDiskType`
 /// is CUSTOM so you can specify your own size or geometry in the manifest. The predefined types
 /// are included to offer period appropriate configurations that IBM used to ship in their early
 /// PC-compatible machine types.
@@ -112,14 +112,12 @@ impl DiskType {
     ///
     pub fn media_descriptor(&self) -> u8 {
         match self {
-            Self::F35_720 => 0xF9,
-            Self::F35_1440 => 0xF0,
-            Self::F35_2880 => 0xF0,
+            Self::F35_720 | Self::F525_1200 => 0xF9,
+            Self::F35_1440 | Self::F35_2880 => 0xF0,
             Self::F525_160 => 0xFE,
             Self::F525_180 => 0xFC,
             Self::F525_320 => 0xFF,
             Self::F525_360 => 0xFD,
-            Self::F525_1200 => 0xF9,
             Self::HardDisk => 0xF8,
         }
     }
@@ -147,14 +145,12 @@ impl DiskType {
     ///
     pub fn fat_id(&self) -> u8 {
         match self {
-            Self::F35_720 => 0xF9,
-            Self::F35_1440 => 0xF9,
+            Self::F35_720 | Self::F35_1440 | Self::F525_1200 => 0xF9,
             Self::F35_2880 => 0xF0,
             Self::F525_160 => 0xFE,
             Self::F525_180 => 0xFC,
             Self::F525_320 => 0xFF, // 0xFA is also seen, unclear when.
             Self::F525_360 => 0xFD,
-            Self::F525_1200 => 0xF9,
             Self::HardDisk => 0xF8,
         }
     }

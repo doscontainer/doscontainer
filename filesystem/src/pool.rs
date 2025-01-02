@@ -47,10 +47,8 @@ impl Pool {
         }
 
         // Ensure only one parentless entry exists in the pool
-        if entry.parent().is_none() {
-            if self.entries.iter().any(|e| e.parent().is_none()) {
-                return Err(FileSystemError::DuplicateEntry);
-            }
+        if entry.parent().is_none() && self.entries.iter().any(|e| e.parent().is_none()) {
+            return Err(FileSystemError::DuplicateEntry);
         }
 
         // Ensure only one VolumeLabel entry exists in the pool and that it has the root directory as its parent
@@ -271,7 +269,7 @@ mod tests {
         subdir.set_parent(parent_uuid);
         let mut file_entry = DirEntry::new(DirEntryType::File);
         file_entry.set_parent(parent_uuid);
-        
+
         assert!(
             pool.add_entry(subdir).is_ok(),
             "Should allow adding a directory entry to a non-empty pool."

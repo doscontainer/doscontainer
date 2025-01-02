@@ -87,7 +87,7 @@ pub enum FileSystemError {
     /// The volume already has a label, and a new one cannot be set.
     VolumeLabelAlreadyExists,
 
-    /// Error with the parentage of the VolumeLabel: parent must be the root dir
+    /// Error with the parentage of the `VolumeLabel`: parent must be the root dir
     VolumeLabelParentError,
 
     /// The given year is out of range for the FAT data structures.
@@ -101,7 +101,7 @@ impl std::fmt::Display for FileSystemError {
                 write!(f, "Allocation table full. All clusters are allocated")
             }
             FileSystemError::ClusterNotFree { index } => {
-                write!(f, "Cluster at index {} is not free", index)
+                write!(f, "Cluster at index {index} is not free")
             }
             FileSystemError::ClusterOutOfBounds {
                 index,
@@ -109,15 +109,14 @@ impl std::fmt::Display for FileSystemError {
             } => {
                 write!(
                     f,
-                    "Cluster index {} is out of bounds (max: {})",
-                    index, cluster_count
+                    "Cluster index {index} is out of bounds (max: {cluster_count})"
                 )
             }
             FileSystemError::DayOutOfRange => {
                 write!(f, "Day is out of range.")
             }
             FileSystemError::DirectoryAlreadyExists { name } => {
-                write!(f, "Directory '{}' already exists", name)
+                write!(f, "Directory '{name}' already exists")
             }
             FileSystemError::DuplicateEntry => {
                 write!(f, "Duplicate entry.")
@@ -171,7 +170,7 @@ impl std::fmt::Display for FileSystemError {
                 write!(f, "No clusters allocated to this entry.")
             }
             FileSystemError::OrphanedEntry { path } => {
-                write!(f, "Orphaned entry at path '{}'", path)
+                write!(f, "Orphaned entry at path '{path}'")
             }
             FileSystemError::RootDirectoryDoesNotExist => {
                 write!(f, "Root directory does not exist.")

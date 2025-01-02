@@ -31,9 +31,9 @@ impl Geometry {
         let head: u8 = self.heads.try_into()?;
         let cylinder: u16 = self.cylinders.try_into()?;
 
-        let sector_bits = sector & 0b00111111;
-        let cylinder_byte = (cylinder & 0b0000000011111111) as u8;
-        let cylinder_overflow_bits = cylinder & 0b0000001100000000;
+        let sector_bits = sector & 0b0011_1111;
+        let cylinder_byte = (cylinder & 0b0000_0000_1111_1111) as u8;
+        let cylinder_overflow_bits = cylinder & 0b0000_0011_0000_0000;
         let sector_byte = sector_bits | (cylinder_overflow_bits >> 2) as u8;
         Ok([head, sector_byte, cylinder_byte])
     }
@@ -43,8 +43,8 @@ impl Geometry {
     pub fn from_mbr_bytes(bytes: [u8; 3]) -> Result<Self, DiskError> {
         let head = bytes[0];
         let sector_byte = bytes[1];
-        let cylinder = (((sector_byte & 0b11000000) as u16) << 2) | (bytes[2] as u16);
-        let sector = sector_byte & 0b00111111;
+        let cylinder = (((sector_byte & 0b1100_0000) as u16) << 2) | (bytes[2] as u16);
+        let sector = sector_byte & 0b0011_1111;
         let geometry = Geometry::new(cylinder.into(), head.into(), sector.into())?;
         Ok(geometry)
     }

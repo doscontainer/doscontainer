@@ -8,7 +8,7 @@ use crate::{error::DiskError, geometry::Geometry};
 /// CHS, in constrast, is an addressing mechanism that tells the operating system where
 /// to find a specific sector on a disk. The CHS and Geometry structs may contain very
 /// similar fields, they have completely different methods. The idea is that an operating
-/// system (or DOSContainer itself) can look for sectors inside a Disk, and such a
+/// system (or `DOSContainer` itself) can look for sectors inside a Disk, and such a
 /// sector is to be indicated by passing in a CHS parameter.
 ///
 /// The CHS struct also contains conversion methods to go from itself to LBA addressing and
@@ -136,12 +136,12 @@ impl CHS {
         }
 
         // Formula: LBA = (C * H_max * S_max) + (H * S_max) + (S - 1)
-        let sectors_per_track = geometry.get_sectors() as u32;
-        let heads_per_cylinder = geometry.get_heads() as u32;
+        let sectors_per_track = u32::try_from(geometry.get_sectors())?;
+        let heads_per_cylinder = u32::try_from(geometry.get_heads())?;
 
-        let lba = (self.cylinder as u32 * heads_per_cylinder * sectors_per_track)
-            + (self.head as u32 * sectors_per_track)
-            + (self.sector as u32 - 1);
+        let lba = (u32::try_from(self.cylinder)? * heads_per_cylinder * sectors_per_track)
+            + (u32::try_from(self.head)? * sectors_per_track)
+            + (u32::try_from(self.sector)? - 1);
 
         Ok(lba)
     }
