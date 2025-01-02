@@ -23,3 +23,16 @@ DOSContainer makes it easy to do that. It also makes it easy to change your mind
 upgrade to VGA later on, or swap in a newer version of your mouse driver across thousands
 of disk images in a single go.
 
+## Current status
+
+At the time of this writing, I'm consolidating my previous misguided attempt at organization
+into this cargo workspace-based repository. Misguided? Indeed: I had all my crates in their
+own repositories and hosted my own Cargo registry to integrate the whole lot into builds. As
+it turns out, workspaces are a lot easier in a case like this.
+
+So that's where I am now: shoveling code over from my now private repos into this one,
+adjusting code as I go because I keep learning as I go. So for all intents and purposes, do
+treat this code base as **BADLY BROKEN** and very much incomplete for now. I'll make a release
+once the main branch here is capable of doing something useful with PC-DOS 1.00 again. That'll
+also be the point where I start a workflow with tickets and feature branches to invite 
+outside contribution.
