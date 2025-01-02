@@ -26,7 +26,7 @@ pub trait Disk {
     fn volumes(&self) -> &Vec<Volume>;
     fn volumes_mut(&mut self) -> &mut Vec<Volume>;
 
-    fn add_volume(&mut self, start_sector: usize, end_sector: usize) -> Result<(), DiskError> {
+    fn add_volume(&mut self, _start_sector: usize, _end_sector: usize) -> Result<(), DiskError> {
         match self.disktype() {
             // Floppies have fixed, well-known sizes and will only ever have one volume
             // that spans the entire usable storage area of the disk. We ignore the input
