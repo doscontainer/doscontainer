@@ -405,7 +405,7 @@ pub trait Disk {
         let sector_size = self.sector_size()?;
 
         // Pad the data to match the sector size
-        let padded_data = Self::pad_to_nearest(data)?;
+        let padded_data = self.pad_to_nearest(data)?;
 
         // Ensure the padded data fits within the sector size
         if padded_data.len() > sector_size {
@@ -518,7 +518,7 @@ pub trait Disk {
     ///   nearest valid sector size.
     /// - `Err(DiskError::MismatchedDataLength)`: If the data is larger than 4096
     ///   bytes, it cannot be padded to a valid sector size, and an error is returned.
-    fn pad_to_nearest(data: &[u8]) -> Result<Vec<u8>, DiskError> {
+    fn pad_to_nearest(&self, data: &[u8]) -> Result<Vec<u8>, DiskError> {
         // Determine the nearest target size
         let target_size = match data.len() {
             len if len <= 128 => 128,
