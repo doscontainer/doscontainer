@@ -14,6 +14,7 @@ pub enum DiskError {
     InvalidVolumeSize,
     IoError(std::io::Error),
     MismatchedDataLength,
+    ReadError,
     SectorCountUnavailable,
     SectorDoesNotExist,
     SectorOutOfRange,
@@ -40,12 +41,17 @@ impl fmt::Display for DiskError {
             DiskError::MismatchedDataLength => {
                 write!(f, "Trying to write an invalid amount of data.")
             }
-            DiskError::SectorCountUnavailable => write!(f, "Sector count unavailable for this type of disk."),
+            DiskError::ReadError => write!(f, "Read error from the disk backing store."),
+            DiskError::SectorCountUnavailable => {
+                write!(f, "Sector count unavailable for this type of disk.")
+            }
             DiskError::SectorDoesNotExist => {
                 write!(f, "Tried to access a sector that does not exist.")
             }
             DiskError::SectorOutOfRange => write!(f, "Sector out of range."),
-            DiskError::SectorOverflow => write!(f, "Unable to write more data than a sector will hold."),
+            DiskError::SectorOverflow => {
+                write!(f, "Unable to write more data than a sector will hold.")
+            }
             DiskError::SeekError => write!(f, "Error seeking on disk backing store."),
             DiskError::UnsupportedDiskType => write!(f, "Unsupported disk type."),
             DiskError::UnsupportedOperatingSystem => write!(f, "Unsupported operating system."),

@@ -218,21 +218,48 @@ pub trait Disk {
         Ok(())
     }
 
-    /// Read a sector from an LBA address (index) inside the Disk.
+    /// Reads a sector from the specified LBA address (index) on the disk.
+    ///
+    /// This function checks if the given LBA index is valid, seeks to the correct position
+    /// on the disk, and reads the sector data into a buffer. It then returns the sector
+    /// as a specific type depending on the sector size.
+    ///
+    /// # Parameters
+    /// - `index`: The logical block address (LBA) index of the sector to read.
+    ///
+    /// # Returns
+    /// - `Ok(Sector)`: If the read operation is successful, it returns the sector.
+    /// - `Err(DiskError)`: If an error occurs during the read operation, such as:
+    ///     - `DiskError::SectorDoesNotExist`: If the given index is out of bounds.
+    ///     - `DiskError::ReadError`: If an error occurs during reading from the disk.
+    ///     - `DiskError::InvalidSectorSize`: If the sector size is not valid.
     fn read_lba(&self, index: u32) -> Result<Sector, DiskError> {
-        // Bounds check: sector must exist.
-        if index as usize > self.sector_count()? {
+        // Get sector size and validate bounds
+        let sector_size = self.sector_size()?;
+        let sector_count = self.sector_count()?;
+
+        if index as usize >= sector_count {
             return Err(DiskError::SectorDoesNotExist);
         }
 
-        // Seek to the position of the sector, prep a sector-sized buffer
+        // Seek to the sector's location on disk
         self.file()
-            .seek(SeekFrom::Start(self.sector_size()? as u64 * index as u64))?;
-        let mut buffer: Vec<u8> = vec![0; self.sector_size()?];
-        self.file().read_exact(&mut buffer)?;
+            .seek(SeekFrom::Start(sector_size as u64 * index as u64))
+            .map_err(|_| DiskError::SeekError)?;
 
-        // Instantiate the correct sector type and return it
-        let sector = match self.sector_size()? {
+        // Prepare a buffer to hold the sector data
+        let mut buffer = Vec::with_capacity(sector_size);
+        self.file()
+            .read_exact(&mut buffer)
+            .map_err(|_| DiskError::ReadError)?;
+
+        // Check if the buffer size matches the expected sector size
+        if buffer.len() != sector_size {
+            return Err(DiskError::MismatchedDataLength);
+        }
+
+        // Return the sector based on the sector size
+        let sector = match sector_size {
             128 => Sector::Small(Box::new(
                 buffer
                     .as_slice()
@@ -253,6 +280,7 @@ pub trait Disk {
             )),
             _ => return Err(DiskError::InvalidSectorSize),
         };
+
         Ok(sector)
     }
 
