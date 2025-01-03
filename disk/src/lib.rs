@@ -18,12 +18,84 @@ use volume::Volume;
 use crate::{error::DiskError, geometry::Geometry, sector::Sector};
 
 pub trait Disk {
+    /// Returns the geometry of the disk.
+    ///
+    /// This function provides information about the disk's physical characteristics, such as
+    /// the number of heads, cylinders, and sectors per track. The returned `Geometry` object
+    /// can be used to understand the layout of the disk at a low level.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(Geometry)` if the geometry information is successfully retrieved.
+    /// - `Err(DiskError)` if there was an error retrieving the geometry (e.g., invalid disk type).
     fn geometry(&self) -> Result<Geometry, DiskError>;
+
+    /// Returns the total number of sectors on the disk.
+    ///
+    /// This function provides the total count of sectors that the disk can hold, which can
+    /// be useful for disk partitioning, volume management, and capacity calculations.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(usize)` containing the total number of sectors on the disk.
+    /// - `Err(DiskError)` if the sector count cannot be determined (e.g., unsupported disk type).
     fn sector_count(&self) -> Result<usize, DiskError>;
+
+    /// Returns the size of a single sector on the disk in bytes.
+    ///
+    /// This function provides the size of each sector on the disk, which is important for
+    /// understanding how data is stored and accessed at the sector level. Typically, this
+    /// will return a standard size like 512 bytes, but the size may vary depending on the disk type.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(usize)` containing the sector size in bytes.
+    /// - `Err(DiskError)` if the sector size cannot be determined (e.g., unsupported disk type).
     fn sector_size(&self) -> Result<usize, DiskError>;
+
+    /// Returns a reference to the underlying `File` object representing the disk.
+    ///
+    /// This function returns a reference to the file associated with the disk, which can
+    /// be used for low-level file operations like reading and writing sectors. This allows
+    /// direct access to the physical file representing the disk.
+    ///
+    /// # Returns
+    ///
+    /// Returns a reference to the underlying `File` object.
     fn file(&self) -> &File;
+
+    /// Returns the type of the disk.
+    ///
+    /// This function provides information about the type of the disk (e.g., floppy, hard disk),
+    /// which helps determine how to handle the disk's structure, volume layout, and size limits.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `DiskType` representing the type of the disk.
     fn disktype(&self) -> DiskType;
+
+    /// Returns a reference to the list of volumes on the disk.
+    ///
+    /// This function provides access to the volumes currently present on the disk. The list may
+    /// contain one or more `Volume` objects, depending on the disk type and partitioning scheme.
+    ///
+    /// # Returns
+    ///
+    /// Returns a reference to a `Vec<Volume>` representing the volumes on the disk.
     fn volumes(&self) -> &Vec<Volume>;
+
+    /// Returns a mutable reference to the list of volumes on the disk.
+    ///
+    /// This function allows modification of the volumes on the disk, such as adding, removing,
+    /// or altering existing volumes. It is used when performing actions that modify the disk's
+    /// volume layout.
+    ///
+    /// # Returns
+    ///
+    /// Returns a mutable reference to a `Vec<Volume>` representing the volumes on the disk.
     fn volumes_mut(&mut self) -> &mut Vec<Volume>;
 
     /// Adds a volume to the disk based on its type.
@@ -188,7 +260,30 @@ pub trait Disk {
         Ok(())
     }
 
-    /// Write a sector to a CHS address
+    /// Writes a sector to the specified CHS (Cylinder, Head, Sector) address.
+    ///
+    /// This function takes a CHS address and writes the provided data to the corresponding
+    /// sector on the disk. The CHS address is first converted to the corresponding LBA (Logical
+    /// Block Address), and then the data is written to that sector using the `write_lba` function.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: A reference to a `CHS` object representing the Cylinder, Head, and Sector
+    ///   where the data should be written.
+    /// - `data`: A slice of bytes (`&[u8]`) containing the data to write to the specified sector.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(())` if the data was successfully written to the sector.
+    /// - `Err(DiskError)` if there was an error during the conversion of the CHS address to LBA,
+    ///   or while writing the data to the disk (e.g., invalid sector address or write failure).
+    ///
+    /// # Errors
+    ///
+    /// - `DiskError::InvalidGeometry` if the geometry of the disk cannot be retrieved.
+    /// - `DiskError::WriteFailure` if the write operation to the LBA fails.
+    /// - Other `DiskError` variants depending on specific disk and hardware issues.
     fn write_chs(&mut self, address: &CHS, data: &[u8]) -> Result<(), DiskError> {
         // Convert to LBA
         let sector_lba = address.to_lba(&self.geometry()?)?;
@@ -197,7 +292,29 @@ pub trait Disk {
         Ok(())
     }
 
-    /// Read a sector from a CHS address
+    /// Reads a sector from the specified CHS (Cylinder, Head, Sector) address.
+    ///
+    /// This function takes a CHS address and reads the corresponding sector from the disk.
+    /// The CHS address is first converted to the corresponding LBA (Logical Block Address),
+    /// and then the sector is read using the `read_lba` function.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: A reference to a `CHS` object representing the Cylinder, Head, and Sector
+    ///   where the sector should be read from.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(Sector)` containing the data read from the specified sector.
+    /// - `Err(DiskError)` if there was an error during the conversion of the CHS address to LBA,
+    ///   or while reading the sector from the disk (e.g., invalid sector address or read failure).
+    ///
+    /// # Errors
+    ///
+    /// - `DiskError::InvalidGeometry` if the geometry of the disk cannot be retrieved.
+    /// - `DiskError::ReadFailure` if the read operation from the LBA fails.
+    /// - Other `DiskError` variants depending on specific disk and hardware issues.
     fn read_chs(&mut self, address: &CHS) -> Result<Sector, DiskError> {
         // Convert to LBA
         let sector_lba = address.to_lba(&self.geometry()?)?;
