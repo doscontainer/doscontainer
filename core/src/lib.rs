@@ -1,3 +1,5 @@
+mod layer;
+
 use std::path::Path;
 
 use manifest::Manifest;
@@ -12,5 +14,9 @@ impl DosContainer {
         Ok(DosContainer {
             manifest: Manifest::load(manifest)?,
         })
+    }
+
+    pub fn manifest(&self) -> &Manifest {
+        &self.manifest
     }
 }

@@ -1,0 +1,11 @@
+[package]
+name = "downloader"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { version = "0.12.7", features=["blocking","gzip","brotli","deflate","native-tls","native-tls-vendored","rustls-tls-native-roots"]}
+tempfile = "3.12.0"
+thiserror = "2.0.9"
+zip = "2.2.0"
+sha256 = "1.5.0"

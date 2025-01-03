@@ -20,12 +20,13 @@ enum Commands {
     },
 }
 
-fn main() {
+fn main() -> Result<(), std::io::Error> {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Build { name } => {
-            let container = DosContainer::new(name);
-            println!("{:?}", container);
+            let container = DosContainer::new(name)?;
+            println!("{}", container.manifest());
+            Ok(())
         }
     }
 }
