@@ -26,6 +26,36 @@ pub trait Disk {
     fn volumes(&self) -> &Vec<Volume>;
     fn volumes_mut(&mut self) -> &mut Vec<Volume>;
 
+    /// Adds a volume to the disk based on its type.
+    ///
+    /// This function handles the addition of a new volume to the disk. The behavior of the
+    /// volume creation varies depending on the type of disk:
+    ///
+    /// - **Floppy disks**: For known floppy disk types (e.g., `F35_1440`, `F35_2880`, etc.),
+    ///   a single volume spanning the entire disk is created. The `start_sector` and `end_sector`
+    ///   arguments are ignored for these types, as they always use the full capacity of the disk.
+    ///   An error will be returned if a volume already exists on the disk.
+    ///
+    /// - **Hard disks**: Hard disks are not yet supported, but the functionality for adding
+    ///   multiple volumes will be implemented in the future. The current implementation for
+    ///   `HardDisk` types simply marks the code with a `todo!()` placeholder.
+    ///
+    /// # Arguments
+    ///
+    /// - `_start_sector`: The starting sector of the volume to be added (currently unused for floppies).
+    /// - `_end_sector`: The ending sector of the volume to be added (currently unused for floppies).
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result`:
+    /// - `Ok(())` if the volume was successfully added.
+    /// - `Err(DiskError)` if there was an error (e.g., a volume already exists or an invalid size).
+    ///
+    /// # Errors
+    ///
+    /// - `DiskError::VolumeAlreadyExists` if a volume already exists on the disk (for floppy disks).
+    /// - `DiskError::InvalidVolumeSize` if the disk size is invalid for volume creation (for floppy disks).
+    /// - `DiskError::NotImplemented` for `HardDisk` support, as the functionality is not yet implemented.
     fn add_volume(&mut self, _start_sector: usize, _end_sector: usize) -> Result<(), DiskError> {
         match self.disktype() {
             // Floppies have fixed, well-known sizes and will only ever have one volume
