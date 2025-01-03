@@ -365,21 +365,31 @@ pub trait Disk {
         Ok(())
     }
 
-    /// Reads a sector from the specified LBA address (index) on the disk.
+    /// Reads a sector from the disk at the specified logical block address (LBA) index.
     ///
-    /// This function checks if the given LBA index is valid, seeks to the correct position
-    /// on the disk, and reads the sector data into a buffer. It then returns the sector
-    /// as a specific type depending on the sector size.
+    /// This function seeks to the specified sector on the disk, reads the data into a buffer,
+    /// and returns the corresponding `Sector` variant based on the sector size. The function
+    /// handles different sector sizes (128, 512, 4096 bytes) and validates the integrity of the
+    /// read data against the expected sector size. If any errors occur during seeking, reading,
+    /// or size validation, the function will return a `DiskError`.
     ///
     /// # Parameters
-    /// - `index`: The logical block address (LBA) index of the sector to read.
+    /// - `index`: The logical block address (LBA) index of the sector to be read. The index is
+    ///   a 32-bit unsigned integer that specifies the sector's position on the disk.
     ///
     /// # Returns
-    /// - `Ok(Sector)`: If the read operation is successful, it returns the sector.
-    /// - `Err(DiskError)`: If an error occurs during the read operation, such as:
-    ///     - `DiskError::SectorDoesNotExist`: If the given index is out of bounds.
-    ///     - `DiskError::ReadError`: If an error occurs during reading from the disk.
-    ///     - `DiskError::InvalidSectorSize`: If the sector size is not valid.
+    /// - `Result<Sector, DiskError>`:
+    ///   - `Ok(Sector)` on success, where `Sector` is an enum variant representing the read sector.
+    ///   - `Err(DiskError)` if an error occurs during reading, seeking, or size validation.
+    ///
+    /// # Errors
+    /// - `DiskError::SectorDoesNotExist`: If the provided LBA index is out of bounds (greater
+    ///   than or equal to the total number of sectors on the disk).
+    /// - `DiskError::SeekError`: If an error occurs while seeking to the specified sector location on disk.
+    /// - `DiskError::ReadError`: If an error occurs while reading the sector's data from disk.
+    /// - `DiskError::MismatchedDataLength`: If the actual size of the data read does not match the expected
+    ///   sector size.
+    /// - `DiskError::InvalidSectorSize`: If the disk uses a sector size not supported (i.e., not 128, 512, or 4096 bytes).
     fn read_lba(&self, index: u32) -> Result<Sector, DiskError> {
         // Get sector size and validate bounds
         let sector_size = self.sector_size()?;
@@ -395,7 +405,7 @@ pub trait Disk {
             .map_err(|_| DiskError::SeekError)?;
 
         // Prepare a buffer to hold the sector data
-        let mut buffer = Vec::with_capacity(sector_size);
+        let mut buffer = vec![0u8; sector_size];
         self.file()
             .read_exact(&mut buffer)
             .map_err(|_| DiskError::ReadError)?;
@@ -407,24 +417,21 @@ pub trait Disk {
 
         // Return the sector based on the sector size
         let sector = match sector_size {
-            128 => Sector::Small(Box::new(
+            128 => Sector::Small(
                 buffer
-                    .as_slice()
                     .try_into()
                     .map_err(|_| DiskError::MismatchedDataLength)?,
-            )),
-            512 => Sector::Standard(Box::new(
+            ),
+            512 => Sector::Standard(
                 buffer
-                    .as_slice()
                     .try_into()
                     .map_err(|_| DiskError::MismatchedDataLength)?,
-            )),
-            4096 => Sector::Large(Box::new(
+            ),
+            4096 => Sector::Large(
                 buffer
-                    .as_slice()
                     .try_into()
                     .map_err(|_| DiskError::MismatchedDataLength)?,
-            )),
+            ),
             _ => return Err(DiskError::InvalidSectorSize),
         };
 
