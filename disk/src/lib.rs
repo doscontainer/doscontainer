@@ -90,7 +90,10 @@ pub trait Disk {
         }
         let data: [u8; 512] = [0xF6; 512];
         for sector in sector_offset..self.sector_count()? {
-            self.write_lba(sector.try_into().unwrap(), &data)?;
+            self.write_lba(
+                sector.try_into().map_err(|_| DiskError::SectorOutOfRange)?,
+                &data,
+            )?;
         }
         Ok(())
     }
@@ -174,7 +177,7 @@ pub trait Disk {
 
     /// Write a sector to an LBA address (index) inside the Disk.
     fn write_lba(&mut self, index: u32, data: &[u8]) -> Result<(), DiskError> {
-        let padded_data = pad_to_nearest(data)?;
+        let padded_data = Self::pad_to_nearest(data)?;
         self.file()
             .seek(SeekFrom::Start(self.sector_size()? as u64 * index as u64))?;
         self.file().write_all(&padded_data)?;
@@ -218,26 +221,48 @@ pub trait Disk {
         };
         Ok(sector)
     }
-}
 
-fn pad_to_nearest(data: &[u8]) -> Result<Vec<u8>, DiskError> {
-    // Determine the nearest target size
-    let target_size = if data.len() <= 128 {
-        128
-    } else if data.len() <= 512 {
-        512
-    } else if data.len() <= 4096 {
-        4096
-    } else {
-        return Err(DiskError::MismatchedDataLength);
-    };
+    /// Pads the given data to the nearest valid sector size.
+    ///
+    /// This function ensures that the data is padded to fit one of the following
+    /// sector sizes: 128, 512, or 4096 bytes. If the data exceeds 4096 bytes in
+    /// length, an error is returned.
+    ///
+    /// The padding is done by resizing the provided data slice to the nearest
+    /// sector size, and the new space is filled with zero bytes.
+    ///
+    /// # Parameters
+    ///
+    /// - `data`: A byte slice that contains the data to be padded. The function
+    ///   will return a padded `Vec<u8>` to match one of the valid sector sizes.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(Vec<u8>)`: A `Vec<u8>` containing the original data padded to the
+    ///   nearest valid sector size.
+    /// - `Err(DiskError::MismatchedDataLength)`: If the data is larger than 4096
+    ///   bytes, it cannot be padded to a valid sector size, and an error is returned.
+    fn pad_to_nearest(data: &[u8]) -> Result<Vec<u8>, DiskError> {
+        // Determine the nearest target size
+        let target_size = match data.len() {
+            len if len <= 128 => 128,
+            len if len <= 512 => 512,
+            len if len <= 4096 => 4096,
+            _ => return Err(DiskError::MismatchedDataLength),
+        };
 
-    // Create a new Vec with the target size, initializing with zeros
-    let mut padded_data = Vec::with_capacity(target_size);
-    padded_data.extend_from_slice(data); // Copy the existing data
+        // If the data is already the target size, return it as-is.
+        if data.len() == target_size {
+            return Ok(data.to_vec());
+        }
 
-    // If necessary, pad with zeros
-    padded_data.resize(target_size, 0);
+        // Create a new Vec with the target size and initialize with zeros, if necessary
+        let mut padded_data = Vec::with_capacity(target_size);
+        padded_data.extend_from_slice(data);
 
-    Ok(padded_data)
+        // If necessary, pad with zeros
+        padded_data.resize_with(target_size, Default::default);
+
+        Ok(padded_data)
+    }
 }
