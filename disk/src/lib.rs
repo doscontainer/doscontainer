@@ -175,12 +175,46 @@ pub trait Disk {
         self.read_lba(sector_lba)
     }
 
-    /// Write a sector to an LBA address (index) inside the Disk.
+    /// Writes a sector to the specified LBA address (index) on the disk.
+    ///
+    /// This function pads the provided data to the nearest valid sector size,
+    /// then writes it to the specified Logical Block Address (LBA) on the disk.
+    /// It calculates the position using the `sector_size` and `index`, and seeks
+    /// to the appropriate location before writing the data.
+    ///
+    /// # Parameters
+    /// - `index`: The logical block address (LBA) index of the sector to write to.
+    /// - `data`: A byte slice containing the data to write. The size will be padded
+    ///   to the nearest valid sector size (128, 512, or 4096 bytes) before writing.
+    ///
+    /// # Returns
+    /// - `Ok(())`: If the write operation completes successfully.
+    /// - `Err(DiskError)`: If an error occurs during the write operation, such as:
+    ///     - `DiskError::SectorOverflow`: If the padded data exceeds the disk's sector size.
+    ///     - `DiskError::SeekError`: If the seek operation fails.
+    ///     - `DiskError::WriteError`: If the write operation fails.
     fn write_lba(&mut self, index: u32, data: &[u8]) -> Result<(), DiskError> {
+        // Get sector size once to avoid redundant calls
+        let sector_size = self.sector_size()?;
+
+        // Pad the data to match the sector size
         let padded_data = Self::pad_to_nearest(data)?;
+
+        // Ensure the padded data fits within the sector size
+        if padded_data.len() > sector_size {
+            return Err(DiskError::SectorOverflow);
+        }
+
+        // Calculate the correct position in the file and seek to it
         self.file()
-            .seek(SeekFrom::Start(self.sector_size()? as u64 * index as u64))?;
-        self.file().write_all(&padded_data)?;
+            .seek(SeekFrom::Start(sector_size as u64 * index as u64))
+            .map_err(|_| DiskError::SeekError)?;
+
+        // Write the padded data to the disk
+        self.file()
+            .write_all(&padded_data)
+            .map_err(|_| DiskError::WriteError)?;
+
         Ok(())
     }
 

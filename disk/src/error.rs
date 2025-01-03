@@ -18,10 +18,12 @@ pub enum DiskError {
     SectorDoesNotExist,
     SectorOutOfRange,
     SectorOverflow,
+    SeekError,
     UnsupportedDiskType,
     UnsupportedOperatingSystem,
     VolumeAlreadyExists,
     VolumeDoesNotExist,
+    WriteError,
 }
 
 impl fmt::Display for DiskError {
@@ -44,10 +46,12 @@ impl fmt::Display for DiskError {
             }
             DiskError::SectorOutOfRange => write!(f, "Sector out of range."),
             DiskError::SectorOverflow => write!(f, "Unable to write more data than a sector will hold."),
+            DiskError::SeekError => write!(f, "Error seeking on disk backing store."),
             DiskError::UnsupportedDiskType => write!(f, "Unsupported disk type."),
             DiskError::UnsupportedOperatingSystem => write!(f, "Unsupported operating system."),
             DiskError::VolumeAlreadyExists => write!(f, "A volume already exists"),
             DiskError::VolumeDoesNotExist => write!(f, "Volume does not exist."),
+            DiskError::WriteError => write!(f, "Error writing to disk backing store."),
             DiskError::IoError(_) => write!(f, "IO Error!"),
         }
     }
