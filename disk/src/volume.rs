@@ -1,4 +1,20 @@
-use crate::{error::DiskError, sector::Sector, Disk};
+use crate::error::DiskError;
+
+/// Represents a volume on a disk, defined by a range of sectors.
+///
+/// A `Volume` has a start and an end sector, with its size being the difference
+/// between these two values. It provides methods to access the volume's boundaries
+/// and read sectors within it.
+///
+/// # Methods
+/// - `new`: Creates a new volume with a start and end sector. Returns an error
+///   if the end sector is not greater than the start sector.
+/// - `start_sector`: Returns the start sector of the volume.
+/// - `end_sector`: Returns the end sector of the volume.
+/// - `size`: Returns the size of the volume in sectors (i.e., the difference
+///   between the end and start sector).
+/// - `read_sector`: Reads a sector at a given index relative to the volume, returning
+///   a `Sector` or a `DiskError` in case of failure.
 
 #[derive(Debug)]
 pub struct Volume {
@@ -7,7 +23,18 @@ pub struct Volume {
 }
 
 impl Volume {
+    /// Creates a new `Volume` instance with the specified start and end sectors.
+    ///
+    /// # Parameters
+    /// - `start_sector`: The starting sector of the volume.
+    /// - `end_sector`: The ending sector of the volume.
+    ///
+    /// # Returns
+    /// - `Ok(Volume)` if the volume is valid.
+    /// - `Err(DiskError::InvalidVolumeSize)` if the `end_sector` is not greater than
+    ///   the `start_sector`.
     pub fn new(start_sector: usize, end_sector: usize) -> Result<Self, DiskError> {
+        // Ensure the end sector is greater than the start sector
         if end_sector <= start_sector {
             return Err(DiskError::InvalidVolumeSize);
         }
@@ -18,60 +45,28 @@ impl Volume {
     }
 
     /// Returns the start sector of the volume.
+    ///
+    /// # Returns
+    /// - `usize`: The start sector of the volume.
     pub fn start_sector(&self) -> usize {
         self.start_sector
     }
 
     /// Returns the end sector of the volume.
+    ///
+    /// # Returns
+    /// - `usize`: The end sector of the volume.
     pub fn end_sector(&self) -> usize {
         self.end_sector
     }
 
     /// Returns the size of the volume in sectors.
-    pub fn size(&self) -> usize {
-        self.end_sector - self.start_sector
-    }
-
-    /// Reads a sector at a given index relative to the volume itself, not the disk.
     ///
-    /// This method calculates the absolute sector address (LBA) on the underlying disk
-    /// based on the relative index within the volume and delegates the actual read
-    /// operation to the `Disk::read_lba` method. It ensures that the read operation
-    /// respects the volume's boundaries.
-    ///
-    /// # Parameters
-    /// - `disk`: A reference to a `Disk` implementation from which the data will be read.
-    /// - `index`: The zero-based index of the sector within the volume to read.
+    /// This is calculated as the difference between the `end_sector` and `start_sector`.
     ///
     /// # Returns
-    /// - `Ok(Sector)`: If the sector is successfully read.
-    /// - `Err(DiskError)`: If any of the following errors occur:
-    ///   - [`DiskError::SectorOutOfRange`]: The `index` is outside the volume's bounds or an overflow occurs when calculating the absolute LBA.
-    ///   - Errors propagated from the `Disk::read_lba` method.
-    ///
-    /// # Errors
-    /// - This method ensures that:
-    ///   - The `index` is within the valid range of the volume.
-    /// - If the `index` is out of range or any other issue occurs during the read operation, an appropriate `DiskError` is returned.
-    ///
-    /// # Calculation
-    /// The absolute LBA (Logical Block Address) is calculated as:
-    /// ```text
-    /// LBA = start_sector + index
-    /// ```
-    /// where `start_sector` is the starting sector of the volume on the disk.
-    pub fn read_sector<D: Disk>(&self, disk: &D, index: usize) -> Result<Sector, DiskError> {
-        // Ensure the index is within the bounds of the volume
-        if index >= self.size() {
-            return Err(DiskError::SectorOutOfRange);
-        }
-
-        // Calculate the absolute LBA address on the Disk
-        let lba = self
-            .start_sector
-            .checked_add(index)
-            .ok_or(DiskError::SectorOutOfRange)?;
-
-        disk.read_lba(lba.try_into()?)
+    /// - `usize`: The number of sectors in the volume.
+    pub fn size(&self) -> usize {
+        self.end_sector - self.start_sector
     }
 }

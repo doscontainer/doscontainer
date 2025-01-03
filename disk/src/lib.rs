@@ -200,6 +200,66 @@ pub trait Disk {
         Ok(())
     }
 
+    /// Reads a sector at a given index from a specified volume.
+    ///
+    /// This method retrieves a sector from a volume on the disk based on the provided
+    /// `volume_index` and `sector_index`. It checks that the volume and sector are
+    /// within bounds before performing a read operation.
+    ///
+    /// # Parameters
+    /// - `volume_index`: The zero-based index of the volume to read from.
+    /// - `sector_index`: The zero-based index of the sector within the volume.
+    ///
+    /// # Returns
+    /// - `Ok(Sector)`: The sector data from the disk as a `Sector` enum variant, representing
+    ///   the sector data in different sizes (`Small`, `Standard`, `Large`).
+    /// - `Err(DiskError)`: If any of the following errors occur:
+    ///   - [`DiskError::VolumeDoesNotExist`]: The provided `volume_index` is out of bounds,
+    ///     meaning the specified volume does not exist.
+    ///   - [`DiskError::SectorOutOfRange`]: The provided `sector_index` is out of bounds for the
+    ///     specified volume, or an overflow occurs during LBA calculation.
+    ///
+    /// # Errors
+    /// - This method ensures that:
+    ///   - The `volume_index` is within the valid range of volumes.
+    ///   - The `sector_index` is within the valid range of the specified volume.
+    /// - If the index is out of range or any other issue occurs during the read operation,
+    ///   an appropriate `DiskError` is returned.
+    ///
+    /// # Calculation
+    /// The absolute Logical Block Address (LBA) of the sector is calculated as:
+    /// ```text
+    /// LBA = volume.start_sector() + sector_index
+    /// ```
+    /// where `start_sector()` is the first sector of the volume on the disk and `sector_index`
+    /// is the index of the sector within the volume.
+    fn volume_read_sector(
+        &self,
+        volume_index: usize,
+        sector_index: usize,
+    ) -> Result<Sector, DiskError> {
+        // Ensure we have a volume at the requested index
+        if self.volumes().len() <= volume_index {
+            return Err(DiskError::VolumeDoesNotExist);
+        }
+
+        let volume = &self.volumes()[volume_index];
+
+        // Ensure we're reading within bounds of the volume itself
+        if sector_index >= volume.size() {
+            return Err(DiskError::SectorOutOfRange);
+        }
+
+        // Perform the sector translation
+        let lba = volume
+            .start_sector()
+            .checked_add(sector_index)
+            .ok_or(DiskError::SectorOutOfRange)?;
+
+        // Read the sector from the disk using the calculated LBA
+        self.read_lba(lba.try_into()?)
+    }
+
     /// Writes a sector to the specified volume on the disk.
     ///
     /// # Parameters
