@@ -75,15 +75,15 @@ impl Geometry {
         }
     }
 
-    pub fn get_cylinders(&self) -> usize {
+    pub fn cylinders(&self) -> usize {
         self.cylinders
     }
 
-    pub fn get_heads(&self) -> usize {
+    pub fn heads(&self) -> usize {
         self.heads
     }
 
-    pub fn get_sectors(&self) -> usize {
+    pub fn sectors(&self) -> usize {
         self.sectors
     }
 }

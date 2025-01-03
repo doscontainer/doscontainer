@@ -37,7 +37,7 @@ impl Disk for Floppy {
 
     fn sector_count(&self) -> Result<usize, DiskError> {
         let geometry = self.geometry()?;
-        Ok(geometry.get_cylinders() * geometry.get_heads() * geometry.get_sectors())
+        Ok(geometry.cylinders() * geometry.heads() * geometry.sectors())
     }
 
     fn sector_size(&self) -> Result<usize, DiskError> {

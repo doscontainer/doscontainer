@@ -53,9 +53,9 @@ impl CHS {
     ///   of sectors on the disk as determined by the geometry.
     ///
     pub fn from_lba(lba: u32, geometry: &Geometry) -> Result<Self, DiskError> {
-        let sectors_per_track = u32::try_from(geometry.get_sectors())?;
-        let heads_per_cylinder = u32::try_from(geometry.get_heads())?;
-        let cylinders = u32::try_from(geometry.get_cylinders())?;
+        let sectors_per_track = u32::try_from(geometry.sectors())?;
+        let heads_per_cylinder = u32::try_from(geometry.heads())?;
+        let cylinders = u32::try_from(geometry.cylinders())?;
 
         // Check if sectors_per_track or heads_per_cylinder is zero
         if sectors_per_track == 0 || heads_per_cylinder == 0 {
@@ -125,19 +125,19 @@ impl CHS {
     ///
     pub fn to_lba(&self, geometry: &Geometry) -> Result<u32, DiskError> {
         // Check for out-of-range values based on the geometry
-        if geometry.get_cylinders() <= self.cylinder {
+        if geometry.cylinders() <= self.cylinder {
             return Err(DiskError::CylinderOutOfRange);
         }
-        if geometry.get_heads() <= self.head {
+        if geometry.heads() <= self.head {
             return Err(DiskError::HeadOutOfRange);
         }
-        if self.sector == 0 || geometry.get_sectors() < self.sector {
+        if self.sector == 0 || geometry.sectors() < self.sector {
             return Err(DiskError::SectorOutOfRange);
         }
 
         // Formula: LBA = (C * H_max * S_max) + (H * S_max) + (S - 1)
-        let sectors_per_track = u32::try_from(geometry.get_sectors())?;
-        let heads_per_cylinder = u32::try_from(geometry.get_heads())?;
+        let sectors_per_track = u32::try_from(geometry.sectors())?;
+        let heads_per_cylinder = u32::try_from(geometry.heads())?;
 
         let lba = (u32::try_from(self.cylinder)? * heads_per_cylinder * sectors_per_track)
             + (u32::try_from(self.head)? * sectors_per_track)
