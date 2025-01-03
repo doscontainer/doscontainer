@@ -74,8 +74,8 @@ pub trait Disk {
     ///
     /// # Returns
     ///
-    /// Returns a `DiskType` representing the type of the disk.
-    fn disktype(&self) -> DiskType;
+    /// Returns a reference to a `DiskType` representing the type of the disk.
+    fn disktype(&self) -> &DiskType;
 
     /// Returns a reference to the list of volumes on the disk.
     ///

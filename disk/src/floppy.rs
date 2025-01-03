@@ -48,8 +48,8 @@ impl Disk for Floppy {
         &self.file
     }
 
-    fn disktype(&self) -> DiskType {
-        self.disktype.clone()
+    fn disktype(&self) -> &DiskType {
+        &self.disktype
     }
 
     fn volumes(&self) -> &Vec<Volume> {
