@@ -14,6 +14,10 @@ pub enum DownloadError {
     FtpStreamReadError,
     /// Failed to set FTP transfer type
     FtpTransferTypeError,
+    /// HTTP Request error
+    HttpRequestError,
+    /// HTTP Response error
+    HttpResponseError,
     /// Invalid URL
     InvalidUrl,
     /// Failed to create local file
@@ -38,6 +42,8 @@ impl std::fmt::Display for DownloadError {
             DownloadError::FtpDisconnectError => { write!(f, "Error occured when disconnecting from FTP server.")},
             DownloadError::FtpStreamReadError => { write!(f, "Error while reading the FTP data stream.")},
             DownloadError::FtpTransferTypeError => { write!(f, "Unable to set the FTP transfer type.")},
+            DownloadError::HttpRequestError => { write!(f, "HTTP request error.")},
+            DownloadError::HttpResponseError => { write!(f, "HTTP respons error.")},
             DownloadError::InvalidUrl => { write!(f, "Invalid URL given.")},
             DownloadError::LocalFileCreationError => { write!(f, "Failed to create local file for download.")},
             DownloadError::LocalFileWriteError => { write!(f, "Failed to write bytes to the destination file.")}

@@ -1,12 +1,7 @@
-use std::{
-    fs::File,
-    io::{Read, Write},
-    path::PathBuf,
-};
+use std::{fs::File, io::Write, path::{Path, PathBuf}};
 
 use error::DownloadError;
 use ftp::{FtpError, FtpStream};
-use reqwest::{blocking::Client, header::RANGE};
 use tempfile::TempDir;
 use url::Url; // Add FTP support with the `ftp` crate.
 
@@ -21,9 +16,12 @@ pub struct Downloader {
 impl Downloader {
     pub fn new(url: &str) -> Result<Self, DownloadError> {
         let zipdir = TempDir::new().map_err(|_| DownloadError::ZipDirCreateFailed)?;
-        let zipfile = PathBuf::new();
-
-        Ok(Downloader { zipfile, zipdir })
+        let mut downloader = Downloader {
+            zipfile: PathBuf::new(),
+            zipdir,
+        };
+        downloader.set_zipfile(downloader.download_zip(url)?);
+        Ok(downloader)
     }
 
     /// Downloads a ZIP file from a given URL and saves it to a local temporary file.
@@ -53,10 +51,20 @@ impl Downloader {
     pub fn download_zip(&self, url: &str) -> Result<PathBuf, DownloadError> {
         let parsed_url = Url::parse(url).map_err(|_| DownloadError::InvalidUrl)?; // Validate and parse the URL
         match parsed_url.scheme() {
-            "http" | "https" => Self::download_http(url),
+            "http" | "https" => self.download_http(url),
             "ftp" => self.download_ftp(url),
             _ => Err(DownloadError::UnsupportedScheme),
         }
+    }
+
+    /// Simple setter for the zipfile field.
+    pub fn set_zipfile(&mut self, zipfile: PathBuf) {
+        self.zipfile = zipfile;
+    }
+
+    /// Simple getter for the zipfile path.
+    pub fn zipfile(&self) -> &Path {
+        &self.zipfile
     }
 
     /// Downloads a file from an FTP server and saves it in a temporary directory.
@@ -168,8 +176,71 @@ impl Downloader {
         Ok(filepath)
     }
 
-    fn download_http(url: &str) -> Result<PathBuf, DownloadError> {
-        let parsed_url = Url::parse(url).map_err(|_| DownloadError::InvalidUrl)?;
-        Ok(PathBuf::new())
+    /// Downloads a file over HTTP or HTTPS and saves it in a temporary directory.
+    ///
+    /// # Parameters
+    /// - `url`: A string slice representing the HTTP or HTTPS URL to download from.
+    ///
+    /// # Returns
+    /// - `Ok(PathBuf)`: The path to the downloaded file in the temporary directory.
+    /// - `Err(DownloadError)`: An error if the download fails at any stage.
+    ///
+    /// # Errors
+    /// - `DownloadError::InvalidUrl`: If the URL is invalid or cannot be parsed.
+    /// - `DownloadError::UnsupportedScheme`: If the URL does not use `http` or `https`.
+    /// - `DownloadError::HttpRequestError`: If the HTTP request fails.
+    /// - `DownloadError::HttpResponseError`: If the HTTP response status is not successful (non-2xx).
+    /// - `DownloadError::LocalFileCreationError`: If the file cannot be created in the temporary directory.
+    /// - `DownloadError::LocalFileWriteError`: If writing to the local file fails.
+    ///
+    /// # Details
+    /// 1. **Validation**: The URL is parsed and validated to ensure it uses the `http` or `https` scheme.  
+    ///    The path must contain a valid file name.
+    /// 2. **Temporary Directory**: The file is saved in the directory specified by `self.zipdir`.
+    /// 3. **HTTP Request**: The function sends an HTTP request using `attohttpc` and ensures the response is successful.
+    /// 4. **File Handling**: The response body is written to a file in the temporary directory.
+    pub fn download_http(&self, url: &str) -> Result<PathBuf, DownloadError> {
+        // Validate and parse the input URL.
+        let parsed_url = url::Url::parse(url).map_err(|_| DownloadError::InvalidUrl)?;
+
+        // Ensure the URL uses HTTP or HTTPS.
+        let scheme = parsed_url.scheme();
+        if scheme != "http" && scheme != "https" {
+            return Err(DownloadError::UnsupportedScheme);
+        }
+
+        // Extract the file name from the URL's path.
+        let path = parsed_url.path();
+        let file_name = path.split('/').last().ok_or(DownloadError::InvalidUrl)?;
+        if file_name.is_empty() {
+            return Err(DownloadError::InvalidUrl);
+        }
+
+        // Create the full path for the file in the temporary directory.
+        let filepath = self.zipdir.path().join(file_name);
+
+        // Send the HTTP request and retrieve the response.
+        let response = attohttpc::get(url)
+            .send()
+            .map_err(|_| DownloadError::HttpRequestError)?;
+
+        // Ensure the response status is successful (2xx).
+        if !response.is_success() {
+            return Err(DownloadError::HttpResponseError);
+        }
+
+        // Create the file in the temporary directory.
+        let mut file =
+            File::create(&filepath).map_err(|_| DownloadError::LocalFileCreationError)?;
+
+        // Write the response body to the file.
+        let mut content = response
+            .bytes()
+            .map_err(|_| DownloadError::HttpRequestError)?;
+        file.write_all(&mut content)
+            .map_err(|_| DownloadError::LocalFileWriteError)?;
+
+        // Return the path to the downloaded file.
+        Ok(filepath)
     }
 }
