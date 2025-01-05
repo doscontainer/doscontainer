@@ -39,8 +39,8 @@ impl fmt::Display for Layer {
 }
 
 impl Layer {
-    pub fn url(&self) -> String {
-        self.url.to_owned()
+    pub fn url(&self) -> &str {
+        &self.url
     }
 
     pub fn label(&self) -> String {
@@ -49,6 +49,10 @@ impl Layer {
         } else {
             self.url.to_owned()
         }
+    }
+
+    pub fn checksum(&self) -> Option<&str> {
+        self.checksum.as_deref()
     }
 }
 
