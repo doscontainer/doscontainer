@@ -6,7 +6,5 @@ edition = "2021"
 [dependencies]
 ftp = "3.0.1"
 attohttpc = { version = "0.28.2", features=["tls-native-vendored"]}
-sha256 = "1.5.0"
 tempfile = "3.12.0"
 url = "2.5.4"
-zip = "2.2.0"
