@@ -59,6 +59,38 @@ impl Downloader {
         }
     }
 
+    /// Downloads a file from an FTP server and saves it in a temporary directory.
+    ///
+    /// # Parameters
+    /// - `url`: A string slice representing the FTP URL to download from. The URL must be valid,
+    ///   conform to the FTP protocol, and specify the file path.
+    ///
+    /// # Returns
+    /// - `Ok(PathBuf)`: The path to the downloaded file in the temporary directory.
+    /// - `Err(DownloadError)`: An error if the download fails at any stage.
+    ///
+    /// # Errors
+    /// - `DownloadError::InvalidUrl`: If the URL is invalid or cannot be parsed.
+    /// - `DownloadError::UnsupportedScheme`: If the URL does not use the `ftp` scheme.
+    /// - `DownloadError::PathIsEmpty`: If the URL does not specify a path.
+    /// - `DownloadError::FileNameIsEmpty`: If the URL path does not contain a valid file name.
+    /// - `DownloadError::FtpConnectionError`: If the connection to the FTP server fails.
+    /// - `DownloadError::FtpAuthenticationError`: If authentication with the FTP server fails.
+    /// - `DownloadError::FtpTransferTypeError`: If switching to binary transfer mode fails.
+    /// - `DownloadError::FtpStreamReadError`: If an error occurs while reading the file stream.
+    /// - `DownloadError::FtpDisconnectError`: If disconnecting from the FTP server fails.
+    ///
+    /// # Details
+    /// 1. **Validation**: The URL is validated to ensure it is well-formed, uses the `ftp` scheme,
+    ///    and contains a valid path and file name.
+    /// 2. **Temporary Directory**: The downloaded file is stored in a temporary directory managed by `self.zipdir`.
+    /// 3. **FTP Connection**: The function connects to the FTP server using the host and port extracted
+    ///    from the URL. If no port is specified, the default port `21` is used.
+    /// 4. **Authentication**: The function authenticates using the username and password provided in the
+    ///    URL. If no credentials are provided, it defaults to anonymous authentication.
+    /// 5. **File Transfer**: The file is transferred in binary mode and saved to the temporary directory.
+    ///    A buffer is used for efficient reading and writing.
+    /// 6. **Cleanup**: The FTP connection is gracefully closed after the transfer.
     fn download_ftp(&self, url: &str) -> Result<PathBuf, DownloadError> {
         // Validate and parse the input URL.
         let parsed_url = Url::parse(url).map_err(|_| DownloadError::InvalidUrl)?;
@@ -110,7 +142,7 @@ impl Downloader {
             .map_err(|_| DownloadError::FtpTransferTypeError)?;
 
         // Start retrieving the file.
-        let result = ftp.retr(path, |mut stream| {
+        ftp.retr(path, |stream| {
             let mut local_file =
                 File::create(&filepath).map_err(|e| FtpError::ConnectionError(e))?;
             let mut buffer = [0u8; 8192];
@@ -126,7 +158,8 @@ impl Downloader {
                     .map_err(|e| FtpError::ConnectionError(e))?;
             }
             Ok(())
-        });
+        })
+        .map_err(|_| DownloadError::FtpStreamReadError)?;
 
         // Close the FTP connection gracefully.
         ftp.quit().map_err(|_| DownloadError::FtpDisconnectError)?;
