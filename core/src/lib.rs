@@ -4,7 +4,6 @@ mod layer;
 use std::{
     fs::File,
     io::{copy, BufReader, Read},
-    os::unix::fs::PermissionsExt,
     path::Path,
 };
 
