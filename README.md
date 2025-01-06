@@ -16,12 +16,22 @@ of possible permutations between all of those moving parts.
 In order to help collection builders, DOSContainer aims to facilitate the quick creation
 of pristine disk image files that make up a collection. You tweak the manifest file that
 serves as input, then DOSContainer pops out a cleanly generated new disk image that is
-configured precisely to your specifications.
+configured precisely to your specifications:
 
-You want all of your hundreds of games to boot with EGA configured and Roland MT-32 sound?
-DOSContainer makes it easy to do that. It also makes it easy to change your mind and
-upgrade to VGA later on, or swap in a newer version of your mouse driver across thousands
-of disk images in a single go.
+- File format suitable for use in emulators or for copying straight to old hardware.
+- 100% correct boot sector code
+- FAT filesystem quirks correspond with the OS version.
+- Install bare minimal base OS
+- Middleware, drivers, memory management etc.
+- Your game or application itself
+- Autoboot configuration in AUTOEXEC.BAT
+
+## Use case?
+You want all of your hundreds of games to boot with EGA configured and Roland MT-32 sound
+for the old retro setup you have in the attic? DOSContainer makes it easy to do that. It 
+also makes it easy to do the exact same thing but for VGA and SoundBlaster Pro audio for 
+the MiSTer in your living room. Did the world move on and deliver a new mouse driver? Swap 
+it in across thousands of image files without breaking a sweat.
 
 ## Current status
 
