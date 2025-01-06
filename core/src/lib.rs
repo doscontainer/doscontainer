@@ -3,7 +3,8 @@ mod layer;
 
 use std::{
     fs::File,
-    io::Read,
+    io::{copy, BufReader, Read},
+    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
 };
 
@@ -11,18 +12,20 @@ use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
 use sha2::{Digest, Sha256};
+use tempfile::TempDir;
+use zip::ZipArchive;
 
 #[derive(Debug)]
 pub struct DosContainer {
     manifest: Manifest,
-    zipfiles: Vec<PathBuf>,
+    staging_dir: TempDir,
 }
 
 impl DosContainer {
     pub fn new(manifest: &Path) -> Result<Self, std::io::Error> {
         Ok(DosContainer {
             manifest: Manifest::load(manifest)?,
-            zipfiles: Vec::new(),
+            staging_dir: TempDir::new()?,
         })
     }
 
@@ -30,30 +33,79 @@ impl DosContainer {
         &self.manifest
     }
 
-    /// Downloads all the ZIP files specified by the layers in the manifest and verifies their checksums (if provided).
+    /// Downloads and extracts layers defined in the manifest.
     ///
-    /// # Description
-    /// This function iterates through the layers defined in the manifest, downloads the ZIP files from the specified URLs,
-    /// verifies their checksums if a checksum is provided, and stores the paths to the downloaded files in the `zipfiles` field.
+    /// This function iterates over each layer in the `manifest.layers` field, downloading the
+    /// corresponding ZIP file, verifying its checksum (if provided), and extracting its contents
+    /// into the specified `staging_dir`. It handles both files and directories within the ZIP
+    /// archive and sets appropriate permissions on Unix-based systems.
     ///
-    /// # Errors
-    /// This function returns a `CoreError` in the following cases:
-    /// - `CoreError::DownloadError`: If the downloader fails to initialize or download the file.
-    /// - `CoreError::ChecksumError`: If a checksum is provided for a layer but it does not match the computed checksum of the file.
-    /// - `CoreError`: If `verify_checksum` encounters an error while verifying the file's checksum.
+    /// # Process:
+    /// 1. Initializes a `Downloader` for each layer's URL.
+    /// 2. Retrieves the ZIP file path from the downloader and opens the file.
+    /// 3. Verifies the checksum (if provided) against the downloaded file.
+    /// 4. Extracts the ZIP file’s contents, handling directories and files appropriately:
+    ///    - Creates any necessary parent directories for files.
+    ///    - Writes extracted files to disk.
+    /// 5. Optionally sets file permissions on Unix-based systems based on the ZIP archive’s metadata.
     ///
-    /// # Returns
-    /// - `Ok(())`: If all layers are successfully downloaded and verified.
-    /// - `Err(CoreError)`: If an error occurs during the download or verification process.
+    /// # Errors:
+    /// The function returns a `CoreError` if any of the following occurs:
+    /// - A failure to download or read the ZIP file (`CoreError::FileReadError`).
+    /// - A mismatch between the provided checksum and the downloaded file (`CoreError::ChecksumError`).
+    /// - An error opening the ZIP file (`CoreError::ZipFileOpenError`).
+    /// - A failure to create directories or files (`CoreError::CreateDirError`, `CoreError::CreateFileError`).
+    /// - A failure during file extraction (`CoreError::ZipFileWriteError`).
+    /// - A failure setting file permissions on Unix-based systems (`CoreError::PermissionError`).
     pub fn download_layers(&mut self) -> Result<(), CoreError> {
         for layer in &self.manifest.layers {
             let downloader = Downloader::new(layer.url()).map_err(|_| CoreError::DownloadError)?;
+
+            // Retrieve the zipfile path
+            let zipfile_path = downloader.zipfile();
+
+            // Open the file at the given path
+            let zipfile = File::open(zipfile_path).map_err(|_| CoreError::FileReadError)?;
+
+            // Verify the checksum
             if let Some(checksum) = layer.checksum() {
-                if !self.verify_layer_checksum(downloader.zipfile(), checksum)? {
+                if !self.verify_layer_checksum(&zipfile_path, checksum)? {
                     return Err(CoreError::ChecksumError);
                 }
             }
-            self.zipfiles.push(downloader.zipfile().to_path_buf());
+
+            // Use the opened file for the ZipArchive
+            let mut archive = ZipArchive::new(BufReader::new(zipfile))
+                .map_err(|_| CoreError::ZipFileOpenError)?;
+
+            // Iterate through the ZIP file's entries
+            for i in 0..archive.len() {
+                let mut file = archive.by_index(i).map_err(|_| CoreError::DownloadError)?;
+                let out_path = &self.staging_dir.path().join(file.name());
+
+                // Handle directories and files differently
+                if file.is_dir() {
+                    std::fs::create_dir_all(&out_path).map_err(|_| CoreError::CreateDirError)?;
+                } else {
+                    // Create parent directories if necessary
+                    if let Some(parent) = out_path.parent() {
+                        std::fs::create_dir_all(parent).map_err(|_| CoreError::CreateDirError)?;
+                    }
+
+                    // Write file contents
+                    let mut out_file =
+                        File::create(&out_path).map_err(|_| CoreError::CreateFileError)?;
+                    copy(&mut file, &mut out_file).map_err(|_| CoreError::ZipFileWriteError)?;
+                }
+
+                // Optional: set file permissions if needed
+                #[cfg(unix)]
+                if let Some(mode) = file.unix_mode() {
+                    use std::fs;
+                    fs::set_permissions(&out_path, fs::Permissions::from_mode(mode))
+                        .map_err(|_| CoreError::PermissionError)?;
+                }
+            }
         }
         Ok(())
     }
