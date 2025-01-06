@@ -97,14 +97,6 @@ impl DosContainer {
                         File::create(&out_path).map_err(|_| CoreError::CreateFileError)?;
                     copy(&mut file, &mut out_file).map_err(|_| CoreError::ZipFileWriteError)?;
                 }
-
-                // Optional: set file permissions if needed
-                #[cfg(unix)]
-                if let Some(mode) = file.unix_mode() {
-                    use std::fs;
-                    fs::set_permissions(&out_path, fs::Permissions::from_mode(mode))
-                        .map_err(|_| CoreError::PermissionError)?;
-                }
             }
         }
         Ok(())
