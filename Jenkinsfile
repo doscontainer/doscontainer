@@ -66,7 +66,7 @@ pipeline {
             sh 'mkdir upload/linux_x86_64'
             sh 'mkdir upload/windows_x86_64'
             sh 'mkdir upload/windows_x86'
-            sh 'cp target/armv7-unknown-linux-musleabihf/release/cliupload/linux_armv7/doscontainer'
+            sh 'cp target/armv7-unknown-linux-musleabihf/release/cli upload/linux_armv7/doscontainer'
             sh 'cp target/i686-pc-windows-gnu/release/cli.exe upload/windows_x86/doscontainer.exe'
             sh 'cp target/x86_64-pc-windows-gnu/release/cli.exe upload/windows_x86_64/doscontainer.exe'
             sh 'cp target/release/cli upload/linux_x86_64/doscontainer'
