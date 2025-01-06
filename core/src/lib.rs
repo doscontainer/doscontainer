@@ -5,7 +5,7 @@ use std::{
     fs::File,
     io::{copy, BufReader, Read},
     os::unix::fs::PermissionsExt,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use downloader::Downloader;
