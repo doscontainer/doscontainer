@@ -24,7 +24,7 @@ pipeline {
           } 
             steps {
               sh 'cargo build --release'
-              sh 'upx target/release/doscontainer'
+              sh 'upx target/release/cli'
           }
         }
         stage('Build Windows x86-64') {
@@ -33,7 +33,7 @@ pipeline {
           } 
           steps {
             sh 'cross build --release --target x86_64-pc-windows-gnu'
-            sh 'upx --force target/x86_64-pc-windows-gnu/release/doscontainer.exe'
+            sh 'upx --force target/x86_64-pc-windows-gnu/release/cli.exe'
           }
         }
         stage('Build Windows x86') {
@@ -42,7 +42,7 @@ pipeline {
           } 
           steps {
             sh 'cross build --release --target i686-pc-windows-gnu'
-            sh 'upx --force target/i686-pc-windows-gnu/release/doscontainer.exe'
+            sh 'upx --force target/i686-pc-windows-gnu/release/cli.exe'
           }
         }
         stage('Build ARMv7 (MiSTer native)') {
@@ -51,7 +51,7 @@ pipeline {
           } 
           steps {
             sh 'cross build --release --target armv7-unknown-linux-musleabihf'
-            sh 'upx target/armv7-unknown-linux-musleabihf/release/doscontainer'
+            sh 'upx target/armv7-unknown-linux-musleabihf/release/cli'
           }
         }
         stage('Malware scan') {
