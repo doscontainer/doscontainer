@@ -1,6 +1,8 @@
 mod error;
+mod gamemetadata;
 
 use error::ManifestError;
+use gamemetadata::GameMetadata;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt,
@@ -9,23 +11,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct GameMetadata {
-    title: String,
-    publisher: String,
-    year: u32,
-    comment: Option<String>,
-}
 
-impl fmt::Display for GameMetadata {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Title            : {}\nPublisher        : {}\nYear             : {}\nComment          : {}\n",
-            self.title, self.publisher, self.year, self.comment.as_deref().unwrap_or("N/A")
-        )
-    }
-}
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Layer {
     url: String,
