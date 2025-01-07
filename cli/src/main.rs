@@ -24,9 +24,8 @@ fn main() -> Result<(), std::io::Error> {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Build { name } => {
-            let mut container = DosContainer::new(name)?;
+            let mut container = DosContainer::new(name).unwrap();
             container.download_layers().expect("BLAM!");
-            println!("DEBUG: {:?}", container);
             println!("Press key");
             let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
             Ok(())

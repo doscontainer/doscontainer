@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+disk = { path="../disk" }
 downloader = { path="../downloader" }
 manifest = { path="../manifest" }
 sha2 = { workspace = true }

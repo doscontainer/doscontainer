@@ -244,8 +244,8 @@ impl Manifest {
         "ide".to_string()
     }
 
-    pub fn disktype(&self) -> String {
-        self.disk.disktype.clone()
+    pub fn disktype(&self) -> &str {
+        &self.disk.disktype
     }
 
     pub fn diskfile(&self) -> PathBuf {

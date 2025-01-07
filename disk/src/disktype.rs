@@ -102,6 +102,21 @@ impl HardDiskType {
 }
 
 impl DiskType {
+    pub fn new(disktype: &str) -> Result<DiskType, DiskError> {
+        Ok(match disktype.to_ascii_lowercase().trim() {
+            "f35_720" => Self::F35_720,
+            "f35_1440" => Self::F35_1440,
+            "f35_2880" => Self::F35_2880,
+            "f525_160" => Self::F525_160,
+            "f525_180" => Self::F525_180,
+            "f525_320" => Self::F525_320,
+            "f525_360" => Self::F525_360,
+            "f525_1200" => Self::F525_1200,
+            "harddisk" => Self::HardDisk,
+            _ => return Err(DiskError::ConversionError),
+        })
+    }
+
     /// Returns the media descriptor byte associated with the disk type.
     ///
     /// The media descriptor is a single byte that identifies the type of media.

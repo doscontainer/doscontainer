@@ -3,6 +3,7 @@ pub enum CoreError {
     ChecksumError,
     CreateFileError,
     CreateDirError,
+    DiskTypeError,
     DownloadError,
     FileReadError,
     PermissionError,

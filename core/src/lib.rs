@@ -6,6 +6,7 @@ use std::{
     path::Path,
 };
 
+use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
@@ -13,17 +14,23 @@ use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-#[derive(Debug)]
 pub struct DosContainer {
+    disk: Box<dyn Disk>,
     manifest: Manifest,
     staging_dir: TempDir,
 }
 
 impl DosContainer {
-    pub fn new(manifest: &Path) -> Result<Self, std::io::Error> {
+    pub fn new(manifest: &Path) -> Result<Self, CoreError> {
+        let loaded_manifest = Manifest::load(manifest).map_err(|_| CoreError::DiskTypeError)?;
+        let disktype =
+            DiskType::new(loaded_manifest.disktype()).map_err(|_| CoreError::DiskTypeError)?;
+        let disk = Floppy::new(disktype, loaded_manifest.diskfile())
+            .map_err(|_| CoreError::CreateFileError)?;
         Ok(DosContainer {
-            manifest: Manifest::load(manifest)?,
-            staging_dir: TempDir::new()?,
+            disk: Box::new(disk),
+            manifest: loaded_manifest,
+            staging_dir: TempDir::new().map_err(|_| CoreError::CreateDirError)?,
         })
     }
 
