@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ftp = "3.0.1"
-attohttpc = { version = "0.28.2", features=["tls-native-vendored"]}
-tempfile = "3.12.0"
-url = "2.5.4"
+attohttpc = { workspace = true }
+ftp = { workspace = true }
+tempfile = { workspace = true }
+url = { workspace = true }
