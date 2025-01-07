@@ -1,8 +1,10 @@
 mod error;
 mod gamemetadata;
+mod layer;
 
 use error::ManifestError;
 use gamemetadata::GameMetadata;
+use layer::Layer;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt,
@@ -10,44 +12,6 @@ use std::{
     io::Read,
     path::{Path, PathBuf},
 };
-
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Layer {
-    url: String,
-    checksum: Option<String>,
-    label: Option<String>,
-}
-
-impl fmt::Display for Layer {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "URL              : {}\nLabel            : {}\nChecksum         : {}\n",
-            self.url,
-            self.label.as_deref().unwrap_or("N/A"),
-            self.checksum.as_deref().unwrap_or("N/A")
-        )
-    }
-}
-
-impl Layer {
-    pub fn url(&self) -> &str {
-        &self.url
-    }
-
-    pub fn label(&self) -> String {
-        if self.label.is_some() {
-            self.label.clone().unwrap()
-        } else {
-            self.url.to_owned()
-        }
-    }
-
-    pub fn checksum(&self) -> Option<&str> {
-        self.checksum.as_deref()
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize)]
 struct GameConfig {
@@ -172,31 +136,17 @@ impl OperatingSystem {
     /// Converts the OS to a Layer so we can download the assets
     pub fn as_layer(&self) -> Result<Layer, ManifestError> {
         match self.version.as_str() {
-            "IBMDOS100" => Ok(Self::ibmdos_100_layer()),
-            "IBMDOS110" => Ok(Self::ibmdos_110_layer()),
+            "IBMDOS100" => Ok(Layer::new(
+                "https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip",
+                Some("IBM PC-DOS 1.00"),
+                Some("fb2bd093c3d9019e07711ef9202ac6299dc697932aef47b2b2d7ce5926be9118"),
+            )),
+            "IBMDOS110" => Ok(Layer::new(
+                "https://dosk8s-dist.area536.com/ibm-pc-dos-110-bootstrap.zip",
+                Some("IBM PC-DOS 1.10"),
+                Some("feb7d0854312a96af6a94b469ad42f907d71ff695b30f742379f810aa73e6acd"),
+            )),
             _ => Err(ManifestError::UnsupportedOperatingSystem),
-        }
-    }
-
-    /// Construct a Layer for IBM PC-DOS 1.00
-    fn ibmdos_100_layer() -> Layer {
-        Layer {
-            url: "https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip".to_string(),
-            label: Some("IBM PC-DOS 1.00".to_string()),
-            checksum: Some(
-                "fb2bd093c3d9019e07711ef9202ac6299dc697932aef47b2b2d7ce5926be9118".to_string(),
-            ),
-        }
-    }
-
-    /// Construct a Layer for IBM PC-DOS 1.10
-    fn ibmdos_110_layer() -> Layer {
-        Layer {
-            url: "https://dosk8s-dist.area536.com/ibm-pc-dos-110-bootstrap.zip".to_string(),
-            label: Some("IBM PC-DOS 1.10".to_string()),
-            checksum: Some(
-                "feb7d0854312a96af6a94b469ad42f907d71ff695b30f742379f810aa73e6acd".to_string(),
-            ),
         }
     }
 }
