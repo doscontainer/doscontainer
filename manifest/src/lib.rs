@@ -1,6 +1,13 @@
-use std::{fmt, fs::File, io::Read, path::{Path, PathBuf}};
+mod error;
 
+use error::ManifestError;
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt,
+    fs::File,
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GameMetadata {
@@ -103,7 +110,7 @@ pub struct Disk {
     pub filesystem: String,
     #[serde(default = "default_disktype")]
     pub disktype: String,
-    #[serde(default= "default_harddisktype")]
+    #[serde(default = "default_harddisktype")]
     pub harddisktype: String,
     pub geometry: Option<Geometry>,
 }
@@ -139,7 +146,7 @@ impl Disk {
         }
     }
 }
-        
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OperatingSystem {
     pub version: String,
@@ -173,6 +180,37 @@ impl OperatingSystem {
             "minimal" => "Minimal installation.".to_string(),
             "fullinstall" => "Full installation".to_string(),
             _ => self.version.clone(),
+        }
+    }
+
+    /// Converts the OS to a Layer so we can download the assets
+    pub fn as_layer(&self) -> Result<Layer, ManifestError> {
+        match self.version.as_str() {
+            "IBMDOS100" => Ok(Self::ibmdos_100_layer()),
+            "IBMDOS110" => Ok(Self::ibmdos_110_layer()),
+            _ => Err(ManifestError::UnsupportedOperatingSystem),
+        }
+    }
+
+    /// Construct a Layer for IBM PC-DOS 1.00
+    fn ibmdos_100_layer() -> Layer {
+        Layer {
+            url: "https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip".to_string(),
+            label: Some("IBM PC-DOS 1.00".to_string()),
+            checksum: Some(
+                "fb2bd093c3d9019e07711ef9202ac6299dc697932aef47b2b2d7ce5926be9118".to_string(),
+            ),
+        }
+    }
+
+    /// Construct a Layer for IBM PC-DOS 1.10
+    fn ibmdos_110_layer() -> Layer {
+        Layer {
+            url: "https://dosk8s-dist.area536.com/ibm-pc-dos-110-bootstrap.zip".to_string(),
+            label: Some("IBM PC-DOS 1.10".to_string()),
+            checksum: Some(
+                "feb7d0854312a96af6a94b469ad42f907d71ff695b30f742379f810aa73e6acd".to_string(),
+            ),
         }
     }
 }
@@ -231,8 +269,9 @@ impl Manifest {
         let mut file = File::open(yaml_path)?;
         let mut yaml = String::new();
         file.read_to_string(&mut yaml)?;
-        let manifest: Manifest =
+        let mut manifest: Manifest =
             serde_yaml::from_str(&yaml).expect("Failed to convert YAML to Manifest.");
+        manifest.layers.push(manifest.os.as_layer().unwrap());
         Ok(manifest)
     }
 
@@ -250,6 +289,10 @@ impl Manifest {
 
     pub fn diskfile(&self) -> PathBuf {
         self.disk.name.clone()
+    }
+
+    pub fn operating_system(&self) -> &OperatingSystem {
+        &self.os
     }
 }
 

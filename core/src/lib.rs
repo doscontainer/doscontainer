@@ -10,6 +10,7 @@ use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
+use manifest::OperatingSystem;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::ZipArchive;
@@ -22,7 +23,7 @@ pub struct DosContainer {
 
 impl DosContainer {
     pub fn new(manifest: &Path) -> Result<Self, CoreError> {
-        let loaded_manifest = Manifest::load(manifest).map_err(|_| CoreError::DiskTypeError)?;
+        let mut loaded_manifest = Manifest::load(manifest).map_err(|_| CoreError::DiskTypeError)?;
         let disktype =
             DiskType::new(loaded_manifest.disktype()).map_err(|_| CoreError::DiskTypeError)?;
         let disk = Floppy::new(disktype, loaded_manifest.diskfile())
@@ -36,6 +37,10 @@ impl DosContainer {
 
     pub fn manifest(&self) -> &Manifest {
         &self.manifest
+    }
+
+    pub fn staging_dir(&self) -> &Path {
+        self.staging_dir.path()
     }
 
     /// Downloads and extracts layers defined in the manifest.

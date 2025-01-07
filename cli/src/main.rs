@@ -26,6 +26,7 @@ fn main() -> Result<(), std::io::Error> {
         Commands::Build { name } => {
             let mut container = DosContainer::new(name).unwrap();
             container.download_layers().expect("BLAM!");
+            println!("Staging directory: {:?}", container.staging_dir());
             println!("Press key");
             let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
             Ok(())
