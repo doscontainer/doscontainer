@@ -1,4 +1,5 @@
 mod error;
+mod gameconfig;
 mod gamemetadata;
 mod layer;
 
@@ -12,22 +13,6 @@ use std::{
     io::Read,
     path::{Path, PathBuf},
 };
-
-#[derive(Debug, Deserialize, Serialize)]
-struct GameConfig {
-    autoexec: String,
-    config: String,
-}
-
-impl fmt::Display for GameConfig {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Autoexec         : {}\nConfig           : {}\n",
-            self.autoexec, self.config
-        )
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OsSettings {
