@@ -61,3 +61,18 @@ impl OperatingSystem {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct OsSettings {
+    full_install: Option<bool>,
+}
+
+impl fmt::Display for OsSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Full Install     : {}\n",
+            self.full_install.unwrap_or(false)
+        )
+    }
+}

@@ -22,7 +22,7 @@ pub struct DosContainer {
 
 impl DosContainer {
     pub fn new(manifest: &Path) -> Result<Self, CoreError> {
-        let mut loaded_manifest = Manifest::load(manifest).map_err(|_| CoreError::DiskTypeError)?;
+        let loaded_manifest = Manifest::load(manifest).map_err(|_| CoreError::DiskTypeError)?;
         let disktype =
             DiskType::new(loaded_manifest.disktype()).map_err(|_| CoreError::DiskTypeError)?;
         let disk = Floppy::new(disktype, loaded_manifest.diskfile())
