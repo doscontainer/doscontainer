@@ -2,8 +2,6 @@ use std::{fmt, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::Geometry;
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Disk {
     pub name: PathBuf,
@@ -59,4 +57,11 @@ impl Disk {
             _ => "Unknown disk type. Please report this as a bug!".to_string(),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Geometry {
+    pub cylinders: usize,
+    pub heads: usize,
+    pub sectors: usize,
 }

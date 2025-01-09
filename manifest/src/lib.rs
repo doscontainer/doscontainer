@@ -33,13 +33,6 @@ impl fmt::Display for OsSettings {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Geometry {
-    pub cylinders: usize,
-    pub heads: usize,
-    pub sectors: usize,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 pub struct Manifest {
     pub version: Option<u32>,
     pub metadata: GameMetadata,
