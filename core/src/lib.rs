@@ -10,7 +10,6 @@ use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
-use manifest::OperatingSystem;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::ZipArchive;
