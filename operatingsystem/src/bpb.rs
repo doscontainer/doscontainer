@@ -27,22 +27,6 @@ impl BPB {
     /// # Errors:
     /// - `OsError::BpbNotApplicable` if the BPB is not relevant for the operating system (e.g., IBM PC-DOS 1.00 or 1.10).
     /// - `OsError::UnsupportedOs` if the operating system is not supported.
-    ///
-    /// # Example
-    /// ```
-    /// let bpb = BPB {
-    ///     bytes_per_sector: 512,
-    ///     sectors_per_cluster: 1,
-    ///     reserved_sectors: 1,
-    ///     fat_copies: 2,
-    ///     rootdir_entries: 224,
-    ///     sector_count: 2880,
-    ///     media_descriptor: 0xF8,
-    ///     sectors_per_fat: 9,
-    /// };
-    ///
-    /// let result = bpb.as_bytes(&OperatingSystem::IBMDOS200);
-    /// ```
     pub fn as_bytes(&self, operating_system: &OperatingSystem) -> Result<Vec<u8>, OsError> {
         match operating_system {
             OperatingSystem::IBMDOS200 => Ok(self.as_pcdos_200_bytes()),
