@@ -1,5 +1,5 @@
 use crate::{
-    allocationtable::{self, AllocationTable},
+    allocationtable::AllocationTable,
     error::FileSystemError,
     pool::Pool,
     FileSystem,
