@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::{
     allocationtable::AllocationTable,
     error::FileSystemError,
@@ -15,18 +17,18 @@ pub struct Fat12 {
 }
 
 impl FileSystem for Fat12 {
-    fn mkfile<P: AsRef<std::path::Path>>(
+    fn mkfile(
         &mut self,
-        path: P,
+        path: &Path,
         size: usize,
         filetype: crate::FileType,
     ) -> Result<Vec<crate::ClusterIndex>, crate::error::FileSystemError> {
         todo!()
     }
 
-    fn mkdir<P: AsRef<std::path::Path>>(
+    fn mkdir(
         &mut self,
-        path: P,
+        path: &Path,
     ) -> Result<Vec<crate::ClusterIndex>, crate::error::FileSystemError> {
         todo!()
     }
@@ -60,7 +62,7 @@ impl FileSystem for Fat12 {
 }
 
 impl Fat12 {
-    pub fn new(os: OperatingSystem, disk: &dyn Disk) -> Result<Self, FileSystemError> {
+    pub fn new(os: &OperatingSystem, disk: &dyn Disk) -> Result<Self, FileSystemError> {
         let cluster_size = match disk.disktype() {
             DiskType::F525_160 => 1,
             DiskType::F525_180 => 1,
@@ -86,7 +88,7 @@ impl Fat12 {
         let mut filesystem = Fat12 {
             allocation_table: AllocationTable::new(cluster_count, cluster_size),
             pool: Pool::new()?,
-            os,
+            os: os.clone(),
             disktype: disk.disktype().clone(), // Cloning here for simplicity.
         };
 

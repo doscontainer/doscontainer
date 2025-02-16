@@ -10,6 +10,7 @@ use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
+use filesystem::{fat12::Fat12, FileSystem};
 use operatingsystem::OperatingSystem;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
@@ -19,6 +20,7 @@ pub struct DosContainer {
     disk: Box<dyn Disk>,
     manifest: Manifest,
     os: OperatingSystem,
+    fs: Box<dyn FileSystem>,
     staging_dir: TempDir,
 }
 
@@ -31,8 +33,9 @@ impl DosContainer {
             .map_err(|_| CoreError::CreateFileError)?;
         let os = OperatingSystem::from_str(loaded_manifest.operating_system().version());
         Ok(DosContainer {
-            disk: Box::new(disk),
             manifest: loaded_manifest,
+            fs: Box::new(Fat12::new(&os, &disk).unwrap()),
+            disk: Box::new(disk),
             os,
             staging_dir: TempDir::new().map_err(|_| CoreError::CreateDirError)?,
         })

@@ -9,7 +9,7 @@ mod attributes;
 mod cluster;
 mod direntry;
 mod error;
-mod fat12;
+pub mod fat12;
 mod pool;
 
 // Cluster index into the FAT
@@ -62,9 +62,10 @@ pub trait FileSystem {
     /// # Returns
     /// * A `Result` containing a vector of cluster indices allocated to the file on success,
     ///   or a `FileSystemError` on failure.
-    fn mkfile<P: AsRef<Path>>(
+    // fn mkfile<P: AsRef<Path>>(
+    fn mkfile(
         &mut self,
-        path: P,
+        path: &Path,
         size: usize,
         filetype: FileType,
     ) -> Result<Vec<ClusterIndex>, FileSystemError>;
@@ -80,5 +81,5 @@ pub trait FileSystem {
     /// # Returns
     /// * A `Result` containing a vector of cluster indices allocated to the directory on success,
     ///   or a `FileSystemError` on failure.
-    fn mkdir<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<ClusterIndex>, FileSystemError>;
+    fn mkdir(&mut self, path: &Path) -> Result<Vec<ClusterIndex>, FileSystemError>;
 }

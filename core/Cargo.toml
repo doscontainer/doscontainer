@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 disk = { path="../disk" }
+filesystem = { path="../filesystem" }
 downloader = { path="../downloader" }
 manifest = { path="../manifest" }
 operatingsystem = { path="../operatingsystem" }
