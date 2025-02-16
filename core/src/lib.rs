@@ -10,8 +10,6 @@ use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use manifest::Manifest;
-use manifest::operatingsystem::OperatingSystem as DeclaredOperatingSystem;
-use operatingsystem::OperatingSystem as OperatingSystem;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::ZipArchive;
@@ -111,6 +109,10 @@ impl DosContainer {
             }
         }
         Ok(())
+    }
+
+    pub fn create_disk(&mut self) {
+        self.manifest.disktype();
     }
 
     /// Verifies the SHA256 checksum of a given layer's zipfile.
