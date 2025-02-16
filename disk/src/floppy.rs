@@ -102,3 +102,24 @@ impl Floppy {
         Ok(floppy)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn set_disktype() {
+        let mut floppy = Floppy::new(DiskType::F35_720, PathBuf::from("testfile")).unwrap();
+        floppy.set_disktype("f525_160").unwrap();
+        assert_eq!(floppy.disktype(), &DiskType::F525_160);
+        floppy.set_disktype("f525_360").unwrap();
+        assert_eq!(floppy.disktype(), &DiskType::F525_360);
+    }
+
+    #[test]
+    fn set_unknown_disktype() {
+        let mut floppy = Floppy::new(DiskType::F35_1440, PathBuf::from("testfile")).unwrap();
+        let result = floppy.set_disktype("this_is_never_correct");
+        assert!(result.is_err());
+    }
+}
