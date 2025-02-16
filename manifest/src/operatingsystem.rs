@@ -60,6 +60,10 @@ impl OperatingSystem {
             _ => Err(ManifestError::UnsupportedOperatingSystem),
         }
     }
+
+    pub fn version(&self) -> &str {
+        self.version.as_str()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
