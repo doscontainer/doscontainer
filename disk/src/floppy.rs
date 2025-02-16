@@ -60,6 +60,9 @@ impl Disk for Floppy {
         &mut self.volumes
     }
     
+    fn disktype_mut(&mut self) -> &mut DiskType {
+        &mut self.disktype
+    }
 }
 
 impl Floppy {

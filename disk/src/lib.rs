@@ -77,6 +77,15 @@ pub trait Disk {
     /// Returns a reference to a `DiskType` representing the type of the disk.
     fn disktype(&self) -> &DiskType;
 
+    /// Returns a mutable reference to the disk type
+    /// 
+    /// This function allows modification of the disk type.
+    /// 
+    /// # Returns
+    /// 
+    /// Returns a mutable reference to a DiskType
+    fn disktype_mut(&mut self) -> &mut DiskType;
+
     /// Returns a reference to the list of volumes on the disk.
     ///
     /// This function provides access to the volumes currently present on the disk. The list may
@@ -97,6 +106,26 @@ pub trait Disk {
     ///
     /// Returns a mutable reference to a `Vec<Volume>` representing the volumes on the disk.
     fn volumes_mut(&mut self) -> &mut Vec<Volume>;
+
+    /// Sets the disk type based on a given string representation
+    /// 
+    /// This method takes a string input, normalizes it by trimming whitespace and
+    /// converting it to lowercase, and then attempts to match it to a known disk type.
+    /// If the string matches a valid disk type, the disk type is updated. Otherwise,
+    /// an error is returned.
+    fn set_disktype(&mut self, disktype: &str) -> Result<(), DiskError> {
+        let normalized_disktype = disktype.trim().to_ascii_lowercase();
+        let new_type = match normalized_disktype.as_str() {
+            "f525_160" => DiskType::F525_160,
+            "f525_180" => DiskType::F525_180,
+            "f525_320" => DiskType::F525_320,
+            "f525_360" => DiskType::F525_360,
+            _ => return Err(DiskError::ConversionError),
+        };
+
+        *self.disktype_mut() = new_type;
+        Ok(())
+    }
 
     /// Adds a volume to the disk based on its type.
     ///
