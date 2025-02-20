@@ -1,10 +1,5 @@
 use std::collections::BTreeMap;
-
-use crate::{
-    cluster::{Cluster, ClusterStatus},
-    error::FileSystemError,
-    ClusterIndex,
-};
+use crate::{cluster::{Cluster, ClusterStatus}, error::FileSystemError, ClusterIndex};
 
 pub struct AllocationTable {
     clusters: BTreeMap<ClusterIndex, Cluster>,
@@ -22,7 +17,6 @@ impl AllocationTable {
         let clusters = (0..cluster_count)
             .map(|i| (i, Cluster::default()))
             .collect();
-
         Self {
             clusters,
             cluster_count,
@@ -30,21 +24,29 @@ impl AllocationTable {
         }
     }
 
+    /// Allocates a new cluster at the specified index with the given value.
+    /// The cluster must be free or reserved to be allocated.
+    ///
+    /// # Arguments
+    /// - `index`: The index of the cluster to allocate.
+    /// - `value`: The value to associate with the newly allocated cluster.
+    ///
+    /// # Returns
+    /// A `Result` indicating whether the allocation was successful or if an error occurred.
     pub fn allocate_cluster(
         &mut self,
         index: ClusterIndex,
         value: usize,
     ) -> Result<(), FileSystemError> {
-        // Guard clause: Ensure the index is within bounds.
-        let cluster_count = self.cluster_count; // Copy this from self so that the error message can use it.
+        // Ensure the index is within bounds.
         if index >= self.cluster_count {
             return Err(FileSystemError::ClusterOutOfBounds {
                 index,
-                cluster_count,
+                cluster_count: self.cluster_count,
             });
         }
 
-        // Insert the cluster if it's not already in the map and then get a mutable reference.
+        // Get a mutable reference to the cluster entry in the map.
         let cluster = self.clusters.entry(index).or_default();
 
         // Check if the cluster is free or reserved before allocating.
