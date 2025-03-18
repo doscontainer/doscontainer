@@ -18,7 +18,7 @@ pub enum OperatingSystem {
 
 impl OperatingSystem {
     /// Retrieve the jump code at the start of the boot sector
-    pub fn get_jumpcode(&self) -> [u8; 3] {
+    pub fn jumpcode(&self) -> [u8; 3] {
         match self {
             // This does JMP 0x2F. What the 0x14 does is a mystery, but it's what the original OS puts
             // at this position, so we do too.
@@ -41,7 +41,7 @@ impl OperatingSystem {
     }
 
     /// Returns a friendly name for the enum variant. Use for display purposes.
-    pub fn get_friendlyname(&self) -> String {
+    pub fn friendlyname(&self) -> String {
         match self {
             Self::IBMDOS100 => "IBM PC-DOS 1.00".to_string(),
             Self::IBMDOS110 => "IBM PC-DOS 1.10".to_string(),
@@ -52,7 +52,7 @@ impl OperatingSystem {
     }
 
     /// Return the filename this OS uses for the MSDOS.SYS equivalent system file.
-    pub fn get_msdossys(&self) -> String {
+    pub fn msdossys(&self) -> String {
         match self {
             Self::IBMDOS100 => "IBMDOS.COM".to_string(),
             Self::IBMDOS110 => "IBMDOS.COM".to_string(),
@@ -62,7 +62,7 @@ impl OperatingSystem {
     }
 
     /// Return the filename this OS uses for the IO.SYS equivalent system file.
-    pub fn get_iosys(&self) -> String {
+    pub fn iosys(&self) -> String {
         match self {
             Self::IBMDOS100 => "IBMBIO.COM".to_string(),
             Self::IBMDOS110 => "IBMBIO.COM".to_string(),
@@ -72,7 +72,7 @@ impl OperatingSystem {
     }
 
     /// Return the default download URL for an operating system zipfile
-    pub fn get_download_url(&self) -> String {
+    pub fn download_url(&self) -> String {
         match self {
             Self::IBMDOS100 => {
                 "https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip".to_string()
@@ -88,12 +88,12 @@ impl OperatingSystem {
     }
 
     /// Return the filename this OS uses for the COMMAND.COM equivalent system file.
-    pub fn get_commandcom(&self) -> String {
+    pub fn commandcom(&self) -> String {
         "COMMAND.COM".to_string()
     }
 
     /// Returns the full boot sector / volume boot record for the OS variant specified
-    pub fn get_bootsector(&self, disktype: &DiskType) -> Result<Option<Vec<u8>>, OsError> {
+    pub fn bootsector(&self, disktype: &DiskType) -> Result<Option<Vec<u8>>, OsError> {
         match self {
             // IBM PC-DOS 1.00 is special: there was only one disk format, the entire sector is hard-coded
             // because no variants were ever supported on real sytems so we just return the raw bytes as
@@ -236,14 +236,14 @@ mod tests {
     #[test]
     fn bootsector_ibmdos100() {
         let os = OperatingSystem::from_str("IBMDOS100");
-        let bootsector = os.get_bootsector(&DiskType::F525_160).unwrap().unwrap();
+        let bootsector = os.bootsector(&DiskType::F525_160).unwrap().unwrap();
         assert_eq!(bootsector.len(), 512);
     }
 
     #[test]
     fn bootsector_ibmdos110() {
         let os = OperatingSystem::from_str("IBMDOS110");
-        let bootsector = os.get_bootsector(&DiskType::F525_160).unwrap().unwrap();
+        let bootsector = os.bootsector(&DiskType::F525_160).unwrap().unwrap();
         assert_eq!(bootsector.len(), 512);
     }
 }
