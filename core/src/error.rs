@@ -6,6 +6,7 @@ pub enum CoreError {
     DiskTypeError,
     DownloadError,
     FileReadError,
+    OsInstallError,
     PermissionError,
     ZipFileOpenError,
     ZipFileWriteError,

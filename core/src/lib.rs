@@ -49,6 +49,17 @@ impl DosContainer {
         self.staging_dir.path()
     }
 
+    /// Write the operating system to the container's disk image
+    ///
+    /// This function identifies the OS layer and performs the operations that are
+    /// required to install the OS onto the disk. This is special, compared to regular
+    /// layers, in that is creates system files in a very specific order ans position on
+    /// the target disk.
+    pub fn write_os(&mut self) -> Result<(), CoreError> {
+        let bootsector = self.os.bootsector(self.disk.disktype());
+        Ok(())
+    }
+
     /// Downloads and extracts layers defined in the manifest.
     ///
     /// This function iterates over each layer in the `manifest.layers` field, downloading the

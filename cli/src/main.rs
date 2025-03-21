@@ -24,8 +24,16 @@ fn main() -> Result<(), std::io::Error> {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Build { name } => {
+            // Construct a container from the manifest
             let mut container = DosContainer::new(name).unwrap();
+
+            // Download the layer content from the manifest
             container.download_layers().expect("Download error.");
+            
+            // Write the OS layer to the disk image
+            container.write_os().expect("Failed to writhe the OS.");
+            
+            // Write all the other layers to the disk image
             println!("Staging directory: {:?}", container.staging_dir());
             println!("Press key");
             let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
