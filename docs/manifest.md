@@ -14,6 +14,23 @@ the sections that you can use in your collections.
 
 The format and possible values are prone to change as DOSContainer progresses.
 
+## DOSContainer base configuration
+
+By default, DOSContainer gets files from the ```baseUrl``` that is hardcoded into
+the application itself as a sensible default. Obviously, I won't live forever so
+I won't be paying the hosting bill for this stuff forever either. For that reason
+you can override the ```baseUrl``` field with whatever you want. DOSContainer
+will pull all of its generic assets like operating system installation images from
+this location.
+
+Look into the ```selfhost``` command for the ```cli``` utility for a quick way
+to prepare a document that you can use to host your own ```baseUrl``` easily.
+
+```
+  [doscontainer]
+  baseUrl = https://dosk8s-dist.area536.com  
+```
+
 ## Game metadata
 
 Use the metadata section for fields that can be used for collection management.
@@ -157,3 +174,27 @@ More recent DOS versions support all of them, ancient versions are much more
 picky so do your homework!
 
 Hard disk support is still in the works.
+
+## Game layers
+
+A game manifest is built up from layers. A layer is a zip-file that contains the
+directory hierarchy for the game that you intend to install into your disk image.
+
+You add a layer to your manifest like this:
+
+```
+  [[layers]]
+  filename = "larry1.zip"
+  comment = "Leisure Suit Larry 1"
+  checksum = "31fa1c43b25965f7d45a0e2998aa3b2ad50f4da88fe19f1b426ec91fb6e100d0"
+```
+
+You can add multiple ```[[layers]]``` sections to your TOML file and they will be
+processed in the order in which you list them. This can be useful for layered games
+like base games that have optional expansion packs that you can layer on top.
+
+If you use an unqualified ```filename```, DOSContainer prefixes it with ```baseUrl```
+to download it. If you're hosting your own collection it's very useful to self-host 
+DOSContainer as well and override the ```baseUrl``` field centrally. If you only 
+want to publish a manifest or two on your own terms, you can fill the ```filename```
+field with a fully qualified URL instead. DOSContainer will handle this correctly.
