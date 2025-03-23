@@ -10,6 +10,7 @@ use disk::{disktype::DiskType, floppy::Floppy, Disk};
 use downloader::Downloader;
 use error::CoreError;
 use filesystem::{fat12::Fat12, FileSystem};
+use manifest::Manifest;
 use operatingsystem::OperatingSystem;
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
@@ -18,6 +19,7 @@ use zip::ZipArchive;
 pub struct DosContainer {
     disk: Box<dyn Disk>,
     os: OperatingSystem,
+    manifest: Manifest,
     fs: Box<dyn FileSystem>,
     staging_dir: TempDir,
 }
@@ -67,7 +69,7 @@ impl DosContainer {
     /// - A failure during file extraction (`CoreError::ZipFileWriteError`).
     /// - A failure setting file permissions on Unix-based systems (`CoreError::PermissionError`).
     pub fn download_layers(&mut self) -> Result<(), CoreError> {
-        for layer in &self.manifest.layers {
+        for layer in &self.manifest.layers() {
             let downloader = Downloader::new(layer.url()).map_err(|_| CoreError::DownloadError)?;
 
             // Retrieve the zipfile path

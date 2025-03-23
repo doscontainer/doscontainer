@@ -6,3 +6,8 @@ edition = "2021"
 [dependencies]
 config = { workspace = true }
 directories = { workspace = true }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+walkdir = { workspace = true }
