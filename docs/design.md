@@ -190,14 +190,20 @@ more than just a matter of gathering up system files, the earlier versions of
 DOS take an inordinate amount of work to implement correctly. The table below
 shows the planned versions with their values that can be used in a v1 Manifest
 file when DOSContainer hits its 1.00 release target. The table below is
-subject to change without notice. The versions marked with a * are currently
-implemented.
+subject to change without notice.
+
+For really ancient history I'm only including IBM PC-DOS. MS-DOS was available
+in a ton of specific OEM-versions but I'm consciously omitting those. If you
+want to do the work and contribute them, I'm open to that after the 1.0
+release of DOSContainer.
+
+I'm also including FreeDOS 1.3 as a stretch target here. FreeDOS is not
+contemporary to any of the software DOSContainer aims to facilitate, but it
+is an option for those who want to err on the side of caution legally and may
+want to distribute collections of freeware or otherwise unencumbered software.
 
 | Value     | Operating system version |
 |-----------|--------------------------|
-| PCDOS100* | IBM PC-DOS 1.00          |
-| PCDOS110* | IBM PC-DOS 1.10          |
-| PCDOS200* | IBM PC-DOS 2.00          |
 | PCDOS210  | IBM PC0DOS 2.10          |
 | PCDOS300  | IBM PC-DOS 3.00          |
 | PCDOS310  | IBM PC-DOS 3.10          |
@@ -211,11 +217,16 @@ implemented.
 | PCDOS630  | IBM PC-DOS 6.30          |
 | PCDOS700  | IBM PC-DOS 7.00          |
 | PCDOS2K   | IBM PC-DOS 2000          |
+| MSDOS320  | MS-DOS 3.20              |
+| MSDOS321  | MS-DOS 3.21              |
+| MSDOS330  | MS-DOS 3.30              |
+| MSDOS331  | MS-DOS 3.31              |
+| MSDOS400  | MS-DOS 4.00              |
 | MSDOS401  | MS-DOS 4.01              |
 | MSDOS500  | MS-DOS 5.00              |
 | MSDOS600  | MS-DOS 6.00              |
 | MSDOS610  | MS-DOS 6.10              |
-| MSDOS620  | MS-DOS 6.20              |
 | MSDOS621  | MS-DOS 6.21              |
 | MSDOS622  | MS-DOS 6.22              |
 | MSDOS700  | MS-DOS 7.00 (Win95)      |
+| FREEDOS13 | FreeDOS 1.3              |
