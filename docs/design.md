@@ -190,18 +190,32 @@ more than just a matter of gathering up system files, the earlier versions of
 DOS take an inordinate amount of work to implement correctly. The table below
 shows the planned versions with their values that can be used in a v1 Manifest
 file when DOSContainer hits its 1.00 release target. The table below is
-subject to change without notice.
+subject to change without notice. The versions marked with a * are currently
+implemented.
 
-| Value    | Operating system version |
-|----------|--------------------------|
-| PCDOS300 | IBM PC-DOS 3.00          |
-| PCDOS310 | IBM PC-DOS 3.10          |
-| PCDOS330 | IBM PC-DOS 3.30          |
-| MSDOS401 | MS-DOS 4.01              |
-| MSDOS500 | MS-DOS 5.00              |
-| MSDOS600 | MS-DOS 6.00              |
-| MSDOS610 | MS-DOS 6.10              |
-| MSDOS620 | MS-DOS 6.20              |
-| MSDOS621 | MS-DOS 6.21              |
-| MSDOS622 | MS-DOS 6.22              |
-| MSDOS700 | MS-DOS 7.00 (Win95)      |
+| Value     | Operating system version |
+|-----------|--------------------------|
+| PCDOS100* | IBM PC-DOS 1.00          |
+| PCDOS110* | IBM PC-DOS 1.10          |
+| PCDOS200* | IBM PC-DOS 2.00          |
+| PCDOS210  | IBM PC0DOS 2.10          |
+| PCDOS300  | IBM PC-DOS 3.00          |
+| PCDOS310  | IBM PC-DOS 3.10          |
+| PCDOS320  | IBM PC-DOS 3.20          |
+| PCDOS330  | IBM PC-DOS 3.30          |
+| PCDOS400  | IBM PC-DOS 4.00          |
+| PCDOS401  | IBM PC-DOS 4.01          |
+| PCDOS500  | IBM PC-DOS 5.00          |
+| PCDOS502  | IBM PC-DOS 5.02          |
+| PCDOS610  | IBM PC-DOS 6.10          |
+| PCDOS630  | IBM PC-DOS 6.30          |
+| PCDOS700  | IBM PC-DOS 7.00          |
+| PCDOS2K   | IBM PC-DOS 2000          |
+| MSDOS401  | MS-DOS 4.01              |
+| MSDOS500  | MS-DOS 5.00              |
+| MSDOS600  | MS-DOS 6.00              |
+| MSDOS610  | MS-DOS 6.10              |
+| MSDOS620  | MS-DOS 6.20              |
+| MSDOS621  | MS-DOS 6.21              |
+| MSDOS622  | MS-DOS 6.22              |
+| MSDOS700  | MS-DOS 7.00 (Win95)      |
