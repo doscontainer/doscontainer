@@ -18,3 +18,9 @@ impl<V> Layer<V> {
         }
     }
 }
+
+impl<V> Manifest<V> {
+    pub fn layers(&self) -> &Vec<Layer<V>> {
+        &self.layers
+    }
+}
