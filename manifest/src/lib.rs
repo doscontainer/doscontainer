@@ -1,10 +1,17 @@
-use std::collections::HashMap;
 use layer::Layer;
+use std::collections::HashMap;
 
 pub mod fields;
 pub mod layer;
 
-/// The base manifest struct
+/// A Manifest is the composed whole of configuration for a single game or
+/// application's build instructions. It consists of a version and any
+/// number of layers.
+///
+/// In order for a Manifest to be entirely valid, you need at least the
+/// following layers:
+///   - physical
+///   - foundation
 #[derive(Debug)]
 pub struct Manifest {
     version: usize,
