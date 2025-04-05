@@ -11,6 +11,8 @@ pub enum FieldValue {
     Boolean(bool),
 }
 
+/// FieldRef is a wrapper type so that we can implement PartialEq for every
+/// variant.
 #[derive(Debug)]
 pub struct FieldRef<'a>(pub Option<&'a FieldValue>);
 
@@ -85,20 +87,23 @@ impl PartialEq<bool> for FieldRef<'_> {
         matches!(self.0, Some(FieldValue::Boolean(b)) if b == other)
     }
 }
+
+/// The base manifest struct
+#[derive(Debug)]
 pub struct Manifest {
     version: usize,
-    layers: Vec<Layer>,
+    layers: HashMap<String, Layer>,
 }
 
+/// Manifests consist primary of layers
+#[derive(Debug)]
 pub struct Layer {
-    name: String,
     fields: HashMap<String, FieldValue>,
 }
 
 impl Layer {
-    pub fn new(name: impl Into<String>) -> Self {
+    pub fn new() -> Self {
         Layer {
-            name: name.into(),
             fields: HashMap::new(),
         }
     }
@@ -112,12 +117,36 @@ impl Layer {
     }
 }
 
+impl Default for Layer {
+    fn default() -> Self {
+        Layer::new()
+    }
+}
+
 impl Manifest {
     pub fn new() -> Self {
         Manifest {
             version: 1,
-            layers: Vec::new(),
+            layers: HashMap::new(),
         }
+    }
+
+    pub fn version(&self) -> usize {
+        self.version
+    }
+
+    pub fn insert_layer(&mut self, name: &str, layer: Layer) {
+        self.layers.insert(String::from(name), layer);
+    }
+
+    pub fn layer(&self, name: &str) -> Option<&Layer> {
+        self.layers.get(name)
+    }
+}
+
+impl Default for Manifest {
+    fn default() -> Self {
+        Manifest::new()
     }
 }
 
