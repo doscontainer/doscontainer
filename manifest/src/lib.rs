@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 pub mod fields;
 pub mod layer;
+pub mod validator;
 
 /// A Manifest is the composed whole of configuration for a single game or
 /// application's build instructions. It consists of a version and any
@@ -36,6 +37,10 @@ impl Manifest {
 
     pub fn layer(&self, name: &str) -> Option<&Layer> {
         self.layers.get(name)
+    }
+
+    pub fn layers(&self) -> &HashMap<String, Layer> {
+        &self.layers
     }
 }
 
