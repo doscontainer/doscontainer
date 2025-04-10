@@ -16,15 +16,15 @@ use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-pub struct DosContainer<V> {
+pub struct DosContainer {
     disk: Box<dyn Disk>,
     os: OperatingSystem,
-    manifest: Manifest<V>,
+    manifest: Manifest,
     fs: Box<dyn FileSystem>,
     staging_dir: TempDir,
 }
 
-impl<V> DosContainer<V> {
+impl DosContainer {
     pub fn new() -> Result<(), CoreError> {
         Ok(())
     }
