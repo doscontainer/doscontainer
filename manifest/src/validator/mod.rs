@@ -1,5 +1,5 @@
 use crate::validator::error::ValidationError;
-use crate::Manifest;
+use crate::{layer, Manifest};
 
 pub struct Validator {}
 
@@ -19,20 +19,25 @@ impl Validator {
 
     /// Ensure the required layers are present in the manifest
     fn required_layers(manifest: &Manifest) -> bool {
-        if manifest.layer("foundation").is_none() {
-            return false;
-        }
-        if manifest.layer("physical").is_none() {
-            return false;
+        for item in ["foundation", "physical"] {
+            if manifest.layer(item).is_none() {
+                return false;
+            }
         }
         true
     }
 
     fn physical_required_fields(manifest: &Manifest) -> bool {
         let layer = manifest.layer("physical");
-        if layer.unwrap().field("category").0.is_none() {
-            return false;
+        for item in ["category", "type"] {
+            if layer.unwrap().field("item").0.is_none() {
+                return false;
+            }
         }
         true
+    }
+
+    fn all_geometry_fields(manifest: &Manifest) -> bool {
+        let layer = manifest.layer("physical").unwrap();
     }
 }
