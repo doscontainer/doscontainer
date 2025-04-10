@@ -28,6 +28,40 @@ impl PartialEq for FieldValue {
     }
 }
 
+impl<'a> FieldRef<'a> {
+    pub fn is_absent(&self) -> bool {
+        self.0.is_none()
+    }
+
+    pub fn as_str(&self) -> Option<&'a str> {
+        match self.0 {
+            Some(FieldValue::String(ref s)) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn as_i64(&self) -> Option<i64> {
+        match self.0 {
+            Some(FieldValue::Integer(i)) => Some(*i),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        match self.0 {
+            Some(FieldValue::Boolean(b)) => Some(*b),
+            _ => None,
+        }
+    }
+
+    pub fn as_f64(&self) -> Option<f64> {
+        match self.0 {
+            Some(FieldValue::Float(f)) => Some(*f),
+            _ => None,
+        }
+    }
+}
+
 impl PartialEq<str> for FieldValue {
     fn eq(&self, other: &str) -> bool {
         matches!(self, FieldValue::String(s) if s == other)

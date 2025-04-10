@@ -37,7 +37,4 @@ impl Validator {
         true
     }
 
-    fn all_geometry_fields(manifest: &Manifest) -> bool {
-        let layer = manifest.layer("physical").unwrap();
-    }
 }

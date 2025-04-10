@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test {
 
-    use crate::Layer;
     use crate::fields::FieldValue;
+    use crate::Layer;
 
     #[test]
     fn str_field() {
@@ -37,5 +37,11 @@ mod test {
         let mut layer = Layer::new();
         layer.insert_field("os", FieldValue::Boolean(false));
         assert_eq!(layer.field("os"), false);
+    }
+
+    #[test]
+    fn field_not_present() {
+        let mut layer = Layer::new();
+        assert!(layer.field("nosuchfield").is_absent());
     }
 }
