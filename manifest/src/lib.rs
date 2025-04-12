@@ -5,6 +5,8 @@ mod layer;
 mod tests;
 
 pub enum ManifestError {
+    InvalidDiskCategory,
+    InvalidDiskType,
     InvalidUrl,
 }
 

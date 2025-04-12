@@ -1,3 +1,5 @@
+use std::{ascii::AsciiExt, str::FromStr};
+
 use crate::ManifestError;
 use url::Url;
 use LayerType::*;
@@ -25,6 +27,35 @@ impl Layer {
             Ok(_) => Ok(()),
             Err(url) => Err(ManifestError::InvalidUrl),
         }
+    }
+
+    pub fn url(&self) -> &Option<Url> {
+        &self.url
+    }
+
+    pub fn set_disk_category(&mut self, category: &str) -> Result<(), ManifestError> {
+        const VALID_CATEGORIES: [&str; 2] = ["FLOPPY", "HDD"];
+
+        let normalized_category = category.to_ascii_uppercase();
+        if VALID_CATEGORIES.contains(&normalized_category.as_str()) {
+            self.disk_category = Some(normalized_category);
+            return Ok(());
+        }
+        Err(ManifestError::InvalidDiskCategory)
+    }
+
+    pub fn set_disk_type(&mut self, disktype: &str) -> Result<(), ManifestError> {
+        const VALID_CATEGORIES: [&str; 8] = [
+            "F525_160", "F525_180", "F525_320", "F525_360", "F525_12M", "F35_720", "F35_144",
+            "F35_288",
+        ];
+
+        let normalized_type = disktype.to_ascii_uppercase();
+        if VALID_CATEGORIES.contains(&&normalized_type.as_str()) {
+            self.disk_type = Some(normalized_type);
+            return Ok(());
+        }
+        Err(ManifestError::InvalidDiskType)
     }
 }
 
