@@ -1,30 +1,44 @@
-use crate::fields::{FieldRef, FieldValue};
-use std::collections::HashMap;
+use crate::ManifestError;
+use url::Url;
+use LayerType::*;
 
-/// Manifests consist primary of layers
-#[derive(Debug)]
+pub enum LayerType {
+    Foundation,
+    Physical,
+    Software,
+}
+
 pub struct Layer {
-    fields: HashMap<String, FieldValue>,
+    layer_type: LayerType,
+    url: Option<Url>,
+    disk_category: Option<String>,
+    disk_type: Option<String>,
+    filesystem: Option<String>,
+    cylinders: Option<usize>,
+    heads: Option<usize>,
+    sectors: Option<usize>,
 }
 
 impl Layer {
-    pub fn new() -> Self {
-        Layer {
-            fields: HashMap::new(),
+    pub fn set_url(&mut self, url: &str) -> Result<(), ManifestError> {
+        match Url::parse(url) {
+            Ok(_) => Ok(()),
+            Err(url) => Err(ManifestError::InvalidUrl),
         }
-    }
-
-    pub fn insert_field(&mut self, key: impl Into<String>, value: FieldValue) {
-        self.fields.insert(key.into(), value);
-    }
-
-    pub fn field(&self, key: &str) -> FieldRef<'_> {
-        FieldRef(self.fields.get(key))
     }
 }
 
 impl Default for Layer {
-    fn default() -> Self {
-        Layer::new()
+    fn default() -> Layer {
+        Layer {
+            layer_type: Software,
+            url: None,
+            disk_category: None,
+            disk_type: None,
+            filesystem: None,
+            cylinders: None,
+            heads: None,
+            sectors: None,
+        }
     }
 }

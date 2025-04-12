@@ -1,34 +1,25 @@
-use layer::Layer;
+use crate::layer::Layer;
 use std::collections::HashMap;
 
-pub mod fields;
-pub mod layer;
-pub mod validator;
+mod layer;
+mod tests;
 
-/// A Manifest is the composed whole of configuration for a single game or
-/// application's build instructions. It consists of a version and any
-/// number of layers.
-///
-/// In order for a Manifest to be entirely valid, you need at least the
-/// following layers:
-///   - physical
-///   - foundation
-#[derive(Debug)]
+pub enum ManifestError {
+    InvalidUrl,
+}
+
 pub struct Manifest {
-    version: usize,
+    version: u32,
     layers: HashMap<String, Layer>,
 }
 
 impl Manifest {
-    pub fn new() -> Self {
-        Manifest {
-            version: 1,
-            layers: HashMap::new(),
-        }
+    pub fn version(&self) -> u32 {
+        self.version
     }
 
-    pub fn version(&self) -> usize {
-        self.version
+    pub fn set_version(&mut self, version: u32) {
+        self.version = version;
     }
 
     pub fn insert_layer(&mut self, name: &str, layer: Layer) {
@@ -39,13 +30,16 @@ impl Manifest {
         self.layers.get(name)
     }
 
-    pub fn layers(&self) -> &HashMap<String, Layer> {
-        &self.layers
+    pub fn mut_layer(&mut self, name: &str) -> Option<&mut Layer> {
+        self.layers.get_mut(name)
     }
 }
 
 impl Default for Manifest {
-    fn default() -> Self {
-        Manifest::new()
+    fn default() -> Manifest {
+        Manifest {
+            version: 1,
+            layers: HashMap::new(),
+        }
     }
 }
