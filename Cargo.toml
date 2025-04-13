@@ -12,7 +12,7 @@ ftp = "3.0.1"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_yaml = "0.9.34"
 sha2 = "0.10.8"
-tempfile = "3.16.0"
+tempfile = "3"
 url = "2.5.4"
 uuid = { version = "1.13.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 walkdir = { version = "2.5.0" }

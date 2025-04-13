@@ -6,11 +6,14 @@ mod tests;
 
 #[derive(Debug)]
 pub enum ManifestError {
+    DownloadError,
+    HttpRequestError,
     InvalidDiskCategory,
     InvalidDiskType,
     InvalidLayerType,
     InvalidUrl,
     MissingUrl,
+    TempDirError,
     UnsupportedUrlScheme,
 }
 

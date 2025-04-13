@@ -1,4 +1,7 @@
 use crate::ManifestError;
+use attohttpc::get;
+use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 use tempfile::tempdir;
 use url::Url;
@@ -84,7 +87,8 @@ impl Layer {
 
     /// Download the Layer's url over HTTP(S)
     fn download_http(&mut self) -> Result<PathBuf, ManifestError> {
-        let download_path = tempdir();
+        let download_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
+        let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
 
         if let Some(url) = &self.url {
             // Extract the file name from the URL's path.
@@ -93,6 +97,27 @@ impl Layer {
             if file_name.is_empty() {
                 return Err(ManifestError::InvalidUrl);
             }
+            // Compose the full path for the ZIP file
+            let zipfile_path = download_path.path().join(file_name);
+
+            // Perform the HTTP download
+            let response = attohttpc::get(url)
+                .send()
+                .map_err(|_| ManifestError::HttpRequestError)?;
+
+            if !response.is_success() {
+                return Err(ManifestError::HttpRequestError);
+            }
+
+            let mut file = File::create(&zipfile_path).map_err(|_| ManifestError::DownloadError)?;
+            // Write the response body to the file.
+            let mut content = response
+                .bytes()
+                .map_err(|_| ManifestError::HttpRequestError)?;
+            file.write_all(&mut content)
+                .map_err(|_| ManifestError::DownloadError)?;
+
+            return Ok(zipfile_path);
         }
         Err(ManifestError::InvalidUrl)
     }

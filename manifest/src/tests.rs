@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::layer::Layer;
+    use std::path::PathBuf;
 
     #[test]
     fn set_valid_url() {
@@ -89,7 +90,15 @@ mod tests {
     #[test]
     fn unsupported_url_schema() {
         let mut layer = Layer::default();
-        layer.set_url("file://command.com");
+        layer.set_url("file://command.com").unwrap();
         assert!(layer.download().is_err());
+    }
+
+    #[test]
+    fn download_http() {
+        let mut layer = Layer::default();
+        let result = layer.set_url("https://www.nu.nl/index.html").unwrap();
+        let test = PathBuf::new();
+        assert_eq!(result, ());
     }
 }
