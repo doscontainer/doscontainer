@@ -51,7 +51,7 @@ impl Layer {
         ];
 
         let normalized_type = disktype.to_ascii_uppercase();
-        if VALID_CATEGORIES.contains(&&normalized_type.as_str()) {
+        if VALID_CATEGORIES.contains(&normalized_type.as_str()) {
             self.disk_type = Some(normalized_type);
             return Ok(());
         }
