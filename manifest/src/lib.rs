@@ -4,10 +4,14 @@ use std::collections::HashMap;
 mod layer;
 mod tests;
 
+#[derive(Debug)]
 pub enum ManifestError {
     InvalidDiskCategory,
     InvalidDiskType,
+    InvalidLayerType,
     InvalidUrl,
+    MissingUrl,
+    UnsupportedUrlScheme,
 }
 
 pub struct Manifest {

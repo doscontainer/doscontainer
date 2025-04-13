@@ -7,8 +7,11 @@ edition = "2021"
 config = { workspace = true }
 directories = { workspace = true }
 url = { workspace = true }
+tempfile = { workspace = true }
 walkdir = { workspace = true }
 
 [dev-dependencies]
+attohttpc = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }
+ftp = { workspace = true }

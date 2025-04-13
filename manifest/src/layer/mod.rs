@@ -1,8 +1,10 @@
 use crate::ManifestError;
 use std::path::PathBuf;
+use tempfile::tempdir;
 use url::Url;
 use LayerType::*;
 
+#[derive(PartialEq)]
 pub enum LayerType {
     Foundation,
     Physical,
@@ -56,6 +58,49 @@ impl Layer {
             return Ok(());
         }
         Err(ManifestError::InvalidDiskType)
+    }
+
+    /// Download this layer's source file and stage its contents.
+    pub fn download(&mut self) -> Result<(), ManifestError> {
+        if self.layer_type == Software {
+            if let Some(download_url) = &self.url {
+                let staging_path = match download_url.scheme() {
+                    "http" | "https" => self.download_http()?,
+                    "ftp" => self.download_ftp()?,
+                    // We have a URL, but we don't support the scheme type (yet).
+                    _ => return Err(ManifestError::UnsupportedUrlScheme),
+                };
+                self.staging_path = Some(staging_path);
+            } else {
+                // We have the correct type of layer, but no URL is present.
+                return Err(ManifestError::MissingUrl);
+            }
+        } else {
+            // Downloading is only relevant on layers of type Software
+            return Err(ManifestError::InvalidLayerType);
+        }
+        Ok(())
+    }
+
+    /// Download the Layer's url over HTTP(S)
+    fn download_http(&mut self) -> Result<PathBuf, ManifestError> {
+        let download_path = tempdir();
+
+        if let Some(url) = &self.url {
+            // Extract the file name from the URL's path.
+            let path = url.path();
+            let file_name = path.split('/').last().ok_or(ManifestError::InvalidUrl)?;
+            if file_name.is_empty() {
+                return Err(ManifestError::InvalidUrl);
+            }
+        }
+        Err(ManifestError::InvalidUrl)
+    }
+
+    /// Download the Layer's url over FTP
+    fn download_ftp(&mut self) -> Result<PathBuf, ManifestError> {
+        println!("[TODO] Downloading over FTP.");
+        Ok(PathBuf::new())
     }
 }
 

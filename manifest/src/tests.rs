@@ -85,4 +85,11 @@ mod tests {
         let mut layer = Layer::default();
         assert!(layer.set_disk_type("INVALID").is_err());
     }
+
+    #[test]
+    fn unsupported_url_schema() {
+        let mut layer = Layer::default();
+        layer.set_url("file://command.com");
+        assert!(layer.download().is_err());
+    }
 }
