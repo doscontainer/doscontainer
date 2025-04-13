@@ -1,6 +1,5 @@
-use std::{ascii::AsciiExt, str::FromStr};
-
 use crate::ManifestError;
+use std::path::PathBuf;
 use url::Url;
 use LayerType::*;
 
@@ -13,6 +12,7 @@ pub enum LayerType {
 pub struct Layer {
     layer_type: LayerType,
     url: Option<Url>,
+    staging_path: Option<PathBuf>,
     disk_category: Option<String>,
     disk_type: Option<String>,
     filesystem: Option<String>,
@@ -64,6 +64,7 @@ impl Default for Layer {
         Layer {
             layer_type: Software,
             url: None,
+            staging_path: None,
             disk_category: None,
             disk_type: None,
             filesystem: None,
