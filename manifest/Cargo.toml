@@ -7,6 +7,7 @@ edition = "2021"
 attohttpc = { workspace = true }
 config = { workspace = true }
 directories = { workspace = true }
+ftp = { workspace = true }
 url = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }
