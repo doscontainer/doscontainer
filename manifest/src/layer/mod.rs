@@ -100,6 +100,14 @@ impl Layer {
         Ok(())
     }
 
+    pub fn stage(&mut self) -> Result<PathBuf, ManifestError> {
+        if let Some(zipfile) = &self.zipfile_path {
+            let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
+            return Ok(staging_path.into_path());
+        }
+        Err(ManifestError::TempDirError)
+    }
+
     /// Downloads the file from the Layer's HTTP(S) URL into a temporary directory.
     ///
     /// This method attempts to download the file specified by `self.url` over HTTP or HTTPS.
