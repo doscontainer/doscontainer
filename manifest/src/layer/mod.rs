@@ -20,6 +20,7 @@ pub struct Layer {
     layer_type: LayerType,
     url: Option<Url>,
     zipfile_path: Option<PathBuf>,
+    staging_path: Option<PathBuf>,
     disk_category: Option<String>,
     disk_type: Option<String>,
     filesystem: Option<String>,
@@ -100,10 +101,15 @@ impl Layer {
         Ok(())
     }
 
-    pub fn stage(&mut self) -> Result<PathBuf, ManifestError> {
-        if let Some(zipfile) = &self.zipfile_path {
+    /// Extract the zipfile into a staging directory, ready for further processing.
+    pub fn stage(&mut self) -> Result<(), ManifestError> {
+        if self.layer_type != Software {
+            return Err(ManifestError::InvalidLayerType);
+        }
+        if let Some(_zipfile) = &self.zipfile_path {
             let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-            return Ok(staging_path.into_path());
+            self.staging_path = Some(staging_path.into_path());
+            return Ok(());
         }
         Err(ManifestError::TempDirError)
     }
@@ -130,6 +136,7 @@ impl Layer {
     /// # Returns
     ///
     /// On success, returns the full path to the downloaded file within the temporary directory.
+    #[allow(clippy::manual_next_back)]
     fn download_http(&mut self) -> Result<PathBuf, ManifestError> {
         let download_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
 
@@ -269,6 +276,7 @@ impl Default for Layer {
             layer_type: Software,
             url: None,
             zipfile_path: None,
+            staging_path: None,
             disk_category: None,
             disk_type: None,
             filesystem: None,
