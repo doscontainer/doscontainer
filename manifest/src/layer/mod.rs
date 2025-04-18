@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use ftp::{FtpError, FtpStream};
 use tempfile::tempdir;
 use url::Url;
+use zip::ZipArchive;
 
 use crate::error::ManifestError;
 use LayerType::*;
@@ -65,6 +66,7 @@ impl Layer {
         }
         Err(ManifestError::InvalidDiskType)
     }
+
     /// Downloads and stages the source file for this layer.
     ///
     /// This method is only valid for layers of type [`Software`]. It attempts to download
@@ -267,6 +269,20 @@ impl Layer {
         ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
 
         Ok(file_path)
+    }
+
+    /// Use this function to validate the integrity of a ZIP archive before trying to
+    /// extract it. This is used as part of the staging process for a layer.
+    fn validate_zipfile(&self) -> Result<(), ManifestError> {
+        // Only work on Software layers
+        if self.layer_type != Software {
+            return Err(ManifestError::InvalidLayerType);
+        }
+        // ..when they have an actual zipfile set.
+        if self.zipfile_path.is_none() {
+            return Err(ManifestError::ZipFileNotSet);
+        }
+        Ok(())
     }
 }
 

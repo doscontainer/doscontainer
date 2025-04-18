@@ -10,6 +10,9 @@ pub enum ManifestError {
     InvalidLayerType,
     InvalidUrl,
     MissingUrl,
+    StagingPathNotSet,
     TempDirError,
     UnsupportedUrlScheme,
+    ZipFileCorrupt,
+    ZipFileNotSet,
 }
