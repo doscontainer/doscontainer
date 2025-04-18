@@ -1014,6 +1014,7 @@ dependencies = [
  "tempfile",
  "url",
  "walkdir",
+ "zip",
 ]
 
 [[package]]
