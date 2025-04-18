@@ -1,24 +1,9 @@
 use crate::layer::Layer;
 use std::collections::HashMap;
 
+mod error;
 mod layer;
 mod tests;
-
-#[derive(Debug)]
-pub enum ManifestError {
-    DownloadError,
-    FtpAuthenticationError,
-    FtpConnectionError,
-    FtpTransferTypeError,
-    HttpRequestError,
-    InvalidDiskCategory,
-    InvalidDiskType,
-    InvalidLayerType,
-    InvalidUrl,
-    MissingUrl,
-    TempDirError,
-    UnsupportedUrlScheme,
-}
 
 pub struct Manifest {
     version: u32,

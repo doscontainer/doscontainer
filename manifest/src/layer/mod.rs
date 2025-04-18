@@ -6,7 +6,7 @@ use ftp::{FtpError, FtpStream};
 use tempfile::tempdir;
 use url::Url;
 
-use crate::ManifestError;
+use crate::error::ManifestError;
 use LayerType::*;
 
 #[derive(PartialEq)]
