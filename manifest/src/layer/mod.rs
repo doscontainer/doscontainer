@@ -129,36 +129,41 @@ impl Layer {
         Ok(())
     }
 
-    /// Extract the zipfile into a staging directory, ready for further processing.
     fn stage(&mut self) -> Result<(), ManifestError> {
         if self.layer_type != Software {
             return Err(ManifestError::InvalidLayerType);
         }
-        if let Some(zipfile) = &self.zipfile_path {
-            let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-            self.staging_path = Some(staging_path);
-            let mut archive =
-                ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
-            for i in 0..archive.len() {
-                let mut file = archive
-                    .by_index(i)
-                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
-                if let Some(out_path) = &self.staging_path {
-                    let target = out_path.path().join(file.name());
-                    if file.is_dir() {
-                        fs::create_dir_all(&target).map_err(|_| ManifestError::FileOpenError)?;
-                    }
-                    let mut outfile =
-                        fs::File::create(&target).map_err(|_| ManifestError::FileOpenError)?;
-                    std::io::copy(&mut file, &mut outfile)
-                        .map_err(|_| ManifestError::FileOpenError)?;
-                } else {
-                    return Err(ManifestError::FileOpenError);
+
+        let zipfile = self
+            .zipfile_path
+            .as_ref()
+            .ok_or(ManifestError::TempDirError)?;
+        let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
+        self.staging_path = Some(staging_path);
+
+        let out_path = self.staging_path.as_ref().unwrap();
+        let mut archive = ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
+
+        for i in 0..archive.len() {
+            let mut file = archive
+                .by_index(i)
+                .map_err(|_| ManifestError::ZipFileCorrupt)?;
+            let target = out_path.path().join(file.name());
+
+            if file.is_dir() {
+                fs::create_dir_all(&target).map_err(|_| ManifestError::FileOpenError)?;
+            } else {
+                if let Some(parent) = target.parent() {
+                    fs::create_dir_all(parent).map_err(|_| ManifestError::FileOpenError)?;
                 }
+
+                let mut outfile =
+                    fs::File::create(&target).map_err(|_| ManifestError::FileOpenError)?;
+                std::io::copy(&mut file, &mut outfile).map_err(|_| ManifestError::FileOpenError)?;
             }
-            return Ok(());
         }
-        Err(ManifestError::TempDirError)
+
+        Ok(())
     }
 
     /// Downloads the file from the Layer's HTTP(S) URL into a temporary directory.
