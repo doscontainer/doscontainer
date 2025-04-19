@@ -1,3 +1,4 @@
+use std::fs;
 use std::io::{BufReader, Seek, Write};
 use std::{fs::File, io::Read};
 
@@ -124,17 +125,37 @@ impl Layer {
         };
 
         self.zipfile_path = Some(zipfile_path);
+        self.stage()?;
         Ok(())
     }
 
     /// Extract the zipfile into a staging directory, ready for further processing.
-    pub fn stage(&mut self) -> Result<(), ManifestError> {
+    fn stage(&mut self) -> Result<(), ManifestError> {
         if self.layer_type != Software {
             return Err(ManifestError::InvalidLayerType);
         }
-        if let Some(_zipfile) = &self.zipfile_path {
+        if let Some(zipfile) = &self.zipfile_path {
             let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
             self.staging_path = Some(staging_path);
+            let mut archive =
+                ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
+            for i in 0..archive.len() {
+                let mut file = archive
+                    .by_index(i)
+                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
+                if let Some(out_path) = &self.staging_path {
+                    let target = out_path.path().join(file.name());
+                    if file.is_dir() {
+                        fs::create_dir_all(&target).map_err(|_| ManifestError::FileOpenError)?;
+                    }
+                    let mut outfile =
+                        fs::File::create(&target).map_err(|_| ManifestError::FileOpenError)?;
+                    std::io::copy(&mut file, &mut outfile)
+                        .map_err(|_| ManifestError::FileOpenError)?;
+                } else {
+                    return Err(ManifestError::FileOpenError);
+                }
+            }
             return Ok(());
         }
         Err(ManifestError::TempDirError)
@@ -278,18 +299,6 @@ impl Layer {
         ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
 
         Ok(tempfile)
-    }
-
-    /// Extract zipfile into the staging directory
-    fn extract_zip_file(&mut self) -> Result<(), ManifestError> {
-        let tempdir = TempDir::new().map_err(|_| ManifestError::TempDirError)?;
-        self.staging_path = Some(tempdir);
-
-        if let Some(zip_path) = &self.zipfile_path {
-            Ok(())
-        } else {
-            Err(ManifestError::ZipFileNotSet)
-        }
     }
 
     /// Validate the Layer's own zipfile
