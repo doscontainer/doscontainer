@@ -1,5 +1,4 @@
 use std::io::{BufReader, Seek, Write};
-use std::path::PathBuf;
 use std::{fs::File, io::Read};
 
 use ftp::{FtpError, FtpStream};
@@ -35,7 +34,7 @@ impl Layer {
         match Url::parse(url) {
             Ok(_) => {
                 self.url = Some(Url::parse(url).unwrap());
-                return Ok(());
+                Ok(())
             }
             Err(_) => Err(ManifestError::InvalidUrl),
         }
@@ -68,6 +67,28 @@ impl Layer {
             return Ok(());
         }
         Err(ManifestError::InvalidDiskType)
+    }
+
+    pub fn layer_type(&self) -> &LayerType {
+        &self.layer_type
+    }
+
+    pub fn set_layer_type(&mut self, layer_type: &str) -> Result<(), ManifestError> {
+        match layer_type.to_ascii_uppercase().trim() {
+            "SOFTWARE" => {
+                self.layer_type = LayerType::Software;
+                Ok(())
+            }
+            "FOUNDATION" => {
+                self.layer_type = LayerType::Foundation;
+                Ok(())
+            }
+            "PHYSICAL" => {
+                self.layer_type = LayerType::Physical;
+                Ok(())
+            }
+            _ => Err(ManifestError::InvalidLayerType),
+        }
     }
 
     /// Downloads and stages the source file for this layer.
@@ -267,14 +288,14 @@ impl Layer {
         if let Some(zip_path) = &self.zipfile_path {
             Ok(())
         } else {
-            return Err(ManifestError::ZipFileNotSet);
+            Err(ManifestError::ZipFileNotSet)
         }
     }
 
     /// Validate the Layer's own zipfile
     pub fn validate_zip_file(&self) -> Result<(), ManifestError> {
         if let Some(file) = &self.zipfile_path {
-            let zipfile = File::open(&file).map_err(|_| ManifestError::FileOpenError)?;
+            let zipfile = File::open(file).map_err(|_| ManifestError::FileOpenError)?;
             let reader = BufReader::new(zipfile);
             self.validate_zip_stream(reader)?;
         } else {
