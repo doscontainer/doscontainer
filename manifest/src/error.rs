@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub enum ManifestError {
     DownloadError,
+    FileOpenError,
     FtpAuthenticationError,
     FtpConnectionError,
     FtpTransferTypeError,

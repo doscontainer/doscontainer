@@ -1009,6 +1009,7 @@ version = "0.1.0"
 dependencies = [
  "attohttpc",
  "config",
+ "crc32fast",
  "directories",
  "ftp",
  "tempfile",

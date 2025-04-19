@@ -7,6 +7,7 @@ attohttpc = { version = "0.28.2", features=["tls-native-vendored"] }
 chrono = "0.4.40"
 clap = { version = "4.5.28", features = ["derive"] }
 config = { version = "0.15.11", features = ["toml"] }
+crc32fast = { version = "1.4" }
 directories = { version = "6.0.0" }
 ftp = "3.0.1"
 serde = { version = "1.0.217", features = ["derive"] }

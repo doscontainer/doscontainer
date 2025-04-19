@@ -1,6 +1,6 @@
-use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::{fs::File, io::Read};
 
 use ftp::{FtpError, FtpStream};
 use tempfile::tempdir;
@@ -279,7 +279,33 @@ impl Layer {
             return Err(ManifestError::InvalidLayerType);
         }
         // ..when they have an actual zipfile set.
-        if self.zipfile_path.is_none() {
+        if let Some(zip_path) = &self.zipfile_path {
+            let file = File::open(&zip_path).map_err(|_| ManifestError::FileOpenError)?;
+            let mut archive = ZipArchive::new(file).map_err(|_| ManifestError::FileOpenError)?;
+
+            // Loop over all files in the archive
+            for i in 0..archive.len() {
+                let mut file = archive
+                    .by_index(i)
+                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
+
+                // We can't CRC-check a directory
+                if file.is_dir() {
+                    continue;
+                }
+
+                let expected_crc = file.crc32();
+                let mut buffer = Vec::new();
+                file.read_to_end(&mut buffer)
+                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
+
+                // Do the actual CRC check
+                let actual_crc = crc32fast::hash(&buffer);
+                if expected_crc != actual_crc {
+                    return Err(ManifestError::ZipFileCorrupt);
+                }
+            }
+        } else {
             return Err(ManifestError::ZipFileNotSet);
         }
         Ok(())

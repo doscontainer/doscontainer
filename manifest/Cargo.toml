@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 attohttpc = { workspace = true }
 config = { workspace = true }
+crc32fast = { workspace = true }
 directories = { workspace = true }
 ftp = { workspace = true }
 url = { workspace = true }
@@ -15,6 +16,7 @@ zip = { workspace = true }
 
 [dev-dependencies]
 attohttpc = { workspace = true }
+crc32fast = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }
 ftp = { workspace = true }
