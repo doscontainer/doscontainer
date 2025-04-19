@@ -139,16 +139,13 @@ impl Layer {
             .as_ref()
             .ok_or(ManifestError::TempDirError)?;
         let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-        self.staging_path = Some(staging_path);
-
-        let out_path = self.staging_path.as_ref().unwrap();
         let mut archive = ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
 
         for i in 0..archive.len() {
             let mut file = archive
                 .by_index(i)
                 .map_err(|_| ManifestError::ZipFileCorrupt)?;
-            let target = out_path.path().join(file.name());
+            let target = staging_path.path().join(file.name());
 
             if file.is_dir() {
                 fs::create_dir_all(&target).map_err(|_| ManifestError::FileOpenError)?;
@@ -162,6 +159,8 @@ impl Layer {
                 std::io::copy(&mut file, &mut outfile).map_err(|_| ManifestError::FileOpenError)?;
             }
         }
+
+        self.staging_path = Some(staging_path);
 
         Ok(())
     }
