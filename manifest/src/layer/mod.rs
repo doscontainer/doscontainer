@@ -1,9 +1,9 @@
-use std::io::Write;
+use std::io::{BufReader, Seek, Write};
 use std::path::PathBuf;
 use std::{fs::File, io::Read};
 
 use ftp::{FtpError, FtpStream};
-use tempfile::tempdir;
+use tempfile::{tempdir, NamedTempFile};
 use url::Url;
 use zip::ZipArchive;
 
@@ -20,7 +20,7 @@ pub enum LayerType {
 pub struct Layer {
     layer_type: LayerType,
     url: Option<Url>,
-    zipfile_path: Option<PathBuf>,
+    zipfile_path: Option<NamedTempFile>,
     staging_path: Option<PathBuf>,
     disk_category: Option<String>,
     disk_type: Option<String>,
@@ -33,7 +33,10 @@ pub struct Layer {
 impl Layer {
     pub fn set_url(&mut self, url: &str) -> Result<(), ManifestError> {
         match Url::parse(url) {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                self.url = Some(Url::parse(url).unwrap());
+                return Ok(());
+            }
             Err(_) => Err(ManifestError::InvalidUrl),
         }
     }
@@ -139,18 +142,8 @@ impl Layer {
     ///
     /// On success, returns the full path to the downloaded file within the temporary directory.
     #[allow(clippy::manual_next_back)]
-    fn download_http(&mut self) -> Result<PathBuf, ManifestError> {
-        let download_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-
+    fn download_http(&mut self) -> Result<NamedTempFile, ManifestError> {
         let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
-
-        let file_name = url
-            .path_segments()
-            .and_then(|segments| segments.last())
-            .filter(|name| !name.is_empty())
-            .ok_or(ManifestError::InvalidUrl)?;
-
-        let target_path = download_path.path().join(file_name);
 
         let response = attohttpc::get(url)
             .send()
@@ -164,12 +157,13 @@ impl Layer {
             .bytes()
             .map_err(|_| ManifestError::HttpRequestError)?;
 
-        let mut file = File::create(&target_path).map_err(|_| ManifestError::DownloadError)?;
+        let mut tempfile = NamedTempFile::new().map_err(|_| ManifestError::TempDirError)?;
 
-        file.write_all(&content)
+        tempfile
+            .write_all(&content)
             .map_err(|_| ManifestError::DownloadError)?;
 
-        Ok(target_path)
+        Ok(tempfile)
     }
 
     /// Downloads a file from an FTP server to a temporary directory.
@@ -212,8 +206,7 @@ impl Layer {
     ///
     /// [`tempdir`](https://docs.rs/tempfile/latest/tempfile/fn.tempdir.html)
     /// [`FtpStream`](https://docs.rs/ftp/latest/ftp/struct.FtpStream.html)
-    fn download_ftp(&mut self) -> Result<PathBuf, ManifestError> {
-        let download_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
+    fn download_ftp(&mut self) -> Result<NamedTempFile, ManifestError> {
         let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
 
         let hostname = url.host_str().ok_or(ManifestError::InvalidUrl)?;
@@ -224,12 +217,7 @@ impl Layer {
             return Err(ManifestError::InvalidUrl);
         }
 
-        let file_name = path
-            .split('/')
-            .next_back()
-            .filter(|s| !s.is_empty())
-            .ok_or(ManifestError::InvalidUrl)?;
-        let file_path = download_path.path().join(file_name);
+        let tempfile = NamedTempFile::new().map_err(|_| ManifestError::TempDirError)?;
 
         let mut ftp =
             FtpStream::connect((hostname, port)).map_err(|_| ManifestError::FtpConnectionError)?;
@@ -248,7 +236,7 @@ impl Layer {
             .map_err(|_| ManifestError::FtpTransferTypeError)?;
 
         ftp.retr(path, |stream| {
-            let mut local_file = File::create(&file_path).map_err(FtpError::ConnectionError)?;
+            let mut local_file = File::create(&tempfile).map_err(FtpError::ConnectionError)?;
             let mut buffer = [0u8; 8192];
 
             loop {
@@ -268,45 +256,51 @@ impl Layer {
 
         ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
 
-        Ok(file_path)
+        Ok(tempfile)
     }
 
-    /// Use this function to validate the integrity of a ZIP archive before trying to
-    /// extract it. This is used as part of the staging process for a layer.
-    fn validate_zipfile(&self) -> Result<(), ManifestError> {
+    /// Validate the Layer's own zipfile
+    pub fn validate_zip_file(&self) -> Result<(), ManifestError> {
+        if let Some(file) = &self.zipfile_path {
+            let zipfile = File::open(&file).map_err(|_| ManifestError::FileOpenError)?;
+            let reader = BufReader::new(zipfile);
+            self.validate_zip_stream(reader)?;
+        } else {
+            return Err(ManifestError::ZipFileNotSet);
+        }
+        Ok(())
+    }
+
+    /// Generalized implementation so that validation is properly testable
+    fn validate_zip_stream<R: Read + Seek>(&self, reader: R) -> Result<(), ManifestError> {
         // Only work on Software layers
         if self.layer_type != Software {
             return Err(ManifestError::InvalidLayerType);
         }
         // ..when they have an actual zipfile set.
-        if let Some(zip_path) = &self.zipfile_path {
-            let file = File::open(&zip_path).map_err(|_| ManifestError::FileOpenError)?;
-            let mut archive = ZipArchive::new(file).map_err(|_| ManifestError::FileOpenError)?;
+        let mut archive = ZipArchive::new(reader).map_err(|_| ManifestError::FileOpenError)?;
 
-            // Loop over all files in the archive
-            for i in 0..archive.len() {
-                let mut file = archive
-                    .by_index(i)
-                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
+        // Loop over all files in the archive
+        for i in 0..archive.len() {
+            let mut file = archive
+                .by_index(i)
+                .map_err(|_| ManifestError::ZipFileCorrupt)?;
 
-                // We can't CRC-check a directory
-                if file.is_dir() {
-                    continue;
-                }
-
-                let expected_crc = file.crc32();
-                let mut buffer = Vec::new();
-                file.read_to_end(&mut buffer)
-                    .map_err(|_| ManifestError::ZipFileCorrupt)?;
-
-                // Do the actual CRC check
-                let actual_crc = crc32fast::hash(&buffer);
-                if expected_crc != actual_crc {
-                    return Err(ManifestError::ZipFileCorrupt);
-                }
+            // We can't CRC-check a directory
+            if file.is_dir() {
+                continue;
             }
-        } else {
-            return Err(ManifestError::ZipFileNotSet);
+
+            let expected_crc = file.crc32();
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer)
+                .map_err(|_| ManifestError::ZipFileCorrupt)?;
+
+            // Do the actual CRC check
+            let actual_crc = crc32fast::hash(&buffer);
+            if expected_crc != actual_crc {
+                return Err(ManifestError::ZipFileCorrupt);
+            }
         }
         Ok(())
     }

@@ -101,4 +101,14 @@ mod tests {
         let test = PathBuf::new();
         assert_eq!(result, ());
     }
+
+    #[test]
+    fn validate_zip_integrity() {
+        let mut layer = Layer::default();
+        layer
+            .set_url("https://dosk8s-dist.area536.com/alleycat.zip")
+            .expect("Boom!");
+        layer.download().expect("failed to download Alleycat.zip");
+        let _ = layer.validate_zip_file();
+    }
 }
