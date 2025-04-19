@@ -97,8 +97,19 @@ mod tests {
     #[test]
     fn download_http() {
         let mut layer = Layer::default();
-        let result = layer.set_url("https://www.nu.nl/index.html").unwrap();
+        let result = layer
+            .set_url("https://dosk8s-dist.area536.com/alleycat.zip")
+            .unwrap();
         let test = PathBuf::new();
+        assert_eq!(result, ());
+    }
+
+    #[test]
+    fn download_ftp() {
+        let mut layer = Layer::default();
+        let result = layer
+            .set_url("ftp://ftp.area536.com/doscontainer/distfiles/apicd214.zip")
+            .unwrap();
         assert_eq!(result, ());
     }
 
