@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::{fs::File, io::Read};
 
 use ftp::{FtpError, FtpStream};
-use tempfile::{tempdir, NamedTempFile};
+use tempfile::{tempdir, NamedTempFile, TempDir};
 use url::Url;
 use zip::ZipArchive;
 
@@ -21,7 +21,7 @@ pub struct Layer {
     layer_type: LayerType,
     url: Option<Url>,
     zipfile_path: Option<NamedTempFile>,
-    staging_path: Option<PathBuf>,
+    staging_path: Option<TempDir>,
     disk_category: Option<String>,
     disk_type: Option<String>,
     filesystem: Option<String>,
@@ -113,7 +113,7 @@ impl Layer {
         }
         if let Some(_zipfile) = &self.zipfile_path {
             let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-            self.staging_path = Some(staging_path.into_path());
+            self.staging_path = Some(staging_path);
             return Ok(());
         }
         Err(ManifestError::TempDirError)
@@ -257,6 +257,18 @@ impl Layer {
         ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
 
         Ok(tempfile)
+    }
+
+    /// Extract zipfile into the staging directory
+    fn extract_zip_file(&mut self) -> Result<(), ManifestError> {
+        let tempdir = TempDir::new().map_err(|_| ManifestError::TempDirError)?;
+        self.staging_path = Some(tempdir);
+
+        if let Some(zip_path) = &self.zipfile_path {
+            Ok(())
+        } else {
+            return Err(ManifestError::ZipFileNotSet);
+        }
     }
 
     /// Validate the Layer's own zipfile
