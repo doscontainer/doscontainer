@@ -9,6 +9,7 @@ config = { workspace = true }
 crc32fast = { workspace = true }
 directories = { workspace = true }
 ftp = { workspace = true }
+log = { workspace = true }
 url = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }

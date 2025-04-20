@@ -1,8 +1,8 @@
+use ftp::{FtpError, FtpStream};
+use log::info;
 use std::fs;
 use std::io::{BufReader, Seek, Write};
 use std::{fs::File, io::Read};
-
-use ftp::{FtpError, FtpStream};
 use tempfile::{tempdir, NamedTempFile, TempDir};
 use url::Url;
 use zip::ZipArchive;
@@ -140,6 +140,8 @@ impl Layer {
             .ok_or(ManifestError::TempDirError)?;
         let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
         let mut archive = ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
+        let zipfile_logdisplay = zipfile.path();
+        info!(target: "dosk8s_events", "Start extracting archive {zipfile_logdisplay:?}.");
 
         for i in 0..archive.len() {
             let mut file = archive
@@ -160,6 +162,7 @@ impl Layer {
             }
         }
 
+        info!(target: "dosk8s_events", "Finished extracting archive {zipfile_logdisplay:?}.");
         self.staging_path = Some(staging_path);
 
         Ok(())
@@ -190,6 +193,7 @@ impl Layer {
     #[allow(clippy::manual_next_back)]
     fn download_http(&mut self) -> Result<NamedTempFile, ManifestError> {
         let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
+        info!(target: "dosk8s_events", "Starting HTTP(S) download for {url}.");
 
         let response = attohttpc::get(url)
             .send()
@@ -208,7 +212,7 @@ impl Layer {
         tempfile
             .write_all(&content)
             .map_err(|_| ManifestError::DownloadError)?;
-
+        info!(target: "dosk8s_events", "Finished HTTP(S) download for {url}.");
         Ok(tempfile)
     }
 
@@ -254,7 +258,7 @@ impl Layer {
     /// [`FtpStream`](https://docs.rs/ftp/latest/ftp/struct.FtpStream.html)
     fn download_ftp(&mut self) -> Result<NamedTempFile, ManifestError> {
         let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
-
+        info!(target: "dosk8s_events", "Start FTP download from {url}.");
         let hostname = url.host_str().ok_or(ManifestError::InvalidUrl)?;
         let port = url.port_or_known_default().unwrap_or(21);
 
@@ -301,19 +305,22 @@ impl Layer {
         .map_err(|_| ManifestError::FtpConnectionError)?;
 
         ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
-
+        info!(target: "dosk8s_events", "Finish FTP download from {url}.");
         Ok(tempfile)
     }
 
     /// Validate the Layer's own zipfile
     pub fn validate_zip_file(&self) -> Result<(), ManifestError> {
         if let Some(file) = &self.zipfile_path {
+            info!(target: "dosk8s_events", "Start validating ZIP file {file:?}");
             let zipfile = File::open(file).map_err(|_| ManifestError::FileOpenError)?;
             let reader = BufReader::new(zipfile);
             self.validate_zip_stream(reader)?;
         } else {
+            info!(target: "dosk8s_events", "ZIP file validation failed.");
             return Err(ManifestError::ZipFileNotSet);
         }
+        info!(target: "dosk8s_events", "Finish validating ZIP file.");
         Ok(())
     }
 
