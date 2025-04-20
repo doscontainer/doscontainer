@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 mod error;
 mod layer;
+mod loader;
 mod tests;
 
 pub struct Manifest {
