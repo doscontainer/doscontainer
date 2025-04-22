@@ -3,6 +3,38 @@
 The HWSpec crate feeds DOSContainer with hardware specifications of your target
 machine. It takes TOML file that defines your PC, using the following sections.
 
+## Setting the CPU
+
+You can set the CPU for your system as a base property:
+
+```
+[base]
+cpu = "8088"
+```
+
+While CPU types are historically often bare numbers, these values are not
+numerical in the configuration file format. You must quote them! Here's the
+table of supported values and the actual CPU chip the represent:
+
+| Config value | CPU chip model |
+|--------------|----------------|
+| 8086         | Intel 8086     |
+| 8088         | Intel 8088     |
+| 80186        | Intel 80186    |
+| 80286        | Intel 80286    |
+| 80386SX      | Intel 80386SX  |
+| 80386DX      | Intel 80386DX  |
+| 80486SX      | Intel 80486SX  |
+| 80486SX2     | Intel 80486SX2 |
+| 80486SL      | Intel 80486SL  |
+| 80486DX      | Intel 80486DX  |
+| 80486DX2     | Intel 80486DX2 |
+| 80486DX4     | Intel 80486DX4 |
+
+For now, we only support specifying Intel CPU's. If ever a software title
+comes along that *requires* that we specify something non-Intel, it'll be
+added to the list so that it can be properly configured.
+
 ## Audio hardware
 
 One of the first additions that became widely available and supported on IBM-
