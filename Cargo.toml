@@ -1,5 +1,5 @@
 [workspace]
-members = [ "cli", "core","disk", "filesystem", "manifest", "operatingsystem",]
+members = [ "cli", "core","disk", "filesystem", "hwspec", "manifest", "operatingsystem",]
 resolver = "2"
 
 [workspace.dependencies]
