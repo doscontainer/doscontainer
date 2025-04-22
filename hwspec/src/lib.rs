@@ -48,6 +48,38 @@ pub enum AudioDeviceType {
     GUSMAX,
 }
 
+/// Represents the various CPU types we support for DOS systems.
+pub enum Cpu {
+    /// Intel 8086 CPU
+    I8086,
+    /// Intel 8088 CPU, used in the original IBM PC
+    I8088,
+    /// NEC V20, faster 8088 with more instructions
+    NECV20,
+    /// NEC V30, faster 8086 with more instructions
+    NECV30,
+    /// Intel 80186, often used in embedded systems (rare in consumer PCs)
+    I80186,
+    /// Intel 80286, used in the IBM PC/AT, with protected mode
+    I80286,
+    /// Intel 80386SX, 386 with a 16-bit external data bus
+    I80386SX,
+    /// Intel 80386DX, full 32-bit 386 CPU
+    I80386DX,
+    /// Intel 80486SL, mobile version with power management features
+    I80486SL,
+    /// Intel 80486SX, 486 with 16-bit external data bus, no FPU
+    I80486SX,
+    /// Intel 80486SX2, clock-doubled 486SX
+    I80486SX2,
+    /// Intel 80486DX, standard 486 with FPU support
+    I80486DX,
+    /// Intel 80486DX2, clock-doubled 486 with FPU support
+    I80486DX2,
+    /// Intel 80486DX4, clock-tripled 486 with FPU support
+    I80486DX4,
+}
+
 /// Represents a fully configured instance of an audio device in a system.
 ///
 /// This struct associates a specific `AudioDeviceType` with optional hardware
