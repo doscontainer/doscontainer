@@ -1,7 +1,19 @@
 # Hardware specification format
 
 The HWSpec crate feeds DOSContainer with hardware specifications of your target
-machine. It takes TOML file that defines your PC, using the following sections.
+machine. It takes TOML file that defines your PC, using the following sections:
+
+  - Base
+  - Storage
+  - Audio
+  - Input
+
+Since DOSContainer aims primarily at games, this is all we support for now.
+
+The base section contains settings for:
+
+  - CPU
+  - RAM
 
 ## Setting the CPU
 
@@ -10,6 +22,7 @@ You can set the CPU for your system as a base property:
 ```
 [base]
 cpu = "8088"
+ram = "256K"
 ```
 
 While CPU types are historically often bare numbers, these values are not
@@ -34,6 +47,21 @@ table of supported values and the actual CPU chip the represent:
 For now, we only support specifying Intel CPU's. If ever a software title
 comes along that *requires* that we specify something non-Intel, it'll be
 added to the list so that it can be properly configured.
+
+## Setting RAM
+
+RAM is specified in very simple terms in the HWSpec file. You just tell the
+system how much you have, and the software manifest figures out what to make
+of it. Should it become necessary to make a distinction between EMS and XMS
+at a hardware level, that'll be added later.
+
+Setting the ```ram``` field takes values suffixed with K or M. For instance
+a value of "512K" is 512 KiloBytes, while "4M" would be 4 MegaBytes.
+
+The software does not care how much memory you have in your system, that's
+up to you. It will throw an error once you go over 4 GigaBytes because that
+is the hard limit for any 32-bit Intel CPU and you simply do not get to go
+over that in any case.
 
 ## Audio hardware
 
