@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
 ///
@@ -78,6 +80,28 @@ pub enum Cpu {
     I80486DX2,
     /// Intel 80486DX4, clock-tripled 486 with FPU support
     I80486DX4,
+}
+
+impl fmt::Display for Cpu {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let label = match self {
+            Cpu::I8086 => "Intel 8086",
+            Cpu::I8088 => "Intel 8088",
+            Cpu::NECV20 => "NEC V20",
+            Cpu::NECV30 => "NEC V30",
+            Cpu::I80186 => "Intel 80186",
+            Cpu::I80286 => "Intel 80286",
+            Cpu::I80386SX => "Intel 80386SX",
+            Cpu::I80386DX => "Intel 80386DX",
+            Cpu::I80486SL => "Intel 80486SL",
+            Cpu::I80486SX => "Intel 80486SX",
+            Cpu::I80486SX2 => "Intel 80486SX2",
+            Cpu::I80486DX => "Intel 80486DX",
+            Cpu::I80486DX2 => "Intel 80486DX2",
+            Cpu::I80486DX4 => "Intel 80486DX4",
+        };
+        write!(f, "{}", label)
+    }
 }
 
 /// Represents a fully configured instance of an audio device in a system.
