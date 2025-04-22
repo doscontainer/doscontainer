@@ -11,6 +11,7 @@ following types of hardware:
 
 | Config value | Hardware make/model                 |
 |--------------|-------------------------------------|
+| Bleeper      | Standard IBM-PC internal speaker    |
 | AdLib        | AdLib Music Synthesizer Card (1987) |
 | CMS          | Creative Music System / GameBlaster |
 | SB10         | Creative Labs Sound Blaster 1.0     |
