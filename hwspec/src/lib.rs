@@ -1,4 +1,8 @@
+use crate::error::HwStateError;
 use std::fmt;
+use std::str::FromStr;
+
+mod error;
 
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
@@ -101,6 +105,30 @@ impl fmt::Display for Cpu {
             Cpu::I80486DX4 => "Intel 80486DX4",
         };
         write!(f, "{}", label)
+    }
+}
+
+impl FromStr for Cpu {
+    type Err = HwStateError;
+
+    fn from_str(input: &str) -> Result<Self, HwStateError> {
+        match input.to_uppercase().as_str() {
+            "I8086" => Ok(Cpu::I8086),
+            "I8088" => Ok(Cpu::I8088),
+            "NECV20" => Ok(Cpu::NECV20),
+            "NECV30" => Ok(Cpu::NECV30),
+            "I80186" => Ok(Cpu::I80186),
+            "I80286" => Ok(Cpu::I80286),
+            "I80386SX" => Ok(Cpu::I80386SX),
+            "I80386DX" => Ok(Cpu::I80386DX),
+            "I80486SL" => Ok(Cpu::I80486SL),
+            "I80486SX" => Ok(Cpu::I80486SX),
+            "I80486SX2" => Ok(Cpu::I80486SX2),
+            "I80486DX" => Ok(Cpu::I80486DX),
+            "I80486DX2" => Ok(Cpu::I80486DX2),
+            "I80486DX4" => Ok(Cpu::I80486DX4),
+            _ => Err(HwStateError::InvalidCpu),
+        }
     }
 }
 
