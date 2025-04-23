@@ -1,4 +1,4 @@
-use crate::error::HwStateError;
+use crate::error::HwSpecError;
 use std::fmt;
 use std::str::FromStr;
 
@@ -78,7 +78,7 @@ impl fmt::Display for Cpu {
 }
 
 impl FromStr for Cpu {
-    type Err = HwStateError;
+    type Err = HwSpecError;
 
     /// Converts a string into the corresponding `Cpu` variant.
     ///
@@ -94,7 +94,7 @@ impl FromStr for Cpu {
     ///
     /// * `Ok(Cpu)` - The corresponding CPU variant if the string matches a valid CPU name.
     /// * `Err(HwStateError)` - An error if the string does not match any valid CPU name.
-    fn from_str(input: &str) -> Result<Self, HwStateError> {
+    fn from_str(input: &str) -> Result<Self, HwSpecError> {
         match input.to_uppercase().as_str() {
             "I8086" => Ok(Cpu::I8086),
             "I8088" => Ok(Cpu::I8088),
@@ -110,7 +110,7 @@ impl FromStr for Cpu {
             "I80486DX" => Ok(Cpu::I80486DX),
             "I80486DX2" => Ok(Cpu::I80486DX2),
             "I80486DX4" => Ok(Cpu::I80486DX4),
-            _ => Err(HwStateError::InvalidCpu),
+            _ => Err(HwSpecError::InvalidCpu),
         }
     }
 }

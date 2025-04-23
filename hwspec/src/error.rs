@@ -1,3 +1,3 @@
-pub enum HwStateError {
+pub enum HwSpecError {
     InvalidCpu,
 }
