@@ -1,4 +1,5 @@
 use audio::AudioDevice;
+use video::VideoDevice;
 use cpu::Cpu;
 use error::HwSpecError;
 use regex::Regex;
@@ -7,6 +8,7 @@ mod audio;
 mod cpu;
 mod error;
 mod storage;
+mod video;
 
 /// This struct represents the hardware configuration of an MS-DOS
 /// compatible PC system.
@@ -14,6 +16,7 @@ pub struct HwSpec {
     cpu: Cpu,
     ram: u32, // RAM size in bytes
     audio: Vec<AudioDevice>,
+    video: Vec<VideoDevice>,
 }
 
 impl HwSpec {
