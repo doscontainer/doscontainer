@@ -22,7 +22,7 @@ impl HwSpec {
             println!("YUP");
             Ok(())
         } else {
-            Err(HwSpecError::InvalidCpu)
+            Err(HwSpecError::InvalidRamAmount)
         }
     }
 
