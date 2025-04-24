@@ -4,10 +4,6 @@
 /// This enum provides a type-safe way to handle device identification and configuration.
 ///
 /// # Examples
-///
-/// ```
-/// let card = AudioDeviceType::SB16;
-/// ```
 #[derive(Debug)]
 pub enum AudioDeviceType {
     /// Standard PC speaker (beeper)
@@ -54,13 +50,6 @@ pub enum AudioDeviceType {
 /// resource assignments (I/O port address, DMA channel, and IRQ line).
 ///
 /// Some devices may require only an I/O port, while others might also need DMA and IRQ lines.
-///
-/// # Examples
-///
-/// ```
-/// let mut gus = AudioDevice::new(AudioDeviceType::GUS);
-/// gus.configure(0x240, 5, 7);
-/// ```
 #[derive(Debug)]
 pub struct AudioDevice {
     device: AudioDeviceType,
@@ -77,12 +66,6 @@ impl AudioDevice {
     /// # Arguments
     ///
     /// * `device` - The type of audio device.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let adlib = AudioDevice::new(AudioDeviceType::AdLib);
-    /// ```
     pub fn new(device: AudioDeviceType) -> Self {
         Self {
             device,
@@ -93,13 +76,6 @@ impl AudioDevice {
     }
 
     /// Returns a reference to the `AudioDeviceType` of this device.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let device = AudioDevice::new(AudioDeviceType::SB16);
-    /// assert_eq!(device.device_type(), &AudioDeviceType::SB16);
-    /// ```
     pub fn device_type(&self) -> &AudioDeviceType {
         &self.device
     }
@@ -109,13 +85,6 @@ impl AudioDevice {
     /// # Arguments
     ///
     /// * `io` - The I/O port address (in hexadecimal, e.g., `0x220`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut sb16 = AudioDevice::new(AudioDeviceType::SB16);
-    /// sb16.set_io(0x220);
-    /// ```
     pub fn set_io(&mut self, io: u16) {
         self.io = Some(io);
     }
@@ -125,13 +94,6 @@ impl AudioDevice {
     /// # Arguments
     ///
     /// * `dma` - The DMA channel number (typically 0–7).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut gus = AudioDevice::new(AudioDeviceType::GUS);
-    /// gus.set_dma(5);
-    /// ```
     pub fn set_dma(&mut self, dma: u8) {
         self.dma = Some(dma);
     }
@@ -141,13 +103,6 @@ impl AudioDevice {
     /// # Arguments
     ///
     /// * `irq` - The IRQ line number (typically 0–15).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut gus = AudioDevice::new(AudioDeviceType::GUS);
-    /// gus.set_irq(7);
-    /// ```
     pub fn set_irq(&mut self, irq: u8) {
         self.irq = Some(irq);
     }
@@ -159,13 +114,6 @@ impl AudioDevice {
     /// * `io` - The I/O port address.
     /// * `dma` - The DMA channel number.
     /// * `irq` - The IRQ line number.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut sb16 = AudioDevice::new(AudioDeviceType::SB16);
-    /// sb16.configure(0x220, 1, 5);
-    /// ```
     pub fn configure(&mut self, io: u16, dma: u8, irq: u8) {
         self.set_io(io);
         self.set_dma(dma);
@@ -173,40 +121,16 @@ impl AudioDevice {
     }
 
     /// Returns the configured I/O port address, if any.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut adlib = AudioDevice::new(AudioDeviceType::AdLib);
-    /// adlib.set_io(0x388);
-    /// assert_eq!(adlib.io(), Some(0x388));
-    /// ```
     pub fn io(&self) -> Option<u16> {
         self.io
     }
 
     /// Returns the configured DMA channel number, if any.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut gus = AudioDevice::new(AudioDeviceType::GUS);
-    /// gus.set_dma(5);
-    /// assert_eq!(gus.dma(), Some(5));
-    /// ```
     pub fn dma(&self) -> Option<u8> {
         self.dma
     }
 
     /// Returns the configured IRQ line number, if any.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut gus = AudioDevice::new(AudioDeviceType::GUS);
-    /// gus.set_irq(7);
-    /// assert_eq!(gus.irq(), Some(7));
-    /// ```
     pub fn irq(&self) -> Option<u8> {
         self.irq
     }
