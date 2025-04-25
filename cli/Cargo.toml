@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 clap = { workspace = true }
 core = { path = "../core"}
+manifest = { path = "../manifest" }

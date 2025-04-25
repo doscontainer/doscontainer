@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use core::DosContainer;
+use manifest::Manifest;
 
 #[derive(Parser)]
 #[command(version="v0.0.1 'Smeagol'", author="Bas v.d. Wiel <bas@area536.com>", about="DOSContainer CLI utility", long_about = None)]
@@ -49,6 +50,8 @@ fn main() -> Result<(), std::io::Error> {
         }
         Commands::BuildCollection { startdir } => {
             println!("Placeholder for collection builder");
+            let manifest = manifest::loader::Loader::from_dir(std::path::Path::new("/home/bvdwiel/container"));
+            println!("{:?}", manifest);
             Ok(())
         }
     }

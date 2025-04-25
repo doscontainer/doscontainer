@@ -1,8 +1,8 @@
 use audio::AudioDevice;
-use video::VideoDevice;
 use cpu::Cpu;
 use error::HwSpecError;
 use regex::Regex;
+use video::VideoDevice;
 
 mod audio;
 mod cpu;
@@ -22,7 +22,6 @@ pub struct HwSpec {
 impl HwSpec {
     pub fn set_ram(&mut self, ram: &str) -> Result<(), HwSpecError> {
         if Self::valid_ram_amount(ram) {
-            println!("YUP");
             Ok(())
         } else {
             Err(HwSpecError::InvalidRamAmount)

@@ -1,10 +1,9 @@
 use crate::error::ManifestError;
 use config::Config;
-use std::fs::File;
 use std::path::Path;
 use walkdir::WalkDir;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Loader {
     settings: Config,
 }
@@ -12,6 +11,7 @@ pub struct Loader {
 impl Loader {
     pub fn from_dir(startdir: &Path) -> Result<Loader, ManifestError> {
         if !startdir.is_dir() {
+	    println!("Startdir is not a directory.");
             return Err(ManifestError::FileOpenError);
         }
         let mut loader = Loader::default();
@@ -26,9 +26,11 @@ impl Loader {
         {
             settings = settings.add_source(config::File::from(entry.path()));
         }
-        let settings = settings
-            .build()
-            .map_err(|_| ManifestError::ConfigBuildError)?;
+	let settings = settings.build().unwrap();
+	println!("Settings: {:?}", settings);
+//        let settings = settings
+//            .build()
+//            .map_err(|_| ManifestError::ConfigBuildError)?;
         loader.settings = settings;
         Ok(loader)
     }

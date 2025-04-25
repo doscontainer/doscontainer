@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use crate::layer::Layer;
-    use std::path::PathBuf;
 
     #[test]
     fn set_valid_url() {
@@ -100,7 +99,6 @@ mod tests {
         let result = layer
             .set_url("https://dosk8s-dist.area536.com/alleycat.zip")
             .unwrap();
-        let test = PathBuf::new();
         assert_eq!(result, ());
     }
 

@@ -17,14 +17,8 @@ use zip::ZipArchive;
 
 pub struct DosContainer {
     disk: Box<dyn Disk>,
-    os: OperatingSystem,
-    manifest: Manifest,
+    os: Option<OperatingSystem>,
+    manifest: Option<Manifest>,
     fs: Box<dyn FileSystem>,
-    staging_dir: TempDir,
-}
-
-impl DosContainer {
-    pub fn new() -> Result<(), CoreError> {
-        Ok(())
-    }
+    staging_dir: Option<TempDir>,
 }
