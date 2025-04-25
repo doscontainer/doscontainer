@@ -46,21 +46,31 @@ that's also easy for humans to read, write and understand. The goal for
 DOSContainer is to be as simple as possible, so I moved from YAML to TOML for
 ease of use.
 
-## Cascading configuration
+## Configuration for collections
+DOSContainer bases itself around two sets of configuration:
 
-A DOSContainer collection may contain a ```config.toml``` file at the root of
-the collection directory. This defines settings that will be used all the way
-down into the entire collection, unless they are overridden by another direc-
-tive either in a directory-level ```config.toml``` file or in the individual
-Manifest file of a specific game or application.
+  * Hardware Specification (HWSpec in short), a description of the hardware
+    that you have in your real or emulated PC. This informs DOSContainer of
+    the device constraints and preferences for your collection.
+  * Manifests, a description file for each game or application that you want
+    to manage through DOSContainer. The manifest provides DOSContainer's build
+    process with the limits that a specific game or application supports.
 
-In this way, configuration cascades. You can set things in very broad strokes
-at the top of your collection, and refine things as you recurse into subdirec-
-tories.
+A practical example. Let's say you HWSpec something that looks a lot like an
+original IBM XT. So you set up a 8088 CPU, half a meg of RAM and CGA graphics.
 
-  * Set everything you can as high up in the collection as possible.
-  * Use directories to override top-level settings.
-  * Only use settings in individual Manifests if you absolutely have to.
+Your collection may contain thousands of games, but given this HWSpec the only
+titles that DOSContainer will build for you are the ones it knows will fit to
+the modest specs of your machine. Many games support better than CGA graphics
+of course, but because of your HWSpec DOSContainer will build disk images with
+specifically CGA support and nothing else. Pop the image into your system, and
+it will boot with the correct settings right away.
+
+If you have a second machine, like a 486 with VGA graphics and a SoundBlaster
+card, a build based on that HWSpec will aim for that specification and attempt
+to configure as closely to your machine as possible. Games that won't support
+anything better than CGA will still get built because VGA is backwards
+compatible with CGA.
 
 ## Manifest specification
 
