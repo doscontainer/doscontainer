@@ -31,6 +31,7 @@ impl FromStr for VideoDevice {
     fn from_str(input: &str) -> Result<Self, HwSpecError> {
         match input.to_uppercase().as_str() {
             "HCG" => Ok(VideoDevice::HCG),
+            "HERCULES" => Ok(VideoDevice::HCG),
             "CGA" => Ok(VideoDevice::CGA),
             "EGA" => Ok(VideoDevice::EGA),
             "MCGA" => Ok(VideoDevice::MCGA),
