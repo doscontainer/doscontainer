@@ -1,7 +1,7 @@
 use audio::AudioDevice;
+use byte_unit::Byte;
 use cpu::Cpu;
 use error::HwSpecError;
-use regex::Regex;
 use video::VideoDevice;
 
 mod audio;
@@ -21,16 +21,9 @@ pub struct HwSpec {
 
 impl HwSpec {
     pub fn set_ram(&mut self, ram: &str) -> Result<(), HwSpecError> {
-        if Self::valid_ram_amount(ram) {
-            Ok(())
-        } else {
-            Err(HwSpecError::InvalidRamAmount)
-        }
-    }
-
-    /// Validator for the RAM amount. Tiny function, but broken out for clarity.
-    fn valid_ram_amount(ram: &str) -> bool {
-        let re = Regex::new(r"^\d+(?i)(KB|MB)$").unwrap();
-        re.is_match(ram)
+        const IGNORE_CASE: bool = true;
+        let amount = Byte::parse_str(ram, IGNORE_CASE).map_err(|_| HwSpecError::InvalidRamString)?;
+        self.ram = amount.try_into().map_err(|_| HwSpecError::TooMuchRamSpecified)?;
+        Ok(())
     }
 }
