@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::cpu::CpuFamily;
+    use crate::cpu::{Cpu, CpuFamily};
     use std::str::FromStr;
 
     #[test]
@@ -133,5 +133,26 @@ mod tests {
     #[test]
     fn empty_string() {
         assert!(CpuFamily::from_str("").is_err());
+    }
+
+    #[test]
+    fn illegal_overclock() {
+        let mut i386 = Cpu::from_str("386").unwrap();
+        assert!(i386.set_clock(150).is_err());
+    }
+
+    #[test]
+    fn illegal_underclock() {
+        let mut i486 = Cpu::from_str("486").unwrap();
+        assert!(i486.set_clock(4).is_err());
+    }
+
+    #[test]
+    fn legitimate_386dx_clocks() {
+        let mut i386dx = Cpu::from_str("386").unwrap();
+        for clock in [16, 20, 25, 33, 40] {
+            assert!(i386dx.set_clock(clock).is_ok());
+            assert_eq!(i386dx.clock(), clock);
+        }
     }
 }
