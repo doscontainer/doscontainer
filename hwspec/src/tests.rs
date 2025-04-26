@@ -53,6 +53,14 @@ mod tests {
     }
 
     #[test]
+    fn valid_80486_dx() {
+        let reference = Cpu::I80486DX;
+        for element in ["I80486DX" , "I80486" , "80486DX" , "80486" , "486DX" ,"486" ] {
+            assert_eq!(reference, Cpu::from_str(element).unwrap());
+        }
+    }
+
+    #[test]
     fn ambiguous_386() {
         let sx = Cpu::I80386SX;
         let dx = Cpu::I80386DX;
