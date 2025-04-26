@@ -4,7 +4,7 @@
 /// This enum provides a type-safe way to handle device identification and configuration.
 ///
 /// # Examples
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AudioDeviceType {
     /// Standard PC speaker (beeper)
     Bleeper,
@@ -50,7 +50,7 @@ pub enum AudioDeviceType {
 /// resource assignments (I/O port address, DMA channel, and IRQ line).
 ///
 /// Some devices may require only an I/O port, while others might also need DMA and IRQ lines.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AudioDevice {
     device: AudioDeviceType,
     io: Option<u16>,
