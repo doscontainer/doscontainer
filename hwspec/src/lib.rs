@@ -22,10 +22,23 @@ pub struct HwSpec {
 }
 
 impl HwSpec {
+    /// Adds an audio device to the system.
+    ///
+    /// This method inserts a new [`AudioDevice`] into the list of audio devices.
+    /// If an identical device is already present, the addition will fail.
+    /// 
+    /// Note: It is possible to have multiple instances of the same type of device,
+    /// as long as they are not completely identical (e.g., two different Sound Blaster cards).
+    ///
+    /// # Arguments
+    ///
+    /// * `device` - The [`AudioDevice`] to add to the system.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`HwSpecError::DuplicateAudioDevice`] if the exact same device is already present.
+    ///
     pub fn add_audio_device(&mut self, device: AudioDevice) -> Result<(), HwSpecError> {
-        // We already have the device you're trying to add.
-        // Mind you, you can still have multiple instances of the same device just not
-        // 100% identical ones.
         if self.audio.contains(&device) {
             return Err(HwSpecError::DuplicateAudioDevice);
         }
@@ -46,6 +59,22 @@ impl HwSpec {
         Ok(())
     }
 
+    /// Sets the amount of system RAM.
+    ///
+    /// The `ram` parameter must be a human-readable string representing a memory size,
+    /// such as `"640 KB"`, `"2 MB"`, or `"16 MiB"`. Both SI (e.g., KB, MB) and binary (e.g., KiB, MiB) units
+    /// are supported. Unit case is ignored.
+    ///
+    /// # Arguments
+    ///
+    /// * `ram` - A string slice containing the desired RAM size and unit.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`HwSpecError::InvalidRamString`] if the string cannot be parsed.
+    ///
+    /// Returns a [`HwSpecError::TooMuchRamSpecified`] if the parsed RAM size cannot fit into a `u32`
+    /// (i.e., exceeds 4 GiB). This coincides with the theoretical maximum of the 32-bit Intel platform.
     pub fn set_ram(&mut self, ram: &str) -> Result<(), HwSpecError> {
         const IGNORE_CASE: bool = true;
         let amount =
