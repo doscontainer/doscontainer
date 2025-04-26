@@ -31,8 +31,8 @@ mod tests {
     #[test]
     fn valid_80286() {
         let reference = Cpu::I80286;
-        for element in ["i80286", "I80286","286"] {
-        assert_eq!(reference, Cpu::from_str(element).unwrap());
+        for element in ["i80286", "I80286", "286"] {
+            assert_eq!(reference, Cpu::from_str(element).unwrap());
         }
     }
 
@@ -53,19 +53,19 @@ mod tests {
     }
 
     #[test]
-    fn valid_80486_dx() {
-        let reference = Cpu::I80486DX;
-        for element in ["I80486DX" , "I80486" , "80486DX" , "80486" , "486DX" ,"486" ] {
-            assert_eq!(reference, Cpu::from_str(element).unwrap());
-        }
-    }
-
-    #[test]
     fn ambiguous_386() {
         let sx = Cpu::I80386SX;
         let dx = Cpu::I80386DX;
         let test = Cpu::from_str("386").unwrap();
         assert_ne!(test, sx);
         assert_eq!(test, dx);
+    }
+
+    #[test]
+    fn valid_80486_dx() {
+        let reference = Cpu::I80486DX;
+        for element in ["I80486DX", "I80486", "80486DX", "80486", "486DX", "486"] {
+            assert_eq!(reference, Cpu::from_str(element).unwrap());
+        }
     }
 }
