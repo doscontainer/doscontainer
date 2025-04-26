@@ -7,6 +7,7 @@ use std::str::FromStr;
 /// These CPU types correspond to processors commonly used in older DOS-compatible systems.
 /// Each variant of this enum represents a different CPU model, including various Intel and NEC
 /// processors that were widely used in PCs from the 1980s and 1990s.
+#[derive(Debug, PartialEq)]
 pub enum Cpu {
     /// Intel 8086 CPU, a 16-bit processor that introduced the x86 architecture.
     I8086,
@@ -93,23 +94,23 @@ impl FromStr for Cpu {
     /// # Returns
     ///
     /// * `Ok(Cpu)` - The corresponding CPU variant if the string matches a valid CPU name.
-    /// * `Err(HwStateError)` - An error if the string does not match any valid CPU name.
+    /// * `Err(HwSpecError)` - An error if the string does not match any valid CPU name.
     fn from_str(input: &str) -> Result<Self, HwSpecError> {
         match input.to_uppercase().as_str() {
-            "I8086" => Ok(Cpu::I8086),
-            "I8088" => Ok(Cpu::I8088),
+            "I8086" | "8086" => Ok(Cpu::I8086),
+            "I8088" | "8088" => Ok(Cpu::I8088),
             "NECV20" => Ok(Cpu::NECV20),
             "NECV30" => Ok(Cpu::NECV30),
-            "I80186" => Ok(Cpu::I80186),
-            "I80286" => Ok(Cpu::I80286),
-            "I80386SX" => Ok(Cpu::I80386SX),
-            "I80386DX" => Ok(Cpu::I80386DX),
-            "I80486SL" => Ok(Cpu::I80486SL),
-            "I80486SX" => Ok(Cpu::I80486SX),
-            "I80486SX2" => Ok(Cpu::I80486SX2),
-            "I80486DX" => Ok(Cpu::I80486DX),
-            "I80486DX2" => Ok(Cpu::I80486DX2),
-            "I80486DX4" => Ok(Cpu::I80486DX4),
+            "I80186" | "80186" | "186" => Ok(Cpu::I80186), // Ok, so "186" is anachronistic, but we'll accept it
+            "I80286" | "80286" | "286" => Ok(Cpu::I80286),
+            "I80386SX" | "80386SX" | "386SX" => Ok(Cpu::I80386SX),
+            "I80386DX" | "I80386" | "80386DX" | "80386" | "386DX" | "386" => Ok(Cpu::I80386DX), // DX is the default when a bare 386 is given
+            "I80486SL" | "80486SL" | "486SL" => Ok(Cpu::I80486SL),
+            "I80486SX" | "80486SX" | "486SX" => Ok(Cpu::I80486SX),
+            "I80486SX2" | "80486SX2" | "486SX2" => Ok(Cpu::I80486SX2),
+            "I80486DX" | "80486DX" | "486DX" | "486" => Ok(Cpu::I80486DX), // DX is the default when a bare 486 is given
+            "I80486DX2" | "80486DX2" | "486DX2" => Ok(Cpu::I80486DX2),
+            "I80486DX4" | "80486DX4" | "486DX4" => Ok(Cpu::I80486DX4),
             _ => Err(HwSpecError::InvalidCpu),
         }
     }
