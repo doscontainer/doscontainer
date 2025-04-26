@@ -26,7 +26,7 @@ impl HwSpec {
     ///
     /// This method inserts a new [`AudioDevice`] into the list of audio devices.
     /// If an identical device is already present, the addition will fail.
-    /// 
+    ///
     /// Note: It is possible to have multiple instances of the same type of device,
     /// as long as they are not completely identical (e.g., two different Sound Blaster cards).
     ///
@@ -51,7 +51,34 @@ impl HwSpec {
     }
 
     pub fn audio_device(&self, devicetype: AudioDeviceType) -> Vec<&AudioDevice> {
-        self.audio.iter().filter(|d| d.device_type() == &devicetype).collect()
+        self.audio
+            .iter()
+            .filter(|d| d.device_type() == &devicetype)
+            .collect()
+    }
+
+    /// Adds a video device to the system.
+    ///
+    /// This method inserts a new [`VideoDevice`] into the list of video devices.
+    /// If an identical device is already present, the addition will fail.
+    ///
+    /// # Arguments
+    ///
+    /// * `device` - The [`VideoDevice`] to add to the system.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`HwSpecError::DuplicateVideoDevice`] if the exact same device is already present.
+    pub fn add_video_device(&mut self, device: VideoDevice) -> Result<(), HwSpecError> {
+        if self.video.contains(&device) {
+            return Err(HwSpecError::DuplicateVideoDevice);
+        }
+        self.video.push(device);
+        Ok(())
+    }
+
+    pub fn video(&self) -> &[VideoDevice] {
+        &self.video
     }
 
     pub fn set_cpu(&mut self, cpu: &str) -> Result<(), HwSpecError> {

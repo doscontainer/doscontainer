@@ -1,6 +1,7 @@
 use crate::error::HwSpecError;
 use std::str::FromStr;
 
+#[derive(Debug, PartialEq)]
 pub enum VideoDevice {
     HCG,
     CGA,
