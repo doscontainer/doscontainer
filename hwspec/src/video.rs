@@ -37,7 +37,7 @@ impl FromStr for VideoDevice {
             "MCGA" => Ok(VideoDevice::MCGA),
             "VGA" => Ok(VideoDevice::VGA),
             "SVGA" => Ok(VideoDevice::SVGA),
-            "XGA" => Ok(VideoDevice::SVGA),
+            "XGA" => Ok(VideoDevice::XGA),
             _ => Err(HwSpecError::InvalidVideoDevice),
         }
     }
