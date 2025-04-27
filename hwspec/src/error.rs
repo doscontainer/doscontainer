@@ -5,6 +5,7 @@ pub enum HwSpecError {
     DuplicateAudioDevice,
     DuplicateVideoDevice,
     InvalidCpu,
+    InvalidFloppyType,
     TooMuchRamSpecified,
     InvalidRamString,
     InvalidStorageClass,
