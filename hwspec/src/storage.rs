@@ -75,3 +75,14 @@ pub struct HddGeometry {
     heads: usize,
     sectors: usize,
 }
+
+impl fmt::Display for HddGeometry {
+    /// Provides a user-friendly string representation of an HDD geometry.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Cylinders: {}, Heads: {}, Sectors per track: {}.",
+            self.cylinders, self.heads, self.sectors
+        )
+    }
+}
