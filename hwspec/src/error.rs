@@ -7,5 +7,6 @@ pub enum HwSpecError {
     InvalidCpu,
     TooMuchRamSpecified,
     InvalidRamString,
+    InvalidStorageClass,
     InvalidVideoDevice,
 }

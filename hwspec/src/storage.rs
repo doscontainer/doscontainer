@@ -1,4 +1,6 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
+
+use crate::error::HwSpecError;
 
 pub struct StorageDevice {
     class: StorageClass,
@@ -7,6 +9,7 @@ pub struct StorageDevice {
 }
 
 /// Type-safe determination of the class of storage device
+#[derive(Debug, PartialEq)]
 pub enum StorageClass {
     /// Floppy disk
     Floppy,
@@ -23,6 +26,20 @@ pub enum FloppyType {
     F35_720,
     F35_1440,
     F35_2880,
+}
+
+impl FromStr for StorageClass {
+    type Err = HwSpecError;
+
+    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+        match input.to_uppercase().as_str() {
+            "FLOPPY" | "FDD" | "FLOPPYDRIVE" | "FLOPPYDISK" | "FLOPPY DISK" | "FLOPPY DRIVE" => {
+                Ok(StorageClass::Floppy)
+            }
+            "HDD" | "HARDDISK" | "HARDDRIVE" | "HARD DISK" | "HARD DRIVE" => Ok(StorageClass::Hdd),
+            _ => Err(HwSpecError::InvalidStorageClass),
+        }
+    }
 }
 
 impl fmt::Display for FloppyType {

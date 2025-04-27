@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::cpu::{Cpu, CpuFamily};
+    use crate::{
+        cpu::{Cpu, CpuFamily},
+        storage::StorageClass,
+    };
     use std::str::FromStr;
 
     #[test]
@@ -153,6 +156,32 @@ mod tests {
         for clock in [16, 20, 25, 33, 40] {
             assert!(i386dx.set_clock(clock).is_ok());
             assert_eq!(i386dx.clock(), clock);
+        }
+    }
+
+    #[test]
+    fn valid_floppy_storage_class() {
+        for element in [
+            "FLOPPY",
+            "FDD",
+            "FLOPPYDRIVE",
+            "FLOPPYDISK",
+            "FLOPPY DISK",
+            "FLOPPY DRIVE",
+        ] {
+            assert!(StorageClass::from_str(element).is_ok());
+            assert_eq!(
+                StorageClass::from_str(element).unwrap(),
+                StorageClass::Floppy
+            );
+        }
+    }
+
+    #[test]
+    fn valid_harddisk_storage_class() {
+        for element in ["HDD", "HARDDISK", "HARDDRIVE", "HARD DISK", "HARD DRIVE"] {
+            assert!(StorageClass::from_str(element).is_ok());
+            assert_eq!(StorageClass::from_str(element).unwrap(), StorageClass::Hdd);
         }
     }
 }
