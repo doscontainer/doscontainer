@@ -42,6 +42,17 @@ impl FromStr for StorageClass {
     }
 }
 
+impl fmt::Display for StorageClass {
+    /// Provides a user-friendly string representation of a floppy disk type.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let label = match self {
+            StorageClass::Floppy => "Floppy drive",
+            StorageClass::Hdd => "Hard drive",
+        };
+        write!(f, "{}", label)
+    }
+}
+
 impl fmt::Display for FloppyType {
     /// Provides a user-friendly string representation of a floppy disk type.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
