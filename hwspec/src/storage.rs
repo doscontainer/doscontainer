@@ -8,6 +8,18 @@ pub struct StorageDevice {
     geometry: Option<HddGeometry>,
 }
 
+impl StorageDevice {
+    /// Constructor for use when you already know you want a floppy. Pass in a string slice
+    /// and you'll get a complete StorageDevice in return.
+    pub fn new_floppy(floppy_type: &str) -> Result<Self, HwSpecError> {
+        Ok(StorageDevice {
+            class: StorageClass::Floppy,
+            floppy_type: Some(FloppyType::from_str(floppy_type)?),
+            geometry: None,
+        })
+    }
+}
+
 /// Type-safe determination of the class of storage device
 #[derive(Debug, PartialEq)]
 pub enum StorageClass {
