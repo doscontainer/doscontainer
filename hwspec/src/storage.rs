@@ -18,6 +18,18 @@ impl StorageDevice {
             geometry: None,
         })
     }
+
+    pub fn new_harddisk(
+        cylinders: usize,
+        heads: usize,
+        sectors: usize,
+    ) -> Result<Self, HwSpecError> {
+        Ok(StorageDevice {
+            class: StorageClass::Hdd,
+            floppy_type: None,
+            geometry: Some(HddGeometry::new(cylinders, heads, sectors)?),
+        })
+    }
 }
 
 /// Type-safe determination of the class of storage device
@@ -117,5 +129,27 @@ impl fmt::Display for HddGeometry {
             "Cylinders: {}, Heads: {}, Sectors per track: {}.",
             self.cylinders, self.heads, self.sectors
         )
+    }
+}
+
+impl HddGeometry {
+    pub fn new(cylinders: usize, heads: usize, sectors: usize) -> Result<Self, HwSpecError> {
+        if cylinders == 0 || heads == 0 || sectors == 0 {
+            return Err(HwSpecError::ValueMayNotBeZero);
+        }
+        if cylinders > 1024 {
+            return Err(HwSpecError::TooManyCylinders);
+        }
+        if heads > 16 {
+            return Err(HwSpecError::TooManyHeads);
+        }
+        if sectors > 63 {
+            return Err(HwSpecError::TooManySectors);
+        }
+        Ok(HddGeometry {
+            cylinders,
+            heads,
+            sectors,
+        })
     }
 }

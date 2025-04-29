@@ -6,8 +6,12 @@ pub enum HwSpecError {
     DuplicateVideoDevice,
     InvalidCpu,
     InvalidFloppyType,
+    TooManyCylinders,
+    TooManyHeads,
+    TooManySectors,
     TooMuchRamSpecified,
     InvalidRamString,
     InvalidStorageClass,
     InvalidVideoDevice,
+    ValueMayNotBeZero,
 }

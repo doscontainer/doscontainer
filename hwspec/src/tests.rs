@@ -2,7 +2,7 @@
 mod tests {
     use crate::{
         cpu::{Cpu, CpuFamily},
-        storage::StorageClass,
+        storage::{StorageClass, StorageDevice},
     };
     use std::str::FromStr;
 
@@ -182,6 +182,44 @@ mod tests {
         for element in ["HDD", "HARDDISK", "HARDDRIVE", "HARD DISK", "HARD DRIVE"] {
             assert!(StorageClass::from_str(element).is_ok());
             assert_eq!(StorageClass::from_str(element).unwrap(), StorageClass::Hdd);
+        }
+    }
+
+    #[test]
+    fn create_valid_floppy_drives() {
+        // These are the shortest-form floppy type strings we'll accept here.
+        for element in ["160", "180", "320", "360", "1200", "1440", "720", "2880"] {
+            assert!(StorageDevice::new_floppy(element).is_ok())
+        }
+    }
+
+    #[test]
+    fn create_valid_harddrives() {
+        for heads in 1..=16 {
+            for cylinders in 1..=1024 {
+                for sectors in 1..=63 {
+                    assert!(StorageDevice::new_harddisk(cylinders, heads, sectors).is_ok());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn reject_invalid_harddrives() {
+        let invalid_inputs = [
+            (0, 1, 1),    // zero cylinders
+            (1, 0, 1),    // zero heads
+            (1, 1, 0),    // zero sectors
+            (1025, 1, 1), // too many cylinders
+            (1, 17, 1),   // too many heads
+            (1, 1, 64),   // too many sectors
+        ];
+
+        for (cylinders, heads, sectors) in invalid_inputs {
+            assert!(
+                StorageDevice::new_harddisk(cylinders, heads, sectors).is_err(),
+                "Should reject ({cylinders}, {heads}, {sectors})"
+            );
         }
     }
 }
