@@ -30,10 +30,22 @@ impl StorageDevice {
             geometry: Some(HddGeometry::new(cylinders, heads, sectors)?),
         })
     }
+
+    pub fn class(&self) -> StorageClass {
+        self.class
+    }
+
+    pub fn floppy_type(&self) -> Option<FloppyType> {
+        self.floppy_type
+    }
+
+    pub fn geometry(&self) -> Option<&HddGeometry> {
+        self.geometry.as_ref()
+    }
 }
 
 /// Type-safe determination of the class of storage device
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum StorageClass {
     /// Floppy disk
     Floppy,
@@ -41,6 +53,7 @@ pub enum StorageClass {
     Hdd,
 }
 
+#[derive(Copy, Clone)]
 pub enum FloppyType {
     F525_160,
     F525_320,
