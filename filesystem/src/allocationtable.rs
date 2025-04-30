@@ -3,7 +3,6 @@ use crate::{cluster::{Cluster, ClusterStatus}, error::FileSystemError, ClusterIn
 
 pub struct AllocationTable {
     clusters: BTreeMap<ClusterIndex, Cluster>,
-    cluster_count: usize,
     cluster_size: usize,
 }
 
@@ -19,7 +18,6 @@ impl AllocationTable {
             .collect();
         Self {
             clusters,
-            cluster_count,
             cluster_size,
         }
     }
@@ -39,10 +37,10 @@ impl AllocationTable {
         value: usize,
     ) -> Result<(), FileSystemError> {
         // Ensure the index is within bounds.
-        if index >= self.cluster_count {
+        if index >= self.clusters.len() {
             return Err(FileSystemError::ClusterOutOfBounds {
                 index,
-                cluster_count: self.cluster_count,
+                cluster_count: self.clusters.len(),
             });
         }
 
