@@ -48,6 +48,10 @@ impl Disk for Floppy {
         &self.file
     }
 
+    fn file_mut(&mut self) -> &mut File {
+        &mut self.file
+    }
+    
     fn disktype(&self) -> &DiskType {
         &self.disktype
     }
