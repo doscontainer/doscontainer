@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 byte-unit = { workspace = true }
+config = { workspace = true }
+directories = { workspace = true }

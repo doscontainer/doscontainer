@@ -1,8 +1,10 @@
 use std::str::FromStr;
+use config::Config;
 
 use audio::{AudioDevice, AudioDeviceType};
 use byte_unit::Byte;
 use cpu::Cpu;
+use directories::ProjectDirs;
 use error::HwSpecError;
 use video::VideoDevice;
 

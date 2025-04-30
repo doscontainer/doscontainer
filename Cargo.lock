@@ -826,6 +826,8 @@ name = "hwspec"
 version = "0.1.0"
 dependencies = [
  "byte-unit",
+ "config",
+ "directories",
 ]
 
 [[package]]
