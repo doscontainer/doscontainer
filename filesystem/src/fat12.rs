@@ -5,6 +5,7 @@ use crate::{
     error::FileSystemError,
     pool::Pool,
     FileSystem,
+    FileType
 };
 use disk::{disktype::DiskType, Disk};
 use operatingsystem::OperatingSystem;
@@ -21,7 +22,7 @@ impl FileSystem for Fat12 {
         &mut self,
         path: &Path,
         size: usize,
-        filetype: crate::FileType,
+        filetype: FileType,
     ) -> Result<Vec<crate::ClusterIndex>, crate::error::FileSystemError> {
         todo!()
     }
@@ -86,7 +87,7 @@ impl Fat12 {
             _ => return Err(FileSystemError::InvalidDiskType),
         };
         let mut filesystem = Fat12 {
-            allocation_table: AllocationTable::new(cluster_count, cluster_size),
+            allocation_table: AllocationTable::new(cluster_count, cluster_size)?,
             pool: Pool::new()?,
             os: os.clone(),
             disktype: disk.disktype().clone(), // Cloning here for simplicity.
