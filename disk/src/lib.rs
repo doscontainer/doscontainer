@@ -67,6 +67,8 @@ pub trait Disk {
     /// Returns a reference to the underlying `File` object.
     fn file(&self) -> &File;
 
+    fn file_mut(&mut self) -> &mut File;
+
     /// Returns the type of the disk.
     ///
     /// This function provides information about the type of the disk (e.g., floppy, hard disk),
