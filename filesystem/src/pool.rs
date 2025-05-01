@@ -1,3 +1,5 @@
+use std::path::{Component::*, Path};
+
 use uuid::Uuid;
 
 use crate::{
@@ -174,6 +176,65 @@ impl Pool {
         self.entries.iter().find(|entry| entry.id() == id)
     }
 
+    /// Searches for a `DirEntry` with a matching name.
+    ///
+    /// This method iterates over all entries in the pool and returns a reference to
+    /// the first entry whose name matches the given `name` exactly. The comparison is
+    /// case-sensitive and does not check for parent-child relationships or entry type.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the entry to search for (not including extension).
+    ///
+    /// # Returns
+    ///
+    /// * `Some(&DirEntry)` if a matching entry is found.
+    /// * `None` if no entry with the given name exists.
+    pub fn entry_by_name(
+        &self,
+        parent: Uuid,
+        name: &str,
+    ) -> Result<Option<&DirEntry>, FileSystemError> {
+        let descendant_uuids = self.direct_descendants(parent)?;
+
+        Ok(descendant_uuids
+            .iter()
+            .filter_map(|uuid| self.entries.iter().find(|e| e.id() == *uuid))
+            .find(|entry| entry.name().map(|n| n == name).unwrap_or(false)))
+    }
+
+    /// Searches for a `DirEntry` whose normalized name matches the given string.
+    ///
+    /// This method iterates over all entries in the pool and compares their normalized
+    /// names—constructed from the entry's `name` and optional `extension`—against the
+    /// provided `name`. The comparison is exact and case-sensitive.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A string slice representing the full normalized name (e.g., `"foo.txt"`).
+    ///
+    /// # Returns
+    ///
+    /// * `Some(&DirEntry)` if a matching entry is found.
+    /// * `None` if no entry has a normalized name equal to the provided string.
+    ///
+    /// # Notes
+    ///
+    /// The normalized name is typically formed by joining the entry's `name` and `extension`
+    /// with a dot, e.g., `"foo.txt"` for a name of `"foo"` and an extension of `"txt"`.
+    pub fn entry_by_normalized_name(
+        &self,
+        parent: Uuid,
+        name: &str,
+    ) -> Result<Option<&DirEntry>, FileSystemError> {
+        let descendant_uuids = self.direct_descendants(parent)?;
+
+        Ok(descendant_uuids
+            .iter()
+            .filter_map(|uuid| self.entries.iter().find(|e| e.id() == *uuid))
+            .find(|entry| entry.normalized_name().as_deref() == Some(name)))
+    }
+
     /// Retrieve the root directory entry from the pool.
     ///
     /// This function looks for the directory entry that has no parent, which is
@@ -193,6 +254,45 @@ impl Pool {
     /// to be adjusted accordingly.
     pub fn root_dir(&self) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.parent().is_none())
+    }
+
+    /// Checks whether the given path exists in the pool's directory hierarchy.
+    ///
+    /// This method walks the `Path` from the root directory, resolving each component
+    /// using normalized names. If all components are found in the correct order as
+    /// direct descendants, the method returns `true`. If any part of the path is missing,
+    /// or if the path contains unsupported components (e.g., `..`, `.`, or a Windows prefix),
+    /// the method returns `false`.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - A reference to a `std::path::Path` representing the fully qualified path
+    ///            to check within the pool.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the entire path exists from root to leaf in the directory hierarchy.
+    /// * `false` if any part of the path does not exist or is invalid.
+    pub fn path_exists(&self, path: &Path) -> bool {
+        let mut current_entry = match self.root_dir() {
+            Some(entry) => entry,
+            None => return false,
+        };
+
+        for component in path.components() {
+            let name = match component {
+                Normal(component) => component.to_string_lossy(),
+                RootDir => continue,
+                CurDir | ParentDir | Prefix(_) => return false,
+            };
+
+            match self.entry_by_normalized_name(current_entry.id(), &name) {
+                Ok(Some(entry)) => current_entry = entry,
+                Ok(None) => return false, // not found
+                Err(_) => return false,   // this is wonky!
+            }
+        }
+        true
     }
 }
 

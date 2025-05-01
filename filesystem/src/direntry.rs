@@ -34,7 +34,7 @@ impl Default for DirEntry {
 
 impl DirEntry {
     /// Generate a new `DirEntry` instance based on the given `DirEntryType`.
-    /// 
+    ///
     /// # Arguments
     /// * `entrytype` - Specifies the type of directory entry to create, such as a file, directory, or placeholder.
     ///
@@ -70,7 +70,9 @@ impl DirEntry {
         DirEntry {
             entry_type: DirEntryType::EmptyPlaceholder,
             extension: None,
-            attributes: Attributes::from_preset(crate::attributes::AttributesPreset::EmptyPlaceholder),
+            attributes: Attributes::from_preset(
+                crate::attributes::AttributesPreset::EmptyPlaceholder,
+            ),
             file_size: 0,
             last_modified_time: chrono::Local::now(),
             name: None,
@@ -92,7 +94,7 @@ impl DirEntry {
             parent: None,
             allocated_clusters: Vec::new(),
             uuid: Uuid::new_v4(),
-        }        
+        }
     }
 
     /// Generate a new `DirEntry` instance representing a system file.
@@ -482,10 +484,19 @@ impl DirEntry {
         self.uuid
     }
 
-    pub fn name(&self) -> &Option<String> {
-        &self.name
+    pub fn name(&self) -> Option<&String> {
+        self.name.as_ref()
     }
 
+    pub fn normalized_name(&self) -> Option<String> {
+        self.name.as_ref().map(|name| {
+            match self.extension.as_ref() {
+                Some(ext) => format!("{}.{}", name, ext),
+                None => name.clone(),
+            }
+        })
+    }
+    
     pub fn set_allocated_clusters(&mut self, clusters: &[usize]) {
         self.allocated_clusters = clusters.to_vec();
     }

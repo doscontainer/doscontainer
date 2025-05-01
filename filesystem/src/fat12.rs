@@ -1,7 +1,11 @@
 use std::path::Path;
 
 use crate::{
-    allocationtable::AllocationTable, direntry::{DirEntry, DirEntryType}, error::FileSystemError, pool::Pool, FileSystem, FileType
+    allocationtable::AllocationTable,
+    direntry::{DirEntry, DirEntryType},
+    error::FileSystemError,
+    pool::Pool,
+    ClusterIndex, FileSystem, FileType,
 };
 use disk::{disktype::DiskType, Disk};
 use operatingsystem::OperatingSystem;
@@ -19,7 +23,7 @@ impl FileSystem for Fat12 {
         path: &Path,
         size: usize,
         filetype: FileType,
-    ) -> Result<Vec<crate::ClusterIndex>, crate::error::FileSystemError> {
+    ) -> Result<Vec<ClusterIndex>, FileSystemError> {
         // Figure out how many clusters we're going to need for the file we're making
         let cluster_count = (size + self.allocation_table.cluster_size() - 1)
             / self.allocation_table.cluster_size();
@@ -33,8 +37,6 @@ impl FileSystem for Fat12 {
             }
         }
 
-        // Write the physical bytes to the disk
-
         // Create the directory entry as needed by filetype
         match filetype {
             FileType::RegularFile => {
@@ -43,9 +45,13 @@ impl FileSystem for Fat12 {
                 todo!();
             }
             FileType::SystemFile => {
+                let mut entry = DirEntry::new(DirEntryType::SysFile);
+                entry.set_allocated_clusters(&reserved_clusters);
                 todo!();
             }
         }
+
+        // Write file's bytes to the disk
     }
 
     fn mkdir(
