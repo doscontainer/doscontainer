@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::{
-    allocationtable::AllocationTable, error::FileSystemError, pool::Pool, FileSystem, FileType,
+    allocationtable::AllocationTable, direntry::{DirEntry, DirEntryType}, error::FileSystemError, pool::Pool, FileSystem, FileType
 };
 use disk::{disktype::DiskType, Disk};
 use operatingsystem::OperatingSystem;
@@ -38,6 +38,8 @@ impl FileSystem for Fat12 {
         // Create the directory entry as needed by filetype
         match filetype {
             FileType::RegularFile => {
+                let mut entry = DirEntry::new(DirEntryType::File);
+                entry.set_allocated_clusters(&reserved_clusters);
                 todo!();
             }
             FileType::SystemFile => {

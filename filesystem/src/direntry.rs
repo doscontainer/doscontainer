@@ -485,4 +485,8 @@ impl DirEntry {
     pub fn name(&self) -> &Option<String> {
         &self.name
     }
+
+    pub fn set_allocated_clusters(&mut self, clusters: &[usize]) {
+        self.allocated_clusters = clusters.to_vec();
+    }
 }
