@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone, Debug)]
 pub struct Attributes {
     read_only: bool,
@@ -15,6 +17,35 @@ pub enum AttributesPreset {
     SystemFile,
     Directory,
     VolumeLabel,
+}
+
+impl fmt::Display for Attributes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut flags = Vec::new();
+        if self.read_only {
+            flags.push("READ_ONLY");
+        }
+        if self.hidden {
+            flags.push("HIDDEN");
+        }
+        if self.system {
+            flags.push("SYSTEM");
+        }
+        if self.volume_label {
+            flags.push("VOLUME_LABEL");
+        }
+        if self.subdir {
+            flags.push("SUBDIR");
+        }
+        if self.archive {
+            flags.push("ARCHIVE");
+        }
+        if self.device {
+            flags.push("DEVICE");
+        }
+
+        write!(f, "Attributes({})", flags.join(" | "))
+    }
 }
 
 impl Attributes {
