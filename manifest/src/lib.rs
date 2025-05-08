@@ -1,9 +1,10 @@
+use error::ManifestError;
+
 use crate::layer::Layer;
 use std::collections::HashMap;
 
 mod error;
 mod layer;
-pub mod loader;
 mod tests;
 
 pub struct Manifest {
@@ -30,6 +31,10 @@ impl Manifest {
 
     pub fn mut_layer(&mut self, name: &str) -> Option<&mut Layer> {
         self.layers.get_mut(name)
+    }
+
+    pub fn from_toml(toml_string: &str) -> Result<(), ManifestError> {
+        Ok(())
     }
 }
 

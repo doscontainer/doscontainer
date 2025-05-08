@@ -2,7 +2,7 @@
 mod tests {
     use crate::{
         cpu::{Cpu, CpuFamily},
-        storage::{StorageClass, StorageDevice},
+        storage::{StorageClass, StorageDevice}, HwSpec,
     };
     use std::str::FromStr;
 
@@ -221,5 +221,22 @@ mod tests {
                 "Should reject ({cylinders}, {heads}, {sectors})"
             );
         }
+    }
+
+    #[test]
+    fn load_toml() {
+        let toml_string = r#"
+cpu = "8088"
+ram = "512k"
+video = "vga"
+
+[[audio]]
+device = "Bleeper"
+
+[[audio]]
+device = "AdLib""#;
+        let spec = HwSpec::from_toml(toml_string);
+        println!("{:?}", spec);
+        assert!(spec.is_ok());
     }
 }

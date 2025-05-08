@@ -1,7 +1,9 @@
+use serde::Deserialize;
+
 use crate::error::HwSpecError;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum VideoDevice {
     HCG,
     CGA,

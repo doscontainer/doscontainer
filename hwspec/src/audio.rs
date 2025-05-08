@@ -1,10 +1,12 @@
+use serde::Deserialize;
+
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
 ///
 /// This enum provides a type-safe way to handle device identification and configuration.
 ///
 /// # Examples
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum AudioDeviceType {
     /// Standard PC speaker (beeper)
     Bleeper,
@@ -50,7 +52,7 @@ pub enum AudioDeviceType {
 /// resource assignments (I/O port address, DMA channel, and IRQ line).
 ///
 /// Some devices may require only an I/O port, while others might also need DMA and IRQ lines.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct AudioDevice {
     device: AudioDeviceType,
     io: Option<u16>,

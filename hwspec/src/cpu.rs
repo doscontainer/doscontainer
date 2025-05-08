@@ -1,7 +1,10 @@
+use serde::{Deserialize, Deserializer};
+
 use crate::error::HwSpecError;
 use std::fmt;
 use std::str::FromStr;
 
+#[derive(Debug, Deserialize)]
 pub struct Cpu {
     family: CpuFamily,
     clock: u8,
@@ -64,7 +67,7 @@ impl FromStr for Cpu {
 /// These CPU families correspond to processors commonly used in older DOS-compatible systems.
 /// Each variant of this enum represents a different CPU model, including various Intel and NEC
 /// processors that were widely used in PCs from the 1980s and 1990s.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub enum CpuFamily {
     /// Intel 8086 CPU, a 16-bit processor that introduced the x86 architecture.
     I8086,
@@ -107,6 +110,14 @@ pub enum CpuFamily {
 
     /// Intel 80486DX4, a clock-tripled version of the 80486DX processor, offering even greater performance for demanding applications.
     I80486DX4,
+}
+
+pub fn deserialize_cpu<'de, D>(deserializer: D) -> Result<Cpu, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Cpu::from_str(&s).map_err(serde::de::Error::custom)
 }
 
 impl CpuFamily {

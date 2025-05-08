@@ -48,8 +48,6 @@ fn main() -> Result<(), std::io::Error> {
         }
         Commands::BuildCollection { startdir: _ } => {
             println!("Placeholder for collection builder");
-            let manifest = manifest::loader::Loader::from_dir(std::path::Path::new("/home/bvdwiel/container"));
-            println!("{:?}", manifest);
             Ok(())
         }
     }

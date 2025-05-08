@@ -1,11 +1,11 @@
 use std::str::FromStr;
-use config::Config;
 
+use crate::cpu::deserialize_cpu;
 use audio::{AudioDevice, AudioDeviceType};
 use byte_unit::Byte;
 use cpu::Cpu;
-use directories::ProjectDirs;
 use error::HwSpecError;
+use serde::{Deserialize, Deserializer};
 use video::VideoDevice;
 
 mod audio;
@@ -16,9 +16,12 @@ mod tests;
 mod video;
 
 /// Represents the hardware configuration of an MS-DOS compatible PC system.
+#[derive(Debug, Deserialize)]
 pub struct HwSpec {
+    #[serde(deserialize_with = "deserialize_cpu")]
     cpu: Cpu,
-    ram: u32, // RAM size in bytes
+    #[serde(deserialize_with = "deserialize_ram")]
+    ram: u32,
     audio: Vec<AudioDevice>,
     video: Vec<VideoDevice>,
 }
@@ -88,6 +91,13 @@ impl HwSpec {
         Ok(())
     }
 
+    pub fn from_toml(toml_string: &str) -> Result<Self, HwSpecError> {
+        let hwspec: HwSpec =
+            toml::from_str(toml_string).map_err(|e| HwSpecError::TomlLoadError(e.to_string()))?;
+        println!("{:?}", hwspec);
+        Ok(hwspec)
+    }
+
     /// Sets the amount of system RAM.
     ///
     /// The `ram` parameter must be a human-readable string representing a memory size,
@@ -121,4 +131,18 @@ impl HwSpec {
     pub fn ram(&self) -> u32 {
         self.ram
     }
+}
+
+pub fn deserialize_ram<'de, D>(deserializer: D) -> Result<u32, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?; // <-- use String here
+    const IGNORE_CASE: bool = true;
+
+    let byte = Byte::parse_str(&s, IGNORE_CASE)
+        .map_err(serde::de::Error::custom)?;
+
+    byte.try_into()
+        .map_err(|_| serde::de::Error::custom("RAM size too large for u32"))
 }
