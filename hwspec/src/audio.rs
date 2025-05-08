@@ -57,7 +57,7 @@ impl FromStr for AudioDeviceType {
         match s.trim().to_lowercase().as_str() {
             "bleeper" => Ok(Bleeper),
             "adlib" => Ok(AdLib),
-            "cms" | "game blaster" => Ok(CMS),
+            "cms" | "game blaster" | "gameblaster" => Ok(CMS),
             "sb10" => Ok(SB10),
             "sb15" => Ok(SB15),
             "sb20" => Ok(SB20),
@@ -73,7 +73,7 @@ impl FromStr for AudioDeviceType {
             "covox" => Ok(COVOX),
             "gus" => Ok(GUS),
             "gusmax" => Ok(GUSMAX),
-            _ => Err(HwSpecError::InvalidFloppyType),
+            _ => Err(HwSpecError::InvalidAudioDevice),
         }
     }
 }
@@ -167,5 +167,19 @@ impl AudioDevice {
     /// Returns the configured IRQ line number, if any.
     pub fn irq(&self) -> Option<u8> {
         self.irq
+    }
+}
+
+impl FromStr for AudioDevice {
+    type Err = HwSpecError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let devicetype = AudioDeviceType::from_str(s)?;
+        return Ok(Self {
+            device: devicetype,
+            io: None,
+            dma: None,
+            irq: None,
+        });
     }
 }
