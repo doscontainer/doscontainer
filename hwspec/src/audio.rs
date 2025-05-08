@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use crate::error::HwSpecError;
 
@@ -47,6 +47,32 @@ pub enum AudioDeviceType {
     GUS,
     /// Gravis Ultrasound MAX
     GUSMAX,
+}
+
+impl fmt::Display for AudioDeviceType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            AudioDeviceType::Bleeper => "PC Speaker",
+            AudioDeviceType::AdLib => "AdLib",
+            AudioDeviceType::CMS => "CMS / Game Blaster",
+            AudioDeviceType::SB10 => "Sound Blaster 1.0",
+            AudioDeviceType::SB15 => "Sound Blaster 1.5",
+            AudioDeviceType::SB20 => "Sound Blaster 2.0",
+            AudioDeviceType::SBPRO => "Sound Blaster Pro",
+            AudioDeviceType::SBPRO2 => "Sound Blaster Pro 2",
+            AudioDeviceType::SB16 => "Sound Blaster 16",
+            AudioDeviceType::SBAWE32 => "Sound Blaster AWE32",
+            AudioDeviceType::MT32 => "Roland MT-32",
+            AudioDeviceType::LAPC1 => "Roland LAPC-I",
+            AudioDeviceType::MPU401 => "Roland MPU-401",
+            AudioDeviceType::SC55 => "Roland SC-55",
+            AudioDeviceType::SCC1 => "Roland SCC-1",
+            AudioDeviceType::COVOX => "Covox Speech Thing",
+            AudioDeviceType::GUS => "Gravis Ultrasound",
+            AudioDeviceType::GUSMAX => "Gravis Ultrasound MAX",
+        };
+        write!(f, "{}", name)
+    }
 }
 
 impl FromStr for AudioDeviceType {
