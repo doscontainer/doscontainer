@@ -55,7 +55,7 @@ impl FromStr for AudioDeviceType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use AudioDeviceType::*;
         match s.trim().to_lowercase().as_str() {
-            "bleeper" => Ok(Bleeper),
+            "bleeper" | "speaker" | "pcspeaker" | "pc speaker" => Ok(Bleeper),
             "adlib" => Ok(AdLib),
             "cms" | "game blaster" | "gameblaster" => Ok(CMS),
             "sb10" => Ok(SB10),

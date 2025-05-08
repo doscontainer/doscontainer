@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::{
+        HwSpec,
+        audio::AudioDevice,
         cpu::{Cpu, CpuFamily},
-        storage::{StorageClass, StorageDevice}, HwSpec,
+        storage::{StorageClass, StorageDevice},
     };
     use std::str::FromStr;
 
@@ -221,6 +223,43 @@ mod tests {
                 "Should reject ({cylinders}, {heads}, {sectors})"
             );
         }
+    }
+
+    #[test]
+    fn valid_audio_from_string() {
+        for device in [
+            "bleeper",
+            "speaker",
+            "pcspeaker",
+            "pc speaker",
+            "adlib",
+            "cms",
+            "gameblaster",
+            "game blaster",
+            "sb10",
+            "sb15",
+            "sb20",
+            "sbpro",
+            "sbpro2",
+            "sb16",
+            "sbawe32",
+            "mt32",
+            "lapc1",
+            "mpu401",
+            "sc55",
+            "scc1",
+            "covox",
+            "gus",
+            "gusmax",
+        ] {
+            let device = AudioDevice::from_str(device);
+            assert!(device.is_ok());
+        }
+    }
+
+    #[test]
+    fn invalid_audio_device() {
+        assert!(AudioDevice::from_str("invalid").is_err());
     }
 
     #[test]
