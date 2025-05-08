@@ -1,4 +1,7 @@
 use serde::Deserialize;
+use std::str::FromStr;
+
+use crate::error::HwSpecError;
 
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
@@ -44,6 +47,35 @@ pub enum AudioDeviceType {
     GUS,
     /// Gravis Ultrasound MAX
     GUSMAX,
+}
+
+impl FromStr for AudioDeviceType {
+    type Err = HwSpecError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use AudioDeviceType::*;
+        match s.trim().to_lowercase().as_str() {
+            "bleeper" => Ok(Bleeper),
+            "adlib" => Ok(AdLib),
+            "cms" | "game blaster" => Ok(CMS),
+            "sb10" => Ok(SB10),
+            "sb15" => Ok(SB15),
+            "sb20" => Ok(SB20),
+            "sbpro" => Ok(SBPRO),
+            "sbpro2" => Ok(SBPRO2),
+            "sb16" => Ok(SB16),
+            "sbawe32" => Ok(SBAWE32),
+            "mt32" => Ok(MT32),
+            "lapc1" => Ok(LAPC1),
+            "mpu401" => Ok(MPU401),
+            "sc55" => Ok(SC55),
+            "scc1" => Ok(SCC1),
+            "covox" => Ok(COVOX),
+            "gus" => Ok(GUS),
+            "gusmax" => Ok(GUSMAX),
+            _ => Err(HwSpecError::InvalidFloppyType),
+        }
+    }
 }
 
 /// Represents a fully configured instance of an audio device in a system.
