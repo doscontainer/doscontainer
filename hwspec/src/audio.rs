@@ -6,7 +6,10 @@ use crate::error::HwSpecError;
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
 ///
-/// This enum provides a type-safe way to handle device identification and configuration.
+/// This enum provides a type-safe way to handle device identification and configuration. Some
+/// effort was made to span the gamut of relevant hardware. Not *everything* that was ever released
+/// is included here. Brands like TurtleBeach, Ensoniq and Aztech are missing until someone sees the
+/// need to include them.
 ///
 /// # Examples
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
@@ -47,6 +50,8 @@ pub enum AudioDeviceType {
     GUS,
     /// Gravis Ultrasound MAX
     GUSMAX,
+    /// Tandy 1000 / IBM PCjr
+    Tandy,
 }
 
 impl fmt::Display for AudioDeviceType {
@@ -70,6 +75,7 @@ impl fmt::Display for AudioDeviceType {
             AudioDeviceType::COVOX => "Covox Speech Thing",
             AudioDeviceType::GUS => "Gravis Ultrasound",
             AudioDeviceType::GUSMAX => "Gravis Ultrasound MAX",
+            AudioDeviceType::Tandy => "Tandy 1000 / IBM PCjr"
         };
         write!(f, "{}", name)
     }
@@ -82,6 +88,7 @@ impl FromStr for AudioDeviceType {
         use AudioDeviceType::*;
         match s.trim().to_lowercase().as_str() {
             "bleeper" | "speaker" | "pcspeaker" | "pc speaker" => Ok(Bleeper),
+            "tandy" | "tandy1000" | "tandy 1000" | "pcjr" | "pc jr" => Ok(Tandy),
             "adlib" => Ok(AdLib),
             "cms" | "game blaster" | "gameblaster" => Ok(CMS),
             "sb10" => Ok(SB10),
@@ -142,6 +149,7 @@ impl AudioDevice {
         // Set the IO/DMA/IRQ values to sensible defaults for the device chosen
         match device {
             AudioDeviceType::Bleeper => (),
+            AudioDeviceType::Tandy => (),
             AudioDeviceType::AdLib => new_device.set_io(0x388),
             AudioDeviceType::CMS => new_device.set_io(0x220),
             AudioDeviceType::SB10 | AudioDeviceType::SB15 | AudioDeviceType::SB20 => {
