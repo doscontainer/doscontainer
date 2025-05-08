@@ -6,7 +6,7 @@ pub enum HwSpecError {
     ClockTooHigh,
     DuplicateAudioDevice,
     DuplicateVideoDevice,
-    InvalidAudioDevice,
+    InvalidAudioDevice(String),
     InvalidCpu,
     InvalidFloppyType,
     TooManyCylinders,
@@ -29,11 +29,17 @@ impl fmt::Display for HwSpecError {
             HwSpecError::DuplicateVideoDevice => write!(f, "Duplicate video device specified"),
             HwSpecError::InvalidCpu => write!(f, "Invalid CPU model specified"),
             HwSpecError::InvalidFloppyType => write!(f, "Invalid floppy drive type specified"),
-            HwSpecError::TooManyCylinders => write!(f, "Too many cylinders specified for storage device"),
+            HwSpecError::TooManyCylinders => {
+                write!(f, "Too many cylinders specified for storage device")
+            }
             HwSpecError::TooManyHeads => write!(f, "Too many heads specified for storage device"),
             HwSpecError::TooManySectors => write!(f, "Too many sectors per track specified"),
-            HwSpecError::TooMuchRamSpecified => write!(f, "Too much RAM specified (maximum is 4 GiB)"),
-            HwSpecError::InvalidAudioDevice => write!(f, "Invalid audio device."),
+            HwSpecError::TooMuchRamSpecified => {
+                write!(f, "Too much RAM specified (maximum is 4 GiB)")
+            }
+            HwSpecError::InvalidAudioDevice(msg) => {
+                write!(f, "Invalid audio device specified: {}.", msg)
+            }
             HwSpecError::InvalidRamString => write!(f, "Invalid RAM string format"),
             HwSpecError::InvalidStorageClass => write!(f, "Invalid storage class specified"),
             HwSpecError::InvalidVideoDevice => write!(f, "Invalid video device specified"),

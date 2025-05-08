@@ -73,7 +73,7 @@ impl FromStr for AudioDeviceType {
             "covox" => Ok(COVOX),
             "gus" => Ok(GUS),
             "gusmax" => Ok(GUSMAX),
-            _ => Err(HwSpecError::InvalidAudioDevice),
+            _ => Err(HwSpecError::InvalidAudioDevice(s.to_string())),
         }
     }
 }
