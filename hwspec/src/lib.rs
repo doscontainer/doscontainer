@@ -7,6 +7,8 @@ use cpu::Cpu;
 use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
 use video::VideoDevice;
+use serde_with::serde_as;
+use serde_with::OneOrMany;
 
 mod audio;
 mod cpu;
@@ -16,13 +18,16 @@ mod tests;
 mod video;
 
 /// Represents the hardware configuration of an MS-DOS compatible PC system.
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct HwSpec {
     #[serde(deserialize_with = "deserialize_cpu")]
     cpu: Cpu,
     #[serde(deserialize_with = "deserialize_ram")]
     ram: u32,
+    #[serde_as(as = "OneOrMany<_>")]
     audio: Vec<AudioDevice>,
+    #[serde_as(as = "OneOrMany<_>")]
     video: Vec<VideoDevice>,
 }
 

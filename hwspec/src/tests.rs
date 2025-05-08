@@ -279,7 +279,7 @@ mod tests {
         let toml_string = r#"
 cpu = "8088"
 ram = "512k"
-video = "vga"
+video = "VGA"
 
 [[audio]]
 device = "Bleeper"
