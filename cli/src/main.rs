@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use core::DosContainer;
-use manifest::Manifest;
 
 #[derive(Parser)]
 #[command(version="v0.0.1 'Smeagol'", author="Bas v.d. Wiel <bas@area536.com>", about="DOSContainer CLI utility", long_about = None)]
@@ -31,12 +29,12 @@ enum Commands {
 fn main() -> Result<(), std::io::Error> {
     let cli = Cli::parse();
     match &cli.command {
-        Commands::SelfHost { docroot } => {
+        Commands::SelfHost { docroot: _ } => {
             // Do nothing for now, just enable the command
             println!("[TODO] This still needs implementation.");
             Ok(())
         }
-        Commands::Build { name } => {
+        Commands::Build { name: _ } => {
             // Construct a container from the manifest
 
             // Download the layer content from the manifest
@@ -48,7 +46,7 @@ fn main() -> Result<(), std::io::Error> {
             let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
             Ok(())
         }
-        Commands::BuildCollection { startdir } => {
+        Commands::BuildCollection { startdir: _ } => {
             println!("Placeholder for collection builder");
             let manifest = manifest::loader::Loader::from_dir(std::path::Path::new("/home/bvdwiel/container"));
             println!("{:?}", manifest);
