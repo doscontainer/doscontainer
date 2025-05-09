@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::error::HwSpecError;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 #[derive(Debug, PartialEq)]
 pub enum VideoDevice {
@@ -12,6 +12,25 @@ pub enum VideoDevice {
     VGA,
     SVGA,
     XGA,
+}
+
+impl fmt::Display for VideoDevice {
+    /// Provides a user-friendly string representation of the CPU type.
+    ///
+    /// This implementation formats each CPU type into a human-readable string that represents
+    /// the full name of the processor, e.g., "Intel 8086" or "Intel 80486DX".
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            VideoDevice::HCG => "Hercules Monochrome",
+            VideoDevice::CGA => "IBM CGA or compatible",
+            VideoDevice::EGA => "IBM EGA or compatible",
+            VideoDevice::VGA => "IBM VGA or compatible",
+            VideoDevice::MCGA => "IBM MCGA or compatible",
+            VideoDevice::SVGA => "SuperVGA (anything above regular VGA)",
+            VideoDevice::XGA => "IBM XGA or compatible",
+        };
+        write!(f, "{}", name)
+    }
 }
 
 impl<'de> Deserialize<'de> for VideoDevice {

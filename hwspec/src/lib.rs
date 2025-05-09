@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::FromStr;
 
 use crate::cpu::deserialize_cpu;
@@ -6,9 +7,9 @@ use byte_unit::Byte;
 use cpu::Cpu;
 use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
-use video::VideoDevice;
-use serde_with::serde_as;
 use serde_with::OneOrMany;
+use serde_with::serde_as;
+use video::VideoDevice;
 
 mod audio;
 mod cpu;
@@ -100,12 +101,16 @@ impl HwSpec {
         let mut hwspec: HwSpec =
             toml::from_str(toml_string).map_err(|e| HwSpecError::TomlLoadError(e.to_string()))?;
 
-            hwspec.audio = hwspec.audio.into_iter().map(|toml_device| {
+        hwspec.audio = hwspec
+            .audio
+            .into_iter()
+            .map(|toml_device| {
                 // Create the default AudioDevice for the given type
                 let default_device = AudioDevice::new(toml_device.device_type().clone());
                 // Merge the deserialized values with the default ones
                 toml_device.merge(default_device)
-            }).collect();
+            })
+            .collect();
         Ok(hwspec)
     }
 
@@ -151,9 +156,27 @@ where
     let s: String = Deserialize::deserialize(deserializer)?; // <-- use String here
     const IGNORE_CASE: bool = true;
 
-    let byte = Byte::parse_str(&s, IGNORE_CASE)
-        .map_err(serde::de::Error::custom)?;
+    let byte = Byte::parse_str(&s, IGNORE_CASE).map_err(serde::de::Error::custom)?;
 
     byte.try_into()
         .map_err(|_| serde::de::Error::custom("RAM size too large for u32"))
+}
+
+impl fmt::Display for HwSpec {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "DOSContainer hardware specification\n")?;
+        write!(f, "-----------------------------------\n")?;
+        write!(f, " CPU   : {}", self.cpu())?;
+        write!(f, " RAM   : {} bytes\n", self.ram())?;
+        write!(
+            f,
+            " Video : {}",
+            self.video()
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+        //write!(f, "{}", name)
+    }
 }

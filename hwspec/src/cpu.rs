@@ -249,3 +249,13 @@ impl FromStr for CpuFamily {
         }
     }
 }
+
+impl fmt::Display for Cpu {
+    /// Provides a user-friendly string representation of the CPU type.
+    ///
+    /// This implementation formats each CPU type into a human-readable string that represents
+    /// the full name of the processor, e.g., "Intel 8086" or "Intel 80486DX".
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} at {}Mhz.\n", self.family, self.clock)
+    }
+}
