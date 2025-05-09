@@ -106,7 +106,6 @@ impl HwSpec {
                 // Merge the deserialized values with the default ones
                 toml_device.merge(default_device)
             }).collect();
-        println!("{:?}", hwspec);
         Ok(hwspec)
     }
 
