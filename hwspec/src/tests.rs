@@ -279,13 +279,13 @@ mod tests {
         let toml_string = r#"
 cpu = "8088"
 ram = "512k"
-video = "VGA"
+video = "vga"
 
 [[audio]]
-device = "Bleeper"
+device = "bleeper"
 
 [[audio]]
-device = "AdLib""#;
+device = "gus""#;
         let spec = HwSpec::from_toml(toml_string);
         println!("{:?}", spec);
         assert!(spec.is_ok());

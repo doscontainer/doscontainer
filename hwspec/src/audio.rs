@@ -13,6 +13,7 @@ use crate::error::HwSpecError;
 ///
 /// # Examples
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum AudioDeviceType {
     /// Standard PC speaker (beeper)
     Bleeper,
@@ -75,7 +76,7 @@ impl fmt::Display for AudioDeviceType {
             AudioDeviceType::COVOX => "Covox Speech Thing",
             AudioDeviceType::GUS => "Gravis Ultrasound",
             AudioDeviceType::GUSMAX => "Gravis Ultrasound MAX",
-            AudioDeviceType::Tandy => "Tandy 1000 / IBM PCjr"
+            AudioDeviceType::Tandy => "Tandy 1000 / IBM PCjr",
         };
         write!(f, "{}", name)
     }
@@ -117,13 +118,18 @@ impl FromStr for AudioDeviceType {
 /// resource assignments (I/O port address, DMA channel, and IRQ line).
 ///
 /// Some devices may require only an I/O port, while others might also need DMA and IRQ lines.
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct AudioDevice {
     device: AudioDeviceType,
+    #[serde(default)]
     io: Option<u16>,
+    #[serde(default)]
     dma_low: Option<u8>,
+    #[serde(default)]
     dma_high: Option<u8>,
+    #[serde(default)]
     irq_low: Option<u8>,
+    #[serde(default)]
     irq_high: Option<u8>,
 }
 
@@ -198,6 +204,18 @@ impl AudioDevice {
             }
         }
         new_device
+    }
+
+    // Merge method for overriding defaults with deserialized values
+    pub fn merge(self, defaults: AudioDevice) -> Self {
+        AudioDevice {
+            device: self.device, // always take the device from the deserialized data
+            io: self.io.or(defaults.io()),
+            dma_low: self.dma_low.or(defaults.dma_low()),
+            dma_high: self.dma_high.or(defaults.dma_high()),
+            irq_low: self.irq_low.or(defaults.irq_low()),
+            irq_high: self.irq_high.or(defaults.irq_high()),
+        }
     }
 
     /// Returns a reference to the `AudioDeviceType` of this device.

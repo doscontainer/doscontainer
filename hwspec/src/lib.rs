@@ -25,7 +25,7 @@ pub struct HwSpec {
     cpu: Cpu,
     #[serde(deserialize_with = "deserialize_ram")]
     ram: u32,
-    #[serde_as(as = "OneOrMany<_>")]
+    #[serde(default)]
     audio: Vec<AudioDevice>,
     #[serde_as(as = "OneOrMany<_>")]
     video: Vec<VideoDevice>,
@@ -97,8 +97,15 @@ impl HwSpec {
     }
 
     pub fn from_toml(toml_string: &str) -> Result<Self, HwSpecError> {
-        let hwspec: HwSpec =
+        let mut hwspec: HwSpec =
             toml::from_str(toml_string).map_err(|e| HwSpecError::TomlLoadError(e.to_string()))?;
+
+            hwspec.audio = hwspec.audio.into_iter().map(|toml_device| {
+                // Create the default AudioDevice for the given type
+                let default_device = AudioDevice::new(toml_device.device_type().clone());
+                // Merge the deserialized values with the default ones
+                toml_device.merge(default_device)
+            }).collect();
         println!("{:?}", hwspec);
         Ok(hwspec)
     }
