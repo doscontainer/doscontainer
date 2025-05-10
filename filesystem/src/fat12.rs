@@ -25,8 +25,7 @@ impl FileSystem for Fat12 {
         filetype: FileType,
     ) -> Result<Vec<ClusterIndex>, FileSystemError> {
         // Figure out how many clusters we're going to need for the file we're making
-        let cluster_count = (size + self.allocation_table.cluster_size() - 1)
-            / self.allocation_table.cluster_size();
+        let cluster_count = size.div_ceil(self.allocation_table.cluster_size());
 
         // Prep the list of clusters by reserving them in the AllocationTable
         let mut reserved_clusters = Vec::with_capacity(cluster_count);

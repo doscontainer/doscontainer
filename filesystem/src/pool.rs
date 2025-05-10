@@ -267,7 +267,7 @@ impl Pool {
     /// # Arguments
     ///
     /// * `path` - A reference to a `std::path::Path` representing the fully qualified path
-    ///            to check within the pool.
+    /// to check within the pool.
     ///
     /// # Returns
     ///

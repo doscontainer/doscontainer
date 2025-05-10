@@ -281,7 +281,7 @@ ram = "512k"
 video = "vga"
 
 [cpu]
-model = "8088"
+family = "8088"
 clock = 4
 
 [[audio]]

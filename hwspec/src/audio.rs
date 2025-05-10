@@ -13,6 +13,7 @@ use crate::error::HwSpecError;
 ///
 /// # Examples
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioDeviceType {
     /// Standard PC speaker (beeper)
@@ -342,6 +343,6 @@ impl FromStr for AudioDevice {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let devicetype = AudioDeviceType::from_str(s)?;
-        return Ok(AudioDevice::new(devicetype));
+        Ok(AudioDevice::new(devicetype))
     }
 }

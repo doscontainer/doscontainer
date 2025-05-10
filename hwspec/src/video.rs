@@ -4,6 +4,7 @@ use crate::error::HwSpecError;
 use std::{fmt, str::FromStr};
 
 #[derive(Debug, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum VideoDevice {
     HCG,
     CGA,
