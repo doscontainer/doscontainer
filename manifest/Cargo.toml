@@ -11,6 +11,7 @@ directories = { workspace = true }
 ftp = { workspace = true }
 log = { workspace = true }
 url = { workspace = true }
+serde = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }
 zip = { workspace = true }

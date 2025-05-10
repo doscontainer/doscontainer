@@ -1168,6 +1168,7 @@ dependencies = [
  "directories",
  "ftp",
  "log",
+ "serde",
  "tempfile",
  "url",
  "walkdir",
@@ -2120,6 +2121,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]

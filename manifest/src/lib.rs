@@ -1,4 +1,6 @@
+use config::{Config, File, FileFormat};
 use error::ManifestError;
+use serde::Deserialize;
 
 use crate::layer::Layer;
 use std::collections::HashMap;
@@ -7,6 +9,7 @@ mod error;
 mod layer;
 mod tests;
 
+#[derive(Deserialize)]
 pub struct Manifest {
     version: u32,
     layers: HashMap<String, Layer>,
@@ -33,8 +36,15 @@ impl Manifest {
         self.layers.get_mut(name)
     }
 
-    pub fn from_toml(toml_string: &str) -> Result<(), ManifestError> {
-        Ok(())
+    pub fn from_toml(toml_string: &str) -> Result<Self, ManifestError> {
+        let settings = Config::builder()
+            .add_source(File::from_str(toml_string, FileFormat::Toml))
+            .build()
+            .map_err(ManifestError::ConfigBuild)?;
+
+        settings
+            .try_deserialize::<Manifest>()
+            .map_err(ManifestError::Deserialize)
     }
 }
 

@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub enum ManifestError {
-    ConfigBuildError,
+    ConfigBuild(config::ConfigError),
+    Deserialize(config::ConfigError),
     DownloadError,
     FileOpenError,
     FtpAuthenticationError,

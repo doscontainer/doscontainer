@@ -1,5 +1,6 @@
 use ftp::{FtpError, FtpStream};
 use log::info;
+use serde::Deserialize;
 use std::fs;
 use std::io::{BufReader, Seek, Write};
 use std::{fs::File, io::Read};
@@ -10,17 +11,20 @@ use zip::ZipArchive;
 use crate::error::ManifestError;
 use LayerType::*;
 
-#[derive(PartialEq)]
+#[derive(Deserialize,PartialEq)]
 pub enum LayerType {
     Foundation,
     Physical,
     Software,
 }
 
+#[derive(Deserialize)]
 pub struct Layer {
     layer_type: LayerType,
     url: Option<Url>,
+    #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
+    #[serde(skip_deserializing)]
     staging_path: Option<TempDir>,
     disk_category: Option<String>,
     disk_type: Option<String>,
