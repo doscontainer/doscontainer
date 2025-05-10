@@ -277,9 +277,12 @@ mod tests {
     #[test]
     fn load_toml() {
         let toml_string = r#"
-cpu = "8088"
 ram = "512k"
 video = "vga"
+
+[cpu]
+model = "8088"
+clock = 4
 
 [[audio]]
 device = "bleeper"

@@ -1,9 +1,11 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::cpu::deserialize_cpu;
 use audio::{AudioDevice, AudioDeviceType};
 use byte_unit::Byte;
+use config::Config;
+use config::File;
+use config::FileFormat;
 use cpu::Cpu;
 use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
@@ -22,7 +24,7 @@ mod video;
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct HwSpec {
-    #[serde(deserialize_with = "deserialize_cpu")]
+    // #[serde(deserialize_with = "deserialize_cpu")]
     cpu: Cpu,
     #[serde(deserialize_with = "deserialize_ram")]
     ram: u32,
@@ -30,6 +32,17 @@ pub struct HwSpec {
     audio: Vec<AudioDevice>,
     #[serde_as(as = "OneOrMany<_>")]
     video: Vec<VideoDevice>,
+}
+
+impl Default for HwSpec {
+    fn default() -> Self {
+        HwSpec {
+            cpu: Cpu::from_str("8088").unwrap(),
+            ram: 0,
+            audio: Vec::new(),
+            video: Vec::new(),
+        }
+    }
 }
 
 impl HwSpec {
@@ -98,20 +111,14 @@ impl HwSpec {
     }
 
     pub fn from_toml(toml_string: &str) -> Result<Self, HwSpecError> {
-        let mut hwspec: HwSpec =
-            toml::from_str(toml_string).map_err(|e| HwSpecError::TomlLoadError(e.to_string()))?;
+        let settings = Config::builder()
+            .add_source(File::from_str(toml_string, FileFormat::Toml))
+            .build()
+            .map_err(HwSpecError::ConfigBuild)?;
 
-        hwspec.audio = hwspec
-            .audio
-            .into_iter()
-            .map(|toml_device| {
-                // Create the default AudioDevice for the given type
-                let default_device = AudioDevice::new(toml_device.device_type().clone());
-                // Merge the deserialized values with the default ones
-                toml_device.merge(default_device)
-            })
-            .collect();
-        Ok(hwspec)
+        settings
+            .try_deserialize::<HwSpec>()
+            .map_err(HwSpecError::Deserialize)
     }
 
     /// Sets the amount of system RAM.
@@ -159,24 +166,33 @@ where
     let byte = Byte::parse_str(&s, IGNORE_CASE).map_err(serde::de::Error::custom)?;
 
     byte.try_into()
-        .map_err(|_| serde::de::Error::custom("RAM size too large for u32"))
+        .map_err(|_| serde::de::Error::custom("RAM size too large for x86 system."))
 }
 
 impl fmt::Display for HwSpec {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "DOSContainer hardware specification\n")?;
-        write!(f, "-----------------------------------\n")?;
-        write!(f, " CPU   : {}", self.cpu())?;
-        write!(f, " RAM   : {} bytes\n", self.ram())?;
-        write!(
-            f,
-            " Video : {}",
-            self.video()
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
-        //write!(f, "{}", name)
+        writeln!(f, "DOSContainer hardware specification")?;
+        writeln!(f, "-----------------------------------")?;
+        writeln!(f, " CPU   : {}", self.cpu())?;
+        writeln!(f, " RAM   : {} bytes", self.ram())?;
+
+        let video_str = self
+            .video()
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(", ");
+        writeln!(f, " Video : {}", video_str)?;
+
+        let audio_str = self
+            .audio()
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(", ");
+        writeln!(f, " Audio : {}", audio_str)?;
+
+        Ok(())
     }
 }
+

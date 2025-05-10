@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 byte-unit = { workspace = true }
+config = { workspace = true }
 toml = { workspace = true }
 serde = { workspace = true }
 serde_with = { workspace = true }

@@ -39,7 +39,6 @@ fn main() -> Result<(), std::io::Error> {
         }
         Commands::Build { hwspec, manifest: _ } => {
             // Construct a HW Spec from a TOML file
-            println!("{:?}", hwspec);
             let toml_string = fs::read_to_string(hwspec)?;
             let hwspec = HwSpec::from_toml(&toml_string).expect("BOOM!");
             println!("{}", hwspec);

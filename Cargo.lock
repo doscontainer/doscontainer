@@ -870,6 +870,7 @@ name = "hwspec"
 version = "0.1.0"
 dependencies = [
  "byte-unit",
+ "config",
  "serde",
  "serde_with",
  "toml",

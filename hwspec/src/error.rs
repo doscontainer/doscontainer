@@ -4,6 +4,8 @@ use std::fmt;
 pub enum HwSpecError {
     ClockTooLow,
     ClockTooHigh,
+    ConfigBuild(config::ConfigError),
+    Deserialize(config::ConfigError),
     DuplicateAudioDevice,
     DuplicateVideoDevice,
     InvalidAudioDevice(String),
@@ -25,6 +27,8 @@ impl fmt::Display for HwSpecError {
         match self {
             HwSpecError::ClockTooLow => write!(f, "Specified clock speed is too low"),
             HwSpecError::ClockTooHigh => write!(f, "Specified clock speed is too high"),
+            HwSpecError::ConfigBuild(err) => write!(f, "Failed parsing configuration: {err}"),
+            HwSpecError::Deserialize(err) => write!(f, "Failed deserializing configuration: {err}"),
             HwSpecError::DuplicateAudioDevice => write!(f, "Duplicate audio device specified"),
             HwSpecError::DuplicateVideoDevice => write!(f, "Duplicate video device specified"),
             HwSpecError::InvalidCpu => write!(f, "Invalid CPU model specified"),

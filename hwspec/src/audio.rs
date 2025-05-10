@@ -82,6 +82,35 @@ impl fmt::Display for AudioDeviceType {
     }
 }
 
+impl fmt::Display for AudioDevice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.device)?;
+
+        let mut parts = Vec::new();
+        if let Some(io) = self.io {
+            parts.push(format!("IO={:#x}", io));
+        }
+        if let Some(dma) = self.dma_low {
+            parts.push(format!("DMA={}", dma));
+        }
+        if let Some(dma_hi) = self.dma_high {
+            parts.push(format!("DMA_HI={}", dma_hi));
+        }
+        if let Some(irq) = self.irq_low {
+            parts.push(format!("IRQ={}", irq));
+        }
+        if let Some(irq_hi) = self.irq_high {
+            parts.push(format!("IRQ_HI={}", irq_hi));
+        }
+
+        if !parts.is_empty() {
+            write!(f, " [{}]", parts.join(", "))?;
+        }
+
+        Ok(())
+    }
+}
+
 impl FromStr for AudioDeviceType {
     type Err = HwSpecError;
 
