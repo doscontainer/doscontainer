@@ -36,6 +36,25 @@ impl Manifest {
         self.layers.get_mut(name)
     }
 
+    /// Loads a `Manifest` from a TOML file at the specified path.
+    ///
+    /// This function attempts to read a TOML file and deserialize its contents
+    /// into a `Manifest` instance. It uses the `config` crate to handle parsing
+    /// and supports proper error mapping for build and deserialization issues.
+    ///
+    /// # Type Parameters
+    /// - `P`: A type that can be referenced as a `Path`, such as `&str` or `PathBuf`.
+    ///
+    /// # Arguments
+    /// - `path`: The path to the TOML file to load.
+    ///
+    /// # Returns
+    /// - `Ok(Manifest)`: If the file was successfully read and deserialized.
+    /// - `Err(ManifestError)`: If there was an error reading or deserializing the file.
+    ///
+    /// # Errors
+    /// - Returns `ManifestError::ConfigBuild` if the configuration builder fails.
+    /// - Returns `ManifestError::Deserialize` if deserialization into `Manifest` fails.
     pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, ManifestError> {
         let settings = Config::builder()
             .add_source(File::from(path.as_ref()).format(FileFormat::Toml))
