@@ -3,7 +3,7 @@ use error::ManifestError;
 use serde::Deserialize;
 
 use crate::layer::Layer;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 mod error;
 mod layer;
@@ -36,9 +36,9 @@ impl Manifest {
         self.layers.get_mut(name)
     }
 
-    pub fn from_toml(toml_string: &str) -> Result<Self, ManifestError> {
+    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, ManifestError> {
         let settings = Config::builder()
-            .add_source(File::from_str(toml_string, FileFormat::Toml))
+            .add_source(File::from(path.as_ref()).format(FileFormat::Toml))
             .build()
             .map_err(ManifestError::ConfigBuild)?;
 
