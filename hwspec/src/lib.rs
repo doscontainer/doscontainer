@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::Path;
 use std::str::FromStr;
 
 use audio::{AudioDevice, AudioDeviceType};
@@ -110,9 +111,9 @@ impl HwSpec {
         Ok(())
     }
 
-    pub fn from_toml(toml_string: &str) -> Result<Self, HwSpecError> {
+    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, HwSpecError> {
         let settings = Config::builder()
-            .add_source(File::from_str(toml_string, FileFormat::Toml))
+            .add_source(File::from(path.as_ref()).format(FileFormat::Toml))
             .build()
             .map_err(HwSpecError::ConfigBuild)?;
 
@@ -120,7 +121,6 @@ impl HwSpec {
             .try_deserialize::<HwSpec>()
             .map_err(HwSpecError::Deserialize)
     }
-
     /// Sets the amount of system RAM.
     ///
     /// The `ram` parameter must be a human-readable string representing a memory size,

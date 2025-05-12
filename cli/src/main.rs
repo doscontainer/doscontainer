@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-use std::fs;
-use hwspec::HwSpec;
 use clap::{Parser, Subcommand};
+use hwspec::HwSpec;
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(version="v0.0.1 'Smeagol'", author="Bas v.d. Wiel <bas@area536.com>", about="DOSContainer CLI utility", long_about = None)]
@@ -37,11 +37,13 @@ fn main() -> Result<(), std::io::Error> {
             println!("[TODO] This still needs implementation.");
             Ok(())
         }
-        Commands::Build { hwspec, manifest: _ } => {
+        Commands::Build {
+            hwspec,
+            manifest: _,
+        } => {
             // Construct a HW Spec from a TOML file
-            let toml_string = fs::read_to_string(hwspec)?;
-            let hwspec = HwSpec::from_toml(&toml_string).expect("BOOM!");
-            println!("{}", hwspec);
+            let spec = HwSpec::from_toml(&hwspec).expect("BOOM!");
+            println!("{}", spec);
             // Download the layer content from the manifest
 
             // Write the OS layer to the disk image

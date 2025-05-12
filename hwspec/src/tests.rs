@@ -6,7 +6,9 @@ mod tests {
         cpu::{Cpu, CpuFamily},
         storage::{StorageClass, StorageDevice},
     };
+    use std::io::Write;
     use std::str::FromStr;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn valid_8088() {
@@ -275,7 +277,7 @@ mod tests {
     }
 
     #[test]
-    fn load_toml() {
+    fn load_toml_from_file() {
         let toml_string = r#"
 ram = "512k"
 video = "vga"
@@ -288,8 +290,15 @@ clock = 4
 device = "bleeper"
 
 [[audio]]
-device = "gus""#;
-        let spec = HwSpec::from_toml(toml_string);
+device = "gus"
+"#;
+
+        // Create a temporary file and write the TOML to it
+        let mut file = NamedTempFile::new().expect("Failed to create temp file");
+        write!(file, "{}", toml_string).expect("Failed to write to temp file");
+
+        // Load the spec from the file path
+        let spec = HwSpec::from_toml(file.path());
         println!("{:?}", spec);
         assert!(spec.is_ok());
     }

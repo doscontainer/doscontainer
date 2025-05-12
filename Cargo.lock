@@ -873,6 +873,7 @@ dependencies = [
  "config",
  "serde",
  "serde_with",
+ "tempfile",
 ]
 
 [[package]]
