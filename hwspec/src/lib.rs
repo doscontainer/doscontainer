@@ -12,6 +12,7 @@ use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
 use serde_with::OneOrMany;
 use serde_with::serde_as;
+use storage::Floppy;
 use video::VideoDevice;
 
 mod audio;
@@ -25,7 +26,6 @@ mod video;
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct HwSpec {
-    // #[serde(deserialize_with = "deserialize_cpu")]
     cpu: Cpu,
     #[serde(deserialize_with = "deserialize_ram")]
     ram: u32,
@@ -33,6 +33,7 @@ pub struct HwSpec {
     audio: Vec<AudioDevice>,
     #[serde_as(as = "OneOrMany<_>")]
     video: Vec<VideoDevice>,
+    floppy: Option<Floppy>
 }
 
 impl Default for HwSpec {
@@ -42,6 +43,7 @@ impl Default for HwSpec {
             ram: 0,
             audio: Vec::new(),
             video: Vec::new(),
+            floppy: None,
         }
     }
 }
@@ -192,8 +194,8 @@ impl fmt::Display for HwSpec {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "DOSContainer hardware specification")?;
         writeln!(f, "-----------------------------------")?;
-        writeln!(f, " CPU   : {}", self.cpu())?;
-        writeln!(f, " RAM   : {} bytes", self.ram())?;
+        writeln!(f, " CPU    : {}", self.cpu())?;
+        writeln!(f, " RAM    : {} bytes", self.ram())?;
 
         let video_str = self
             .video()
@@ -201,7 +203,7 @@ impl fmt::Display for HwSpec {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        writeln!(f, " Video : {}", video_str)?;
+        writeln!(f, " Video  : {}", video_str)?;
 
         let audio_str = self
             .audio()
@@ -209,8 +211,11 @@ impl fmt::Display for HwSpec {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        writeln!(f, " Audio : {}", audio_str)?;
+        writeln!(f, " Audio  : {}", audio_str)?;
 
+        if let Some(myfloppy) = &self.floppy {
+        writeln!(f, " Floppy : {}", myfloppy)?;
+        }
         Ok(())
     }
 }

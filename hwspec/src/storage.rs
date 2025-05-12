@@ -1,59 +1,21 @@
 use std::{fmt, str::FromStr};
 
+use serde::Deserialize;
+use serde::de::{self, Deserializer};
+
 use crate::error::HwSpecError;
 
-pub struct StorageDevice {
-    class: StorageClass,
-    floppy_type: Option<FloppyType>,
-    geometry: Option<HddGeometry>,
+#[derive(Debug, Deserialize)]
+pub struct Floppy {
+    #[serde(deserialize_with = "deserialize_floppy_type")]
+    floppy_type: FloppyType,
 }
 
-impl StorageDevice {
-    /// Constructor for use when you already know you want a floppy. Pass in a string slice
-    /// and you'll get a complete StorageDevice in return.
-    pub fn new_floppy(floppy_type: &str) -> Result<Self, HwSpecError> {
-        Ok(StorageDevice {
-            class: StorageClass::Floppy,
-            floppy_type: Some(FloppyType::from_str(floppy_type)?),
-            geometry: None,
-        })
-    }
-
-    pub fn new_harddisk(
-        cylinders: usize,
-        heads: usize,
-        sectors: usize,
-    ) -> Result<Self, HwSpecError> {
-        Ok(StorageDevice {
-            class: StorageClass::Hdd,
-            floppy_type: None,
-            geometry: Some(HddGeometry::new(cylinders, heads, sectors)?),
-        })
-    }
-
-    pub fn class(&self) -> StorageClass {
-        self.class
-    }
-
-    pub fn floppy_type(&self) -> Option<FloppyType> {
-        self.floppy_type
-    }
-
-    pub fn geometry(&self) -> Option<&HddGeometry> {
-        self.geometry.as_ref()
-    }
+pub struct Hdd {
+    geometry: HddGeometry,
 }
 
-/// Type-safe determination of the class of storage device
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum StorageClass {
-    /// Floppy disk
-    Floppy,
-    /// Harddrive
-    Hdd,
-}
-
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub enum FloppyType {
     F525_160,
     F525_320,
@@ -63,6 +25,15 @@ pub enum FloppyType {
     F35_720,
     F35_1440,
     F35_2880,
+}
+
+impl FromStr for Floppy {
+    type Err = HwSpecError;
+
+    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+        let floppy_type = FloppyType::from_str(input)?;
+        Ok(Self { floppy_type })
+    }
 }
 
 impl FromStr for FloppyType {
@@ -86,29 +57,12 @@ impl FromStr for FloppyType {
     }
 }
 
-impl FromStr for StorageClass {
-    type Err = HwSpecError;
-
-    fn from_str(input: &str) -> Result<Self, HwSpecError> {
-        match input.to_uppercase().as_str() {
-            "FLOPPY" | "FDD" | "FLOPPYDRIVE" | "FLOPPYDISK" | "FLOPPY DISK" | "FLOPPY DRIVE" => {
-                Ok(Self::Floppy)
-            }
-            "HDD" | "HARDDISK" | "HARDDRIVE" | "HARD DISK" | "HARD DRIVE" => Ok(Self::Hdd),
-            _ => Err(HwSpecError::InvalidStorageClass),
-        }
-    }
-}
-
-impl fmt::Display for StorageClass {
-    /// Provides a user-friendly string representation of a floppy disk type.
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let label = match self {
-            Self::Floppy => "Floppy drive",
-            Self::Hdd => "Hard drive",
-        };
-        write!(f, "{}", label)
-    }
+fn deserialize_floppy_type<'de, D>(deserializer: D) -> Result<FloppyType, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = String::deserialize(deserializer)?;
+    FloppyType::from_str(&s).map_err(de::Error::custom)
 }
 
 impl fmt::Display for FloppyType {
@@ -128,6 +82,13 @@ impl fmt::Display for FloppyType {
     }
 }
 
+impl fmt::Display for Floppy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.floppy_type)
+    }
+}
+
+#[derive(Debug, Deserialize)]
 pub struct HddGeometry {
     cylinders: usize,
     heads: usize,
