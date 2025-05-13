@@ -2,6 +2,7 @@ use ftp::{FtpError, FtpStream};
 use log::info;
 use serde::Deserialize;
 use std::io::{BufReader, Seek, Write};
+use std::str::FromStr;
 use std::{fmt, fs};
 use std::{fs::File, io::Read};
 use tempfile::{tempdir, NamedTempFile, TempDir};
@@ -19,10 +20,42 @@ pub struct Layer {
     staging_path: Option<TempDir>,
     disk_category: Option<String>,
     disk_type: Option<String>,
-    filesystem: Option<String>,
-    cylinders: Option<usize>,
-    heads: Option<usize>,
-    sectors: Option<usize>,
+    filesystem: Option<FileSystemType>,
+}
+
+#[derive(Debug)]
+pub enum FileSystemType {
+    Fat12
+}
+
+impl fmt::Display for FileSystemType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FileSystemType::Fat12 => Ok(write!(f, "FAT12")?),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for FileSystemType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let s: &str = Deserialize::deserialize(deserializer)?;
+        FileSystemType::from_str(s).map_err(|e| D::Error::custom(e.to_string()))
+    }
+}
+
+impl FromStr for FileSystemType {
+    type Err = ManifestError;
+
+    fn from_str(input: &str) -> Result<Self, ManifestError> {
+        match input.to_lowercase().as_str() {
+            "fat12" | "fat 12" => Ok(FileSystemType::Fat12),
+            _ => Err(ManifestError::InvalidFileSystemType),
+        }
+    }
 }
 
 impl Layer {
@@ -329,9 +362,6 @@ impl Default for Layer {
             disk_category: None,
             disk_type: None,
             filesystem: None,
-            cylinders: None,
-            heads: None,
-            sectors: None,
         }
     }
 }
