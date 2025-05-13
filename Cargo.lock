@@ -1169,6 +1169,7 @@ dependencies = [
  "ftp",
  "log",
  "serde",
+ "sha2",
  "tempfile",
  "url",
  "walkdir",

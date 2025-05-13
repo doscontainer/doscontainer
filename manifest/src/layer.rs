@@ -13,6 +13,7 @@ use crate::error::ManifestError;
 #[derive(Deserialize)]
 pub struct Layer {
     url: Option<Url>,
+    checksum: Option<String>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -61,6 +62,10 @@ impl Layer {
             "ftp" => self.download_ftp()?,
             _ => return Err(ManifestError::UnsupportedUrlScheme),
         };
+
+        if let Some(_checksum) = &self.checksum {
+            todo!("DO CHECKSUM VERIFICATION HERE!");
+        }
 
         self.zipfile_path = Some(zipfile_path);
         self.stage()?;
@@ -293,6 +298,7 @@ impl Default for Layer {
     fn default() -> Layer {
         Layer {
             url: None,
+            checksum: None,
             zipfile_path: None,
             staging_path: None,
         }
