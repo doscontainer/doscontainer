@@ -2,7 +2,6 @@ use ftp::{FtpError, FtpStream};
 use log::info;
 use serde::Deserialize;
 use std::io::{BufReader, Seek, Write};
-use std::str::FromStr;
 use std::{fmt, fs};
 use std::{fs::File, io::Read};
 use tempfile::{tempdir, NamedTempFile, TempDir};
@@ -18,44 +17,6 @@ pub struct Layer {
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
     staging_path: Option<TempDir>,
-    disk_category: Option<String>,
-    disk_type: Option<String>,
-    filesystem: Option<FileSystemType>,
-}
-
-#[derive(Debug)]
-pub enum FileSystemType {
-    Fat12
-}
-
-impl fmt::Display for FileSystemType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FileSystemType::Fat12 => Ok(write!(f, "FAT12")?),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for FileSystemType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-        let s: &str = Deserialize::deserialize(deserializer)?;
-        FileSystemType::from_str(s).map_err(|e| D::Error::custom(e.to_string()))
-    }
-}
-
-impl FromStr for FileSystemType {
-    type Err = ManifestError;
-
-    fn from_str(input: &str) -> Result<Self, ManifestError> {
-        match input.to_lowercase().as_str() {
-            "fat12" | "fat 12" => Ok(FileSystemType::Fat12),
-            _ => Err(ManifestError::InvalidFileSystemType),
-        }
-    }
 }
 
 impl Layer {
@@ -71,31 +32,6 @@ impl Layer {
 
     pub fn url(&self) -> &Option<Url> {
         &self.url
-    }
-
-    pub fn set_disk_category(&mut self, category: &str) -> Result<(), ManifestError> {
-        const VALID_CATEGORIES: [&str; 2] = ["FLOPPY", "HDD"];
-
-        let normalized_category = category.to_ascii_uppercase();
-        if VALID_CATEGORIES.contains(&normalized_category.as_str()) {
-            self.disk_category = Some(normalized_category);
-            return Ok(());
-        }
-        Err(ManifestError::InvalidDiskCategory)
-    }
-
-    pub fn set_disk_type(&mut self, disktype: &str) -> Result<(), ManifestError> {
-        const VALID_CATEGORIES: [&str; 8] = [
-            "F525_160", "F525_180", "F525_320", "F525_360", "F525_12M", "F35_720", "F35_144",
-            "F35_288",
-        ];
-
-        let normalized_type = disktype.to_ascii_uppercase();
-        if VALID_CATEGORIES.contains(&normalized_type.as_str()) {
-            self.disk_type = Some(normalized_type);
-            return Ok(());
-        }
-        Err(ManifestError::InvalidDiskType)
     }
 
     /// Downloads and stages the source file for this layer.
@@ -359,9 +295,6 @@ impl Default for Layer {
             url: None,
             zipfile_path: None,
             staging_path: None,
-            disk_category: None,
-            disk_type: None,
-            filesystem: None,
         }
     }
 }
@@ -370,6 +303,9 @@ impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Layer")?;
         writeln!(f, "-----------------------------------")?;
+        if let Some(url) = &self.url {
+            writeln!(f, "  URL         : {}", url)?;
+        }
         Ok(())
     }
 }
