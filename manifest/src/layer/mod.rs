@@ -1,36 +1,17 @@
 use ftp::{FtpError, FtpStream};
 use log::info;
 use serde::Deserialize;
-use std::{fmt, fs};
 use std::io::{BufReader, Seek, Write};
+use std::{fmt, fs};
 use std::{fs::File, io::Read};
 use tempfile::{tempdir, NamedTempFile, TempDir};
 use url::Url;
 use zip::ZipArchive;
 
 use crate::error::ManifestError;
-use LayerType::*;
-
-#[derive(Deserialize,PartialEq)]
-pub enum LayerType {
-    Foundation,
-    Physical,
-    Software,
-}
-
-impl fmt::Display for LayerType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self {
-            LayerType::Foundation => Ok(write!(f, "Foundation")?),
-            LayerType::Physical => Ok(write!(f, "Physical")?),
-            LayerType::Software => Ok(write!(f, "Software")?),
-        }
-    }
-}
 
 #[derive(Deserialize)]
 pub struct Layer {
-    layer_type: LayerType,
     url: Option<Url>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
@@ -84,28 +65,6 @@ impl Layer {
         Err(ManifestError::InvalidDiskType)
     }
 
-    pub fn layer_type(&self) -> &LayerType {
-        &self.layer_type
-    }
-
-    pub fn set_layer_type(&mut self, layer_type: &str) -> Result<(), ManifestError> {
-        match layer_type.to_ascii_uppercase().trim() {
-            "SOFTWARE" => {
-                self.layer_type = LayerType::Software;
-                Ok(())
-            }
-            "FOUNDATION" => {
-                self.layer_type = LayerType::Foundation;
-                Ok(())
-            }
-            "PHYSICAL" => {
-                self.layer_type = LayerType::Physical;
-                Ok(())
-            }
-            _ => Err(ManifestError::InvalidLayerType),
-        }
-    }
-
     /// Downloads and stages the source file for this layer.
     ///
     /// This method is only valid for layers of type [`Software`]. It attempts to download
@@ -126,10 +85,6 @@ impl Layer {
     /// - The URL scheme is unsupported (`UnsupportedUrlScheme`).
     /// - The actual download operation fails, as reported by `download_http` or `download_ftp`.
     pub fn download(&mut self) -> Result<(), ManifestError> {
-        if self.layer_type != Software {
-            return Err(ManifestError::InvalidLayerType);
-        }
-
         let url = self.url.as_ref().ok_or(ManifestError::MissingUrl)?;
 
         let zipfile_path = match url.scheme() {
@@ -144,10 +99,6 @@ impl Layer {
     }
 
     fn stage(&mut self) -> Result<(), ManifestError> {
-        if self.layer_type != Software {
-            return Err(ManifestError::InvalidLayerType);
-        }
-
         let zipfile = self
             .zipfile_path
             .as_ref()
@@ -340,10 +291,6 @@ impl Layer {
 
     /// Generalized implementation so that validation is properly testable
     fn validate_zip_stream<R: Read + Seek>(&self, reader: R) -> Result<(), ManifestError> {
-        // Only work on Software layers
-        if self.layer_type != Software {
-            return Err(ManifestError::InvalidLayerType);
-        }
         // ..when they have an actual zipfile set.
         let mut archive = ZipArchive::new(reader).map_err(|_| ManifestError::FileOpenError)?;
 
@@ -376,7 +323,6 @@ impl Layer {
 impl Default for Layer {
     fn default() -> Layer {
         Layer {
-            layer_type: Software,
             url: None,
             zipfile_path: None,
             staging_path: None,
@@ -394,7 +340,6 @@ impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Layer")?;
         writeln!(f, "-----------------------------------")?;
-        writeln!(f, " Layer type   : {}", self.layer_type())?;
         Ok(())
     }
 }
