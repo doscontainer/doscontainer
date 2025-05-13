@@ -3,7 +3,7 @@ use error::ManifestError;
 use serde::Deserialize;
 
 use crate::layer::Layer;
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, fmt, path::Path};
 
 mod error;
 mod layer;
@@ -26,6 +26,10 @@ impl Manifest {
 
     pub fn insert_layer(&mut self, name: &str, layer: Layer) {
         self.layers.insert(String::from(name), layer);
+    }
+
+    pub fn layers(&self) -> &HashMap<String, Layer> {
+        &self.layers
     }
 
     pub fn layer(&self, name: &str) -> Option<&Layer> {
@@ -73,5 +77,17 @@ impl Default for Manifest {
             version: 1,
             layers: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for Manifest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "DOSContainer build manifest")?;
+        writeln!(f, "-----------------------------------")?;
+        writeln!(f, " Version    : {}", self.version())?;
+        for layer in self.layers() {
+            writeln!(f, "{} {}", layer.0, layer.1)?;
+        }
+        Ok(())
     }
 }

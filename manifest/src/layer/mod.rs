@@ -1,7 +1,7 @@
 use ftp::{FtpError, FtpStream};
 use log::info;
 use serde::Deserialize;
-use std::fs;
+use std::{fmt, fs};
 use std::io::{BufReader, Seek, Write};
 use std::{fs::File, io::Read};
 use tempfile::{tempdir, NamedTempFile, TempDir};
@@ -16,6 +16,16 @@ pub enum LayerType {
     Foundation,
     Physical,
     Software,
+}
+
+impl fmt::Display for LayerType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            LayerType::Foundation => Ok(write!(f, "Foundation")?),
+            LayerType::Physical => Ok(write!(f, "Physical")?),
+            LayerType::Software => Ok(write!(f, "Software")?),
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -377,5 +387,14 @@ impl Default for Layer {
             heads: None,
             sectors: None,
         }
+    }
+}
+
+impl fmt::Display for Layer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Layer")?;
+        writeln!(f, "-----------------------------------")?;
+        writeln!(f, " Layer type   : {}", self.layer_type())?;
+        Ok(())
     }
 }

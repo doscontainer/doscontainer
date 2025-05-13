@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use hwspec::HwSpec;
+use manifest::Manifest;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -15,9 +16,9 @@ enum Commands {
     /// Build a DOSContainer manifest into a disk image.
     Build {
         /// Filename of the HwSpec configuration file, this a TOML file.
-        hwspec: PathBuf,
+        hwspecpath: PathBuf,
         /// Filename of the build manifest.
-        manifest: PathBuf,
+        manifestpath: PathBuf,
     },
     /// Build a Collection of DOSContainer manifests into a library of disk images.
     BuildCollection { startdir: PathBuf },
@@ -37,13 +38,15 @@ fn main() -> Result<(), std::io::Error> {
             Ok(())
         }
         Commands::Build {
-            hwspec,
-            manifest: _,
+            hwspecpath,
+            manifestpath,
         } => {
             // Construct a HW Spec from a TOML file
-            let spec = HwSpec::from_toml(&hwspec).expect("BOOM!");
+            let spec = HwSpec::from_toml(&hwspecpath).expect("Failed loading HwSpec.");
             println!("{}", spec);
             // Download the layer content from the manifest
+            let manifest = Manifest::from_toml(manifestpath).expect("Failed loading Manifest.");
+            println!("{}", manifest);
 
             // Write the OS layer to the disk image
 
