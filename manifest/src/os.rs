@@ -20,9 +20,9 @@ pub struct OperatingSystem {
 impl OsVendor {
     pub fn from_product(product: &str) -> Result<Self, ManifestError> {
         match product.trim().to_lowercase().as_str() {
-            "ms-dos" => Ok(OsVendor::Microsoft),
-            "pc-dos" => Ok(OsVendor::IBM),
-            "dr-dos" => Ok(OsVendor::DigitalResearch),
+            "ms-dos" | "msdos" | "dos" => Ok(OsVendor::Microsoft),
+            "pc-dos" | "pcdos" | "ibmdos" => Ok(OsVendor::IBM),
+            "dr-dos" | "drdos" => Ok(OsVendor::DigitalResearch),
             _ => Err(ManifestError::InvalidOsProduct(product.to_string())),
         }
     }
