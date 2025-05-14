@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 clap = { workspace = true }
-core = { path = "../core"}
 hwspec = { path = "../hwspec" }
 manifest = { path = "../manifest" }
+planner = { path = "../planner" }
