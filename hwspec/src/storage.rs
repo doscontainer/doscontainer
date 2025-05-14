@@ -11,6 +11,12 @@ pub struct Floppy {
     floppy_type: FloppyType,
 }
 
+impl Floppy {
+    pub fn floppy_type(&self) -> FloppyType {
+        self.floppy_type
+    }
+}
+
 #[derive(Copy, Clone, Debug, Deserialize)]
 pub enum FloppyType {
     F525_160,

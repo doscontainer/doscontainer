@@ -13,6 +13,7 @@ use serde::{Deserialize, Deserializer};
 use serde_with::OneOrMany;
 use serde_with::serde_as;
 use storage::Floppy;
+use storage::FloppyType;
 use video::VideoDevice;
 
 mod audio;
@@ -174,6 +175,14 @@ impl HwSpec {
 
     pub fn ram(&self) -> u32 {
         self.ram
+    }
+
+    pub fn floppy_type(&self) -> Option<FloppyType> {
+        if let Some(disk) = &self.floppy {
+            Some(disk.floppy_type())
+        } else {
+            None
+        }
     }
 }
 

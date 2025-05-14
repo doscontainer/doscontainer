@@ -11,6 +11,7 @@ pub enum HwSpecError {
     InvalidAudioDevice(String),
     InvalidCpu,
     InvalidFloppyType,
+    NoFloppyDrive,
     TooManyCylinders,
     TooManyHeads,
     TooManySectors,
@@ -33,6 +34,7 @@ impl fmt::Display for HwSpecError {
             HwSpecError::DuplicateVideoDevice => write!(f, "Duplicate video device specified"),
             HwSpecError::InvalidCpu => write!(f, "Invalid CPU model specified"),
             HwSpecError::InvalidFloppyType => write!(f, "Invalid floppy drive type specified"),
+            HwSpecError::NoFloppyDrive => write!(f, "No floppy drive defined on system"),
             HwSpecError::TooManyCylinders => {
                 write!(f, "Too many cylinders specified for storage device")
             }
