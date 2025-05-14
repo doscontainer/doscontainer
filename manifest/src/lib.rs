@@ -1,18 +1,21 @@
 use config::{Config, File, FileFormat};
 use error::ManifestError;
 use serde::Deserialize;
+use storage::FileSystemType;
 
 use crate::layer::Layer;
 use std::{collections::HashMap, fmt, path::Path};
 
 mod error;
 mod layer;
+mod os;
 mod storage;
 mod tests;
 
 #[derive(Deserialize)]
 pub struct Manifest {
     version: u32,
+    filesystem: FileSystemType,
     layers: HashMap<String, Layer>,
 }
 
@@ -77,6 +80,7 @@ impl Default for Manifest {
         Manifest {
             version: 1,
             layers: HashMap::new(),
+            filesystem: FileSystemType::Fat12,
         }
     }
 }
@@ -85,7 +89,8 @@ impl fmt::Display for Manifest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "DOSContainer build manifest")?;
         writeln!(f, "-----------------------------------")?;
-        writeln!(f, " Version    : {}", self.version())?;
+        writeln!(f, " Version        : {}", self.version())?;
+        writeln!(f, " File system(S) : {}", self.filesystem)?;
         for layer in self.layers() {
             writeln!(f, "{} {}", layer.0, layer.1)?;
         }

@@ -16,12 +16,12 @@ use storage::Floppy;
 use storage::FloppyType;
 use video::VideoDevice;
 
-mod audio;
-mod cpu;
+pub mod audio;
+pub mod cpu;
 mod error;
-mod storage;
+pub mod storage;
 mod tests;
-mod video;
+pub mod video;
 
 /// Represents the hardware configuration of an MS-DOS compatible PC system.
 #[serde_as]

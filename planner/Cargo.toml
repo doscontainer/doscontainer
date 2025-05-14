@@ -2,3 +2,8 @@
 name = "planner"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+disk = { path = "../disk" }
+hwspec = { path = "../hwspec" }
+manifest = { path = "../manifest" }
