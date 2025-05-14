@@ -42,7 +42,7 @@ fn main() -> Result<(), std::io::Error> {
             manifestpath,
         } => {
             // Construct a HW Spec from a TOML file
-            let spec = HwSpec::from_toml(&hwspecpath).expect("Failed loading HwSpec.");
+            let spec = HwSpec::from_toml(hwspecpath).expect("Failed loading HwSpec.");
             println!("{}", spec);
             // Download the layer content from the manifest
             let manifest = Manifest::from_toml(manifestpath).expect("Failed loading Manifest.");
