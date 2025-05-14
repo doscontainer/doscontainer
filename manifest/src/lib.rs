@@ -1,10 +1,11 @@
 use config::{Config, File, FileFormat};
 use error::ManifestError;
-use serde::Deserialize;
+use os::OperatingSystem;
+use serde::{Deserialize, Deserializer};
 use storage::FileSystemType;
 
 use crate::layer::Layer;
-use std::{collections::HashMap, fmt, path::Path};
+use std::{collections::HashMap, fmt, path::Path, str::FromStr};
 
 mod error;
 mod layer;
@@ -16,7 +17,17 @@ mod tests;
 pub struct Manifest {
     version: u32,
     filesystem: FileSystemType,
+    #[serde(deserialize_with = "deserialize_os")]
+    os: OperatingSystem,
     layers: HashMap<String, Layer>,
+}
+
+fn deserialize_os<'de, D>(deserializer: D) -> Result<OperatingSystem, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    OperatingSystem::from_str(&s).map_err(serde::de::Error::custom)
 }
 
 impl Manifest {
@@ -81,6 +92,7 @@ impl Default for Manifest {
             version: 1,
             layers: HashMap::new(),
             filesystem: FileSystemType::Fat12,
+            os: OperatingSystem::default(),
         }
     }
 }
@@ -91,6 +103,7 @@ impl fmt::Display for Manifest {
         writeln!(f, "-----------------------------------")?;
         writeln!(f, " Version        : {}", self.version())?;
         writeln!(f, " File system(S) : {}", self.filesystem)?;
+        writeln!(f, " OS             : {}", self.os)?;
         for layer in self.layers() {
             writeln!(f, "{} {}", layer.0, layer.1)?;
         }
