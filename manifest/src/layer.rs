@@ -312,6 +312,9 @@ impl fmt::Display for Layer {
         if let Some(url) = &self.url {
             writeln!(f, "  URL         : {}", url)?;
         }
+        if let Some(checksum) = &self.checksum {
+            writeln!(f, "  Checksum    : {}", checksum)?;
+        }
         Ok(())
     }
 }
