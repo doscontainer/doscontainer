@@ -2,6 +2,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum ManifestError {
+    ChecksumVerificationFailed,
     ConfigBuild(config::ConfigError),
     Deserialize(config::ConfigError),
     DownloadError,
@@ -27,6 +28,7 @@ impl fmt::Display for ManifestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use ManifestError::*;
         match self {
+            ChecksumVerificationFailed => write!(f, "Checksum verification failed."),
             ConfigBuild(err) => write!(f, "failed to build config: {}", err),
             Deserialize(err) => write!(f, "failed to deserialize config: {}", err),
             DownloadError => write!(f, "error downloading file"),

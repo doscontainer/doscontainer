@@ -1,6 +1,7 @@
 use ftp::{FtpError, FtpStream};
 use log::info;
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::io::{BufReader, Seek, Write};
 use std::{fmt, fs};
 use std::{fs::File, io::Read};
@@ -63,8 +64,30 @@ impl Layer {
             _ => return Err(ManifestError::UnsupportedUrlScheme),
         };
 
-        if let Some(_checksum) = &self.checksum {
-            todo!("DO CHECKSUM VERIFICATION HERE!");
+        if let Some(checksum) = &self.checksum {
+            let file =
+                File::open(&zipfile_path).map_err(|_| ManifestError::ChecksumVerificationFailed)?;
+
+            let mut reader = BufReader::new(file);
+            let mut hasher = Sha256::new();
+            let mut buffer = [0u8; 8192];
+
+            loop {
+                let n = reader
+                    .read(&mut buffer)
+                    .map_err(|_| ManifestError::ChecksumVerificationFailed)?;
+                if n == 0 {
+                    break;
+                }
+                hasher.update(&buffer[..n]);
+            }
+
+            let calculated = hasher.finalize();
+            let calculated_hex = format!("{:x}", calculated);
+
+            if calculated_hex != checksum.to_lowercase() {
+                return Err(ManifestError::ChecksumVerificationFailed);
+            }
         }
 
         self.zipfile_path = Some(zipfile_path);
