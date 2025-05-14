@@ -11,7 +11,7 @@ use zip::ZipArchive;
 
 use crate::error::ManifestError;
 
-#[derive(Deserialize)]
+#[derive(Default, Deserialize)]
 pub struct Layer {
     url: Option<Url>,
     checksum: Option<String>,
@@ -314,17 +314,6 @@ impl Layer {
             }
         }
         Ok(())
-    }
-}
-
-impl Default for Layer {
-    fn default() -> Layer {
-        Layer {
-            url: None,
-            checksum: None,
-            zipfile_path: None,
-            staging_path: None,
-        }
     }
 }
 
