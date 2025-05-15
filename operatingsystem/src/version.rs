@@ -23,7 +23,7 @@ pub struct OsVersion {
 }
 
 impl OsVersion {
-    pub fn new(major: u8, minor: u8) -> Self {
+    pub const fn new(major: u8, minor: u8) -> Self {
         Self { major, minor }
     }
 }
