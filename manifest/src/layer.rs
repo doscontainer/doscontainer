@@ -10,11 +10,15 @@ use url::Url;
 use zip::ZipArchive;
 
 use crate::error::ManifestError;
+use crate::os::{OsVendor, OsVersion};
 
 #[derive(Default, Deserialize)]
 pub struct Layer {
     url: Option<Url>,
     checksum: Option<String>,
+    min_dos: Option<OsVersion>,
+    max_dos: Option<OsVersion>,
+    dos_vendor: Option<OsVendor>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -320,12 +324,17 @@ impl Layer {
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Layer")?;
-        writeln!(f, "-----------------------------------")?;
         if let Some(url) = &self.url {
             writeln!(f, "  URL         : {}", url)?;
         }
         if let Some(checksum) = &self.checksum {
             writeln!(f, "  Checksum    : {}", checksum)?;
+        }
+        if let Some(min_dos) = &self.min_dos {
+            writeln!(f, "  Minimum DOS version: {}", min_dos)?;
+        }
+        if let Some(max_dos) = &self.max_dos {
+            writeln!(f, "  Maximum DOS version: {}", max_dos)?;
         }
         Ok(())
     }

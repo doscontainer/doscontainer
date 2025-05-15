@@ -1,33 +1,103 @@
+use std::str::FromStr;
+
 use bpb::BPB;
 use disk::disktype::DiskType;
 use error::OsError;
+use product::OsProduct;
+use serde::Deserialize;
+use vendor::OsVendor;
+use version::OsVersion;
 
 pub mod bpb;
 pub mod error;
+pub mod product;
+pub mod vendor;
+pub mod version;
 
 /// The OperatingSystem enum holds specific fragments of
 /// code and data that apply only to a particular operating system
-#[derive(Clone, Debug, PartialEq)]
-pub enum OperatingSystem {
-    IBMDOS100,
-    IBMDOS110,
-    IBMDOS200,
-    NONE,
-    UNKNOWN,
+pub struct OperatingSystem {
+    jumpcode: [u8; 3],
+    product: OsProduct,
+    vendor: OsVendor,
+    version: OsVersion,
+}
+
+impl<'de> Deserialize<'de> for OsVendor {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let s: String = Deserialize::deserialize(deserializer)?;
+        OsVendor::from_str(&s).map_err(|e| D::Error::custom(e.to_string()))
+    }
+}
+
+impl<'de> Deserialize<'de> for OsVersion {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let s: String = Deserialize::deserialize(deserializer)?;
+        OsVersion::from_str(&s).map_err(|e| D::Error::custom(e.to_string()))
+    }
 }
 
 impl OperatingSystem {
+    /// Constructs a specific `OperatingSystem` instance from a vendor and version string.
+    ///
+    /// This method attempts to match the provided vendor and version against known supported
+    /// DOS variants. If a matching combination is found, it returns a fully initialized
+    /// `OperatingSystem` struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `vendor` - A string representing the OS vendor (e.g., `"IBM"`).
+    /// * `version` - A string representing the OS version (e.g., `"1.00"`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`OsError::InvalidOsVendor`] or [`OsError::InvalidOsVersionFormat`] if the inputs
+    /// can't be parsed, or [`OsError::UnsupportedOs`] if the combination is not recognized.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let os = OperatingSystem::from_vendor_version("IBM", "1.00")?;
+    /// assert_eq!(os.jumpcode(), [0xEB, 0x2F, 0x14]);
+    /// ```
+    ///
+    /// [`OsError::InvalidOsVendor`]: crate::error::OsError::InvalidOsVendor
+    /// [`OsError::InvalidOsVersionFormat`]: crate::error::OsError::InvalidOsVersionFormat
+    /// [`OsError::UnsupportedOs`]: crate::error::OsError::UnsupportedOs
+    pub fn from_vendor_version(vendor: &str, version: &str) -> Result<Self, OsError> {
+        let vendor = OsVendor::from_str(vendor)?;
+        let version = OsVersion::from_str(version)?;
+
+        match (vendor, version) {
+            // IBM PC-DOS 1.00
+            (OsVendor::IBM, v) if v == OsVersion::new(1, 0) => Ok(Self {
+                product: OsProduct::PC_DOS,
+                vendor,
+                version,
+                jumpcode: [0xEB, 0x2F, 0x14],
+            }),
+            // IBM PC-DOS 1.10
+            (OsVendor::IBM, v) if v == OsVersion::new(1, 10) => Ok(Self {
+                product: OsProduct::PC_DOS,
+                vendor,
+                version,
+                jumpcode: [0xEB, 0x27, 0x90],
+            }),
+            _ => Err(OsError::UnsupportedOs),
+        }
+    }
+
     /// Retrieve the jump code at the start of the boot sector
     pub fn jumpcode(&self) -> [u8; 3] {
-        match self {
-            // This does JMP 0x2F. What the 0x14 does is a mystery, but it's what the original OS puts
-            // at this position, so we do too.
-            Self::IBMDOS100 => [0xEB, 0x2F, 0x14],
-            Self::IBMDOS110 => [0xEB, 0x27, 0x90],
-            Self::IBMDOS200 => [0x00, 0x00, 0x00],
-            Self::NONE => [0x00, 0x00, 0x00],
-            Self::UNKNOWN => [0x00, 0x00, 0x00],
-        }
+        self.jumpcode
     }
 
     pub fn from_str(os: &str) -> Self {
