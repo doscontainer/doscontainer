@@ -1,6 +1,6 @@
 pub enum OsProduct {
-    DR_DOS,
+    DrDos,
     FreeDOS,
-    MS_DOS,
-    PC_DOS,
+    MsDos,
+    PcDos,
 }
