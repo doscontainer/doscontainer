@@ -6,11 +6,11 @@ pub enum OsError {
     InvalidOsProduct(String),
     InvalidOsVendor(String),
     InvalidOsVersionFormat(String),
+    InvalidUrl,
     NotAFloppy,
     UnsupportedDiskType,
     UnsupportedOs,
 }
-
 
 impl fmt::Display for OsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -20,6 +20,7 @@ impl fmt::Display for OsError {
             InvalidOsProduct(err) => write!(f, "Invalid OS product: {}", err),
             InvalidOsVendor(err) => write!(f, "Invalid OS vendor : {}", err),
             InvalidOsVersionFormat(err) => write!(f, "Invalid OS version format: {}", err),
+            InvalidUrl => write!(f, "Invalid download URL"),
             NotAFloppy => write!(f, "Not a floppy."),
             UnsupportedDiskType => write!(f, "Unsupported disk type."),
             UnsupportedOs => write!(f, "Unsupported Operating System."),

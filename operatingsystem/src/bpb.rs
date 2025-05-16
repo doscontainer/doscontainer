@@ -28,13 +28,7 @@ impl BPB {
     /// - `OsError::BpbNotApplicable` if the BPB is not relevant for the operating system (e.g., IBM PC-DOS 1.00 or 1.10).
     /// - `OsError::UnsupportedOs` if the operating system is not supported.
     pub fn as_bytes(&self, operating_system: &OperatingSystem) -> Result<Vec<u8>, OsError> {
-        match operating_system {
-            OperatingSystem::IBMDOS200 => Ok(self.as_pcdos_200_bytes()),
-            OperatingSystem::IBMDOS100 | OperatingSystem::IBMDOS110 => {
-                Err(OsError::BpbNotApplicable)
-            }
-            _ => Err(OsError::UnsupportedOs),
-        }
+        Ok(Vec::new())
     }
 
     /// Convert the BPB struct into on-disk bytes that correspond to IBM PC-DOS 2.00

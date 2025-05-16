@@ -7,3 +7,4 @@ description = "DOSContainer operating system library."
 [dependencies]
 disk = { path = "../disk" }
 serde = { workspace = true }
+url = { workspace = true }
