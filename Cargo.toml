@@ -22,3 +22,10 @@ url = { version = "2.5", features = ["serde"] }
 uuid = { version = "1.13", features = ["v4", "fast-rng", "macro-diagnostics"] }
 walkdir = { version = "2.5" }
 zip = "2.6"
+
+[profile.release]
+opt-level = "z"         # Optimize for size
+lto = true              # Enable Link Time Optimization
+codegen-units = 1       # Single codegen unit for better optimization
+panic = "abort"         # Removes panic runtime, saves space
+strip = true            # Strip debug symbols from final binary
