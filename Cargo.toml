@@ -21,7 +21,7 @@ toml = "0.8"
 url = { version = "2.5", features = ["serde"] }
 uuid = { version = "1.13", features = ["v4", "fast-rng", "macro-diagnostics"] }
 walkdir = { version = "2.5" }
-zip = "2.6"
+zip = "3.0"
 
 [profile.release]
 opt-level = "z"         # Optimize for size
