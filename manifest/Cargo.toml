@@ -10,6 +10,7 @@ crc32fast = { workspace = true }
 directories = { workspace = true }
 ftp = { workspace = true }
 log = { workspace = true }
+operatingsystem = { path = "../operatingsystem" }
 url = { workspace = true }
 serde = { workspace = true }
 sha2 = { workspace = true }

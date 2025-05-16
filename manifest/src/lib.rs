@@ -8,7 +8,6 @@ use std::{collections::HashMap, fmt, path::Path};
 
 mod error;
 mod layer;
-mod os;
 mod storage;
 mod tests;
 

@@ -1155,6 +1155,7 @@ dependencies = [
  "directories",
  "ftp",
  "log",
+ "operatingsystem",
  "serde",
  "sha2",
  "tempfile",

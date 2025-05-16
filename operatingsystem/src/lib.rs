@@ -21,9 +21,17 @@ pub struct OperatingSystem {
     msdossys: String,
     iosys: String,
     product: OsProduct,
+    shortname: OsShortName,
     url: Url,
     vendor: OsVendor,
     version: OsVersion,
+}
+
+#[derive(Clone,Copy,Debug)]
+pub enum OsShortName {
+    IBMDOS100,
+    IBMDOS110,
+    IBMDOS200,
 }
 
 impl<'de> Deserialize<'de> for OsVendor {
@@ -86,6 +94,7 @@ impl OperatingSystem {
                 iosys: "IBMBIO.COM".to_string(),
                 msdossys: "IBMDOS.COM".to_string(),
                 product: OsProduct::PcDos,
+                shortname: OsShortName::IBMDOS100,
                 url: Url::from_str("https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip")
                     .map_err(|_| OsError::InvalidUrl)?,
                 vendor,
@@ -98,6 +107,7 @@ impl OperatingSystem {
                 iosys: "IBMBIO.COM".to_string(),
                 msdossys: "IBMDOS.COM".to_string(),
                 product: OsProduct::PcDos,
+                shortname: OsShortName::IBMDOS110,
                 url: Url::from_str("https://dosk8s-dist.area536.com/ibm-pc-dos-110-bootstrap.zip")
                     .map_err(|_| OsError::InvalidUrl)?,
                 vendor,
@@ -110,6 +120,7 @@ impl OperatingSystem {
                 iosys: "IBMBIO.COM".to_string(),
                 msdossys: "IBMDOS.COM".to_string(),
                 product: OsProduct::PcDos,
+                shortname: OsShortName::IBMDOS200,
                 url: Url::from_str("https://dosk8s-dist.area536.com/ibm-pc-dos-200-bootstrap.zip")
                     .map_err(|_| OsError::InvalidUrl)?,
                 vendor,
@@ -148,5 +159,10 @@ impl OperatingSystem {
     /// Returns the full boot sector / volume boot record for the OS variant specified
     pub fn bootsector(&self) -> &[u8; 512] {
         &self.bootsector
+    }
+
+    /// Return the ShortName field for easy matching
+    pub fn shortname(&self) -> OsShortName {
+        self.shortname
     }
 }

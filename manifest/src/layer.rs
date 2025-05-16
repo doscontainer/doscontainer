@@ -1,5 +1,7 @@
 use ftp::{FtpError, FtpStream};
 use log::info;
+use operatingsystem::vendor::OsVendor;
+use operatingsystem::version::OsVersion;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::io::{BufReader, Seek, Write};
@@ -10,7 +12,6 @@ use url::Url;
 use zip::ZipArchive;
 
 use crate::error::ManifestError;
-use crate::os::{OsVendor, OsVersion};
 
 #[derive(Default, Deserialize)]
 pub struct Layer {

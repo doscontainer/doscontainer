@@ -8,7 +8,7 @@ use crate::{
     ClusterIndex, FileSystem, FileType,
 };
 use disk::{disktype::DiskType, Disk};
-use operatingsystem::OperatingSystem;
+use operatingsystem::{OperatingSystem, OsShortName};
 
 pub struct Fat12 {
     allocation_table: AllocationTable,
@@ -89,7 +89,7 @@ impl FileSystem for Fat12 {
 }
 
 impl Fat12 {
-    pub fn new(os: &OperatingSystem, disk: &dyn Disk) -> Result<Self, FileSystemError> {
+    pub fn new(os: OperatingSystem, disk: &dyn Disk) -> Result<Self, FileSystemError> {
         let cluster_size = match disk.disktype() {
             DiskType::F525_160 => 1,
             DiskType::F525_180 => 1,
@@ -115,13 +115,13 @@ impl Fat12 {
         let mut filesystem = Fat12 {
             allocation_table: AllocationTable::new(cluster_count, cluster_size)?,
             pool: Pool::new()?,
-            os: os.clone(),
+            os: os,
             disktype: disk.disktype().clone(), // Cloning here for simplicity.
         };
 
         // Different OS'es do different things with the first clusters in the allocation table
-        match filesystem.os {
-            OperatingSystem::IBMDOS100 => {
+        match filesystem.os.shortname() {
+            OsShortName::IBMDOS100 => {
                 // Allocate the first two clusters as they are in PC-DOS 1.00
                 filesystem
                     .allocation_table_mut()
@@ -130,7 +130,7 @@ impl Fat12 {
                     .allocation_table_mut()
                     .allocate_cluster(1, 0xFFF)?;
             }
-            OperatingSystem::IBMDOS110 => {
+            OsShortName::IBMDOS110 => {
                 filesystem
                     .allocation_table_mut()
                     .allocate_cluster(0, 0xFFF)?;
@@ -138,7 +138,7 @@ impl Fat12 {
                     .allocation_table_mut()
                     .allocate_cluster(1, 0xFFF)?;
             }
-            OperatingSystem::IBMDOS200 => {
+            OsShortName::IBMDOS200 => {
                 // FAT ID depends on the media descriptor byte
                 match disk.disktype() {
                     DiskType::F525_180 => filesystem

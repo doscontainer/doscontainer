@@ -1,5 +1,5 @@
 use chrono::{DateTime, Datelike, Local, Timelike};
-use operatingsystem::OperatingSystem;
+use operatingsystem::{OperatingSystem, OsShortName};
 use uuid::Uuid;
 
 use crate::{attributes::Attributes, error::FileSystemError};
@@ -189,13 +189,13 @@ impl DirEntry {
     /// # Errors
     /// - Returns `FileSystemError::UnsupportedOperatingSystem` for operating systems that do not support directories.
     fn serialize_directory(&self, os: &OperatingSystem) -> Result<Vec<u8>, FileSystemError> {
-        match os {
+        match os.shortname() {
             // DOS 1.xx does not support directories at all, that's an error
-            OperatingSystem::IBMDOS100 | OperatingSystem::IBMDOS110 => {
+            OsShortName::IBMDOS100 | OsShortName::IBMDOS110 => {
                 Err(FileSystemError::UnsupportedOperatingSystem)
             }
             // Handle PC-DOS 2.00
-            OperatingSystem::IBMDOS200 => {
+            OsShortName::IBMDOS200 => {
                 let mut output = Vec::new();
                 output.extend(self.name_as_bytes());
                 output.extend(self.ext_as_bytes());
@@ -251,14 +251,14 @@ impl DirEntry {
         };
 
         // Match logic based on the operating system.
-        match os {
+        match os.shortname() {
             // IBM PC-DOS 1.10 and 2.00: Record date and time.
-            OperatingSystem::IBMDOS110 | OperatingSystem::IBMDOS200 => {
+            OsShortName::IBMDOS110 | OsShortName::IBMDOS200 => {
                 output.extend(serialize_date_time(10, fat_date, fat_time)); // Reserved 10 bytes for DOS 2.00
             }
 
             // IBM PC-DOS 1.00: Only record the date (no time field).
-            OperatingSystem::IBMDOS100 => {
+            OsShortName::IBMDOS100 => {
                 let mut temp_output = Vec::with_capacity(14);
                 temp_output.extend(std::iter::repeat(0).take(12)); // Reserved 12 bytes
                 temp_output.extend(fat_date.to_le_bytes()); // 2 bytes for date
@@ -304,10 +304,10 @@ impl DirEntry {
     /// - `OperatingSystem::IBMDOS200`: Uses `0x00` as the unused entry marker with `0xF6` as filler.
     /// - Other operating system variants default to `0x00` for both marker and filler.
     fn serialize_placeholder(os: &OperatingSystem) -> Vec<u8> {
-        let (marker, filler) = match os {
-            OperatingSystem::IBMDOS100 => (0xE5, 0xF6), // DOS 1.00: Deleted file marker, `0xF6` filler.
-            OperatingSystem::IBMDOS110 => (0xE5, 0x00), // DOS 1.10: Deleted file marker, zero-filler.
-            OperatingSystem::IBMDOS200 => (0x00, 0xF6), // DOS 2.00: Unused entry marker, `0xF6` filler.
+        let (marker, filler) = match os.shortname() {
+            OsShortName::IBMDOS100 => (0xE5, 0xF6), // DOS 1.00: Deleted file marker, `0xF6` filler.
+            OsShortName::IBMDOS110 => (0xE5, 0x00), // DOS 1.10: Deleted file marker, zero-filler.
+            OsShortName::IBMDOS200 => (0x00, 0xF6), // DOS 2.00: Unused entry marker, `0xF6` filler.
             _ => (0x00, 0x00), // General case: `0x00` marker, `0x00` filler.
         };
 
