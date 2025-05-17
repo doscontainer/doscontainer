@@ -2,6 +2,7 @@ use crate::OsError;
 use std::fmt;
 use std::str::FromStr;
 
+/// Operating System product name in a type-safe way.
 pub enum OsProduct {
     DrDos,
     FreeDOS,

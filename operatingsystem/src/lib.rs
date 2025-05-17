@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::FromStr;
 
 use error::OsError;
@@ -27,11 +28,17 @@ pub struct OperatingSystem {
     version: OsVersion,
 }
 
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum OsShortName {
     IBMDOS100,
     IBMDOS110,
     IBMDOS200,
+}
+
+impl fmt::Display for OperatingSystem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.vendor, self.product, self.version)
+    }
 }
 
 impl<'de> Deserialize<'de> for OsVendor {
