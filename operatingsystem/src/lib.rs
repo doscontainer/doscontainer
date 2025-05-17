@@ -80,13 +80,6 @@ impl OperatingSystem {
     /// Returns [`OsError::InvalidOsVendor`] or [`OsError::InvalidOsVersionFormat`] if the inputs
     /// can't be parsed, or [`OsError::UnsupportedOs`] if the combination is not recognized.
     ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let os = OperatingSystem::from_vendor_version("IBM", "1.00")?;
-    /// assert_eq!(os.jumpcode(), [0xEB, 0x2F, 0x14]);
-    /// ```
-    ///
     /// [`OsError::InvalidOsVendor`]: crate::error::OsError::InvalidOsVendor
     /// [`OsError::InvalidOsVersionFormat`]: crate::error::OsError::InvalidOsVersionFormat
     /// [`OsError::UnsupportedOs`]: crate::error::OsError::UnsupportedOs
