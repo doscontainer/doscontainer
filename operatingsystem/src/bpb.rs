@@ -1,3 +1,4 @@
+use crate::OsShortName;
 use disk::disktype::DiskType;
 
 use crate::{error::OsError, OperatingSystem};
@@ -28,7 +29,11 @@ impl BPB {
     /// - `OsError::BpbNotApplicable` if the BPB is not relevant for the operating system (e.g., IBM PC-DOS 1.00 or 1.10).
     /// - `OsError::UnsupportedOs` if the operating system is not supported.
     pub fn as_bytes(&self, operating_system: &OperatingSystem) -> Result<Vec<u8>, OsError> {
-        Ok(Vec::new())
+        match operating_system.shortname() {
+            OsShortName::IBMDOS100 => Err(OsError::BpbNotApplicable),
+            OsShortName::IBMDOS110 => Err(OsError::BpbNotApplicable),
+            OsShortName::IBMDOS200 => Ok(self.as_pcdos_200_bytes()),
+        }
     }
 
     /// Convert the BPB struct into on-disk bytes that correspond to IBM PC-DOS 2.00

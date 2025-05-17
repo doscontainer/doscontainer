@@ -14,17 +14,17 @@ pub struct Fat12 {
     allocation_table: AllocationTable,
     pool: Pool,
     os: OperatingSystem,
-    disktype: DiskType,
 }
 
 impl FileSystem for Fat12 {
     fn mkfile(
         &mut self,
         path: &Path,
-        size: usize,
+        data: Vec<u8>,
         filetype: FileType,
     ) -> Result<Vec<ClusterIndex>, FileSystemError> {
         // Figure out how many clusters we're going to need for the file we're making
+        let size = data.len();
         let cluster_count = size.div_ceil(self.allocation_table.cluster_size());
 
         // Prep the list of clusters by reserving them in the AllocationTable
@@ -116,7 +116,6 @@ impl Fat12 {
             allocation_table: AllocationTable::new(cluster_count, cluster_size)?,
             pool: Pool::new()?,
             os: os,
-            disktype: disk.disktype().clone(), // Cloning here for simplicity.
         };
 
         // Different OS'es do different things with the first clusters in the allocation table

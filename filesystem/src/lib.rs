@@ -66,7 +66,7 @@ pub trait FileSystem {
     fn mkfile(
         &mut self,
         path: &Path,
-        size: usize,
+        data: Vec<u8>,
         filetype: FileType,
     ) -> Result<Vec<ClusterIndex>, FileSystemError>;
 
