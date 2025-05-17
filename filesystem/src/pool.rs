@@ -11,17 +11,17 @@ pub struct Pool {
     entries: Vec<DirEntry>,
 }
 
-impl Pool {
-    /// A new pool starts out with a single nameless, parentless Directory entry for the rootdir.
-    pub fn new() -> Result<Self, FileSystemError> {
-        let mut pool = Pool {
-            entries: Vec::new(),
-        };
-        let rootdir = DirEntry::default();
-        pool.add_entry(rootdir)?;
-        Ok(pool)
+impl Default for Pool {
+    /// Initializes the Pool struct with an intial directory entry that
+    /// serves as the pool's root directory.
+    fn default() -> Self {
+        Pool {
+            entries: vec![DirEntry::default()],
+        }
     }
+}
 
+impl Pool {
     /// Adds a directory entry to the pool.
     ///
     /// # Parameters
@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_pool_new_initializes_with_rootdir() {
-        let pool = Pool::new().unwrap();
+        let pool = Pool::default();
         assert_eq!(
             pool.entries.len(),
             1,
@@ -344,7 +344,7 @@ mod tests {
 
     #[test]
     fn test_add_entry_to_non_empty_pool() {
-        let mut pool = Pool::new().unwrap();
+        let mut pool = Pool::default();
 
         let mut file_entry = DirEntry::new(DirEntryType::File);
         let parent_uuid = pool.root_dir().unwrap().id();
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_multiple_entries_in_pool() {
-        let mut pool = Pool::new().unwrap();
+        let mut pool = Pool::default();
         let parent_uuid = pool.root_dir().unwrap().id();
 
         let mut subdir = DirEntry::new(DirEntryType::Directory);

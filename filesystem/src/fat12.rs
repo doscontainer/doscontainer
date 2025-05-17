@@ -114,7 +114,7 @@ impl Fat12 {
         };
         let mut filesystem = Fat12 {
             allocation_table: AllocationTable::new(cluster_count, cluster_size)?,
-            pool: Pool::new()?,
+            pool: Pool::default(),
             os: os,
         };
 
