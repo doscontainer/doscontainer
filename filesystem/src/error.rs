@@ -1,7 +1,9 @@
 #[derive(Debug, PartialEq)]
 pub enum FileSystemError {
+    CannotAddParentlessEntry,
     ClusterAlreadyAllocated,
     ClusterNotUsable,
+    EntryCannotHaveChildren,
     EmptyFileName,
     ExtensionTooLong,
     FileNameTooLong,
@@ -9,6 +11,7 @@ pub enum FileSystemError {
     InvalidCharInName,
     InvalidClusterIndex,
     InvalidPath,
+    ParentNotFound,
     TooManyFileNameParts,
     WontShrinkAllocationTable,
 }

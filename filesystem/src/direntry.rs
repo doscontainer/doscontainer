@@ -14,8 +14,8 @@ pub struct DirEntry {
     parent: Option<Uuid>,
     attributes: Attributes,
     name: Option<EntryName>,
+    can_be_parent: bool,
 }
-
 
 impl DirEntry {
     /// Create a regular file
@@ -31,6 +31,7 @@ impl DirEntry {
             parent: None,
             attributes: Attributes::from_preset(AttributesPreset::Directory),
             name: None,
+            can_be_parent: true,
         }
     }
 
@@ -58,6 +59,10 @@ impl DirEntry {
         &self.uid
     }
 
+    pub fn parent(&self) -> Option<&Uuid> {
+        self.parent.as_ref()
+    }
+
     pub fn set_parent(&mut self, parent: &DirEntry) {
         self.parent = Some(*parent.uuid());
     }
@@ -67,12 +72,19 @@ impl DirEntry {
         self.parent.is_none()
     }
 
+    /// Check if I can accept child entries
+    pub fn can_be_parent(&self) -> bool {
+        self.can_be_parent
+    }
+
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
+        let can_be_parent = matches!(preset, AttributesPreset::Directory);
         Ok(DirEntry {
             uid: Uuid::new_v4(),
             parent: None,
             name: Some(EntryName::from_str(name)?),
             attributes: Attributes::from_preset(preset),
+            can_be_parent,
         })
     }
 }
