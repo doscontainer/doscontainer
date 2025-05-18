@@ -1,9 +1,14 @@
 mod attributes;
+mod cluster;
 mod direntry;
 mod error;
+mod fat;
 mod fat12;
 mod names;
 mod pool;
+
+// Cluster index into the FAT
+pub type ClusterIndex = usize;
 
 #[cfg(test)]
 mod tests;

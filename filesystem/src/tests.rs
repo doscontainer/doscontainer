@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{names::EntryName, error::FileSystemError};
+    use crate::{error::FileSystemError, fat::AllocationTable, names::EntryName};
 
     use std::str::FromStr;
 
@@ -62,5 +62,14 @@ mod tests {
         let result = EntryName::from_str("mixed.Cas").expect("should be valid");
         assert_eq!(result.filename, "MIXED");
         assert_eq!(result.extension, "CAS");
+    }
+
+    #[test]
+    fn wont_shrink_allocationtable() {
+        let mut FAT = AllocationTable::default();
+        FAT.set_cluster_count(50)
+            .expect("Something BAD just happened!");
+        let result = FAT.set_cluster_count(40);
+        assert_eq!(result, Err(FileSystemError::WontShrinkAllocationTable));
     }
 }

@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use crate::error::FileSystemError;
 
-
 #[derive(Debug, PartialEq)]
 pub struct EntryName {
     pub filename: String,
