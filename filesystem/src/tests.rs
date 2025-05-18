@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{error::FileSystemError, fat::AllocationTable, names::EntryName};
+    use crate::{error::FileSystemError, allocationtable::AllocationTable, names::EntryName};
 
     use std::str::FromStr;
 

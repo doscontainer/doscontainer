@@ -1,8 +1,7 @@
+mod allocationtable;
 mod attributes;
-mod cluster;
 mod direntry;
 mod error;
-mod fat;
 mod fat12;
 mod names;
 mod pool;
