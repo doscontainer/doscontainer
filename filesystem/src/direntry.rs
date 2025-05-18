@@ -33,6 +33,22 @@ impl Default for DirEntry {
 }
 
 impl DirEntry {
+    pub fn is_directory(&self) -> bool {
+        if self.entry_type  == DirEntryType::Directory {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_file(&self) -> bool {
+        if self.entry_type == DirEntryType::File {
+            true
+        } else {
+            false
+        }
+    }
+
     /// Generate a new `DirEntry` instance based on the given `DirEntryType`.
     ///
     /// # Arguments

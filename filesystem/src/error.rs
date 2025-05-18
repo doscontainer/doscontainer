@@ -44,6 +44,9 @@ pub enum FileSystemError {
     /// The disk type is invalid (in combination with other factors)
     InvalidDiskType,
 
+    /// Invalid File name
+    InvalidFileName,
+
     /// Invalid entry for the operation to work on
     InvalidEntryType,
 
@@ -147,6 +150,9 @@ impl std::fmt::Display for FileSystemError {
             }
             FileSystemError::InvalidEntryType => {
                 write!(f, "Invalid entry type for this operation.")
+            }
+            FileSystemError::InvalidFileName => {
+                write!(f, "Invalid file name")
             }
             FileSystemError::InvalidOperatingSystem => {
                 write!(f, "Invalid operating system.")
