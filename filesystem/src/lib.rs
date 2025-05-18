@@ -2,6 +2,7 @@ mod attributes;
 mod direntry;
 mod error;
 mod fat12;
+mod names;
 mod pool;
 
 #[cfg(test)]

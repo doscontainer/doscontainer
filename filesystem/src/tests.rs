@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{direntry::EntryName, error::FileSystemError};
+    use crate::{names::EntryName, error::FileSystemError};
 
     use std::str::FromStr;
 

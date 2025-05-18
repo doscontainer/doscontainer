@@ -2,7 +2,11 @@ use std::str::FromStr;
 
 use uuid::Uuid;
 
-use crate::{attributes::Attributes, error::FileSystemError};
+use crate::{
+    attributes::{Attributes, AttributesPreset},
+    error::FileSystemError,
+    names::EntryName,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct DirEntry {
@@ -11,69 +15,37 @@ pub struct DirEntry {
     name: EntryName,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct EntryName {
-    pub filename: String,
-    pub extension: String,
-}
-
-impl FromStr for EntryName {
-    type Err = FileSystemError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split('.').collect();
-
-        // Must have at least one part for a valid file name
-        if parts.len() == 0 {
-            return Err(FileSystemError::EmptyFileName);
-        }
-
-        // Can't have more than two parts
-        if parts.len() > 2 {
-            return Err(FileSystemError::TooManyFileNameParts);
-        }
-
-        let name_part = parts[0].trim().to_ascii_uppercase();
-        if name_part.is_empty() {
-            return Err(FileSystemError::EmptyFileName);
-        }
-
-        if name_part.len() > 8 {
-            return Err(FileSystemError::FileNameTooLong);
-        }
-
-        let ext_part = if parts.len() == 2 {
-            parts[1].trim().to_ascii_uppercase()
-        } else {
-            String::new()
-        };
-        if ext_part.len() > 3 {
-            return Err(FileSystemError::ExtensionTooLong);
-        }
-
-        // Check each character is valid and uppercase
-        if !name_part.chars().all(|c| Self::is_valid_char(c)) {
-            return Err(FileSystemError::InvalidCharInName);
-        }
-
-        if !ext_part.chars().all(|c| Self::is_valid_char(c)) {
-            return Err(FileSystemError::InvalidCharInExt);
-        }
-
-        // We have a valid name struct
-        Ok(Self {
-            filename: name_part,
-            extension: ext_part,
-        })
+impl DirEntry {
+    /// Create a regular file
+    pub fn new_file(name: &str) -> Result<Self, FileSystemError> {
+        Self::new_from_preset(name, AttributesPreset::RegularFile)
     }
-}
 
-impl EntryName {
-    pub fn is_valid_char(c: char) -> bool {
-        matches!(c,
-            'A'..='Z' | '0'..='9' |
-            '\u{0020}' | '!' | '#' | '$' | '%' | '&' | '\'' |
-            '(' | ')' | '-' | '@' | '^' | '_' | '`' | '{' | '}' | '~'
-        )
+    /// Create a system file
+    pub fn new_sysfile(name: &str) -> Result<Self, FileSystemError> {
+        Self::new_from_preset(name, AttributesPreset::SystemFile)
+    }
+
+    /// Create a new (sub)directory
+    pub fn new_directory(name: &str) -> Result<Self, FileSystemError> {
+        Self::new_from_preset(name, AttributesPreset::Directory)
+    }
+
+    /// Create a new volume label entry
+    pub fn new_volume_label(name: &str) -> Result<Self, FileSystemError> {
+        Self::new_from_preset(name, AttributesPreset::VolumeLabel)
+    }
+
+    /// Create a new placeholder record (this is an IBM-ism, see docs)
+    pub fn new_placeholder(name: &str) -> Result<Self, FileSystemError> {
+        Self::new_from_preset(name, AttributesPreset::EmptyPlaceholder)
+    }
+
+    fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
+        Ok(DirEntry {
+            uid: Uuid::new_v4(),
+            name: EntryName::from_str(name)?,
+            attributes: Attributes::from_preset(preset),
+        })
     }
 }
