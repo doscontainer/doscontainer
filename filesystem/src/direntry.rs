@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
+use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
 
 use crate::{
     attributes::{Attributes, AttributesPreset},
     error::FileSystemError,
-    names::EntryName,
+    names::EntryName, ClusterIndex,
 };
 
 #[derive(Debug, PartialEq)]
@@ -14,6 +15,9 @@ pub struct DirEntry {
     parent: Option<Uuid>,
     attributes: Attributes,
     name: Option<EntryName>,
+    creation_time: NaiveDateTime,
+    start_cluster: ClusterIndex,
+    file_size: usize,
     can_be_parent: bool,
 }
 
@@ -31,6 +35,9 @@ impl DirEntry {
             parent: None,
             attributes: Attributes::from_preset(AttributesPreset::Directory),
             name: None,
+            creation_time: Local::now().naive_local(),
+            start_cluster: 0,
+            file_size: 0,
             can_be_parent: true,
         }
     }
@@ -84,6 +91,9 @@ impl DirEntry {
             parent: None,
             name: Some(EntryName::from_str(name)?),
             attributes: Attributes::from_preset(preset),
+            creation_time: Local::now().naive_local(),
+            start_cluster: 0,
+            file_size: 0,
             can_be_parent,
         })
     }

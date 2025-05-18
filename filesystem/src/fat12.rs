@@ -1,12 +1,18 @@
 use std::path::Path;
 
-use crate::{
-    attributes::Attributes, direntry::DirEntry, error::FileSystemError, names::EntryName,
-    pool::Pool, FileSystem,
-};
+use crate::{direntry::DirEntry, error::FileSystemError, pool::Pool, FileSystem};
 
+#[derive(Debug)]
 pub struct Fat12 {
     pool: Pool,
+}
+
+impl Default for Fat12 {
+    fn default() -> Self {
+        Fat12 {
+            pool: Pool::default(),
+        }
+    }
 }
 
 impl Fat12 {
@@ -19,18 +25,26 @@ impl Fat12 {
 
         match filename {
             Some(name) => Ok(Some(name.to_string())),
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 }
 
 impl FileSystem for Fat12 {
     fn mkfile(&mut self, path: &Path) -> Result<(), FileSystemError> {
-        if let Some(filename) = Self::get_filename(path)? {
-            Ok(())
-        } else {
-            return Err(FileSystemError::EmptyFileName)
-        }
+        let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+
+        let mut entry = DirEntry::new_file(filename.as_str())?;
+
+        let parent = self
+            .pool
+            .root_entry()
+            .ok_or(FileSystemError::ParentNotFound)?;
+
+        entry.set_parent(parent);
+        self.pool.add_entry(entry)?;
+
+        Ok(())
     }
 
     fn mkdir() {

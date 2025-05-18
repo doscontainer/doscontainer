@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::{error::FileSystemError, allocationtable::AllocationTable, names::EntryName};
+    use crate::{allocationtable::AllocationTable, error::FileSystemError, fat12::Fat12, names::EntryName, FileSystem};
 
-    use std::str::FromStr;
+    use std::{path::{Path, PathBuf}, str::FromStr};
 
     #[test]
     fn test_valid_filenames() {
@@ -66,10 +66,24 @@ mod tests {
 
     #[test]
     fn wont_shrink_allocationtable() {
-        let mut FAT = AllocationTable::default();
-        FAT.set_cluster_count(50)
+        let mut fat = AllocationTable::default();
+        fat.set_cluster_count(50)
             .expect("Something BAD just happened!");
-        let result = FAT.set_cluster_count(40);
+        let result = fat.set_cluster_count(40);
         assert_eq!(result, Err(FileSystemError::WontShrinkAllocationTable));
+    }
+
+    #[test]
+    fn new_fat12() {
+        let mut fat = Fat12::default();
+        let path = PathBuf::from("/var/run/COMMAND.COM");
+        assert!(fat.mkfile(path.as_path()).is_ok());
+    }
+
+    #[test]
+    fn invalid_mkfile_fat12() {
+        let mut fat = Fat12::default();
+        let path = PathBuf::from("/var/run/COMMANDISFARTOOLONG.COM");
+        assert_eq!(fat.mkfile(path.as_path()), Err(FileSystemError::FileNameTooLong));
     }
 }

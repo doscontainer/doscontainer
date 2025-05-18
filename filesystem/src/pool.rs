@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use crate::{direntry::DirEntry, error::FileSystemError};
 
+#[derive(Debug)]
 pub struct Pool {
     entries: Vec<DirEntry>,
 }
@@ -28,12 +29,15 @@ impl Pool {
         if !parent_entry.can_be_parent() {
             return Err(FileSystemError::EntryCannotHaveChildren);
         }
-
         self.entries.push(entry);
         Ok(())
     }
 
     pub fn entry(&self, uuid: &Uuid) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.uuid() == uuid)
+    }
+
+    pub fn root_entry(&self) -> Option<&DirEntry> {
+        self.entries.iter().find(|entry| entry.is_root())
     }
 }
