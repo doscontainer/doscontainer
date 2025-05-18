@@ -8,6 +8,7 @@ pub enum FileSystemError {
     InvalidCharInExt,
     InvalidCharInName,
     InvalidClusterIndex,
+    InvalidPath,
     TooManyFileNameParts,
     WontShrinkAllocationTable,
 }

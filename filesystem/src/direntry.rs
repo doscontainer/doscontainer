@@ -11,14 +11,27 @@ use crate::{
 #[derive(Debug, PartialEq)]
 pub struct DirEntry {
     uid: Uuid,
+    parent: Option<Uuid>,
     attributes: Attributes,
-    name: EntryName,
+    name: Option<EntryName>,
 }
+
 
 impl DirEntry {
     /// Create a regular file
     pub fn new_file(name: &str) -> Result<Self, FileSystemError> {
         Self::new_from_preset(name, AttributesPreset::RegularFile)
+    }
+
+    /// This one's special: there can be only one root directory in a Pool.
+    /// Create it through this constructor.
+    pub fn new_rootdir() -> Self {
+        Self {
+            uid: Uuid::new_v4(),
+            parent: None,
+            attributes: Attributes::from_preset(AttributesPreset::Directory),
+            name: None,
+        }
     }
 
     /// Create a system file
@@ -41,10 +54,24 @@ impl DirEntry {
         Self::new_from_preset(name, AttributesPreset::EmptyPlaceholder)
     }
 
+    pub fn uuid(&self) -> &Uuid {
+        &self.uid
+    }
+
+    pub fn set_parent(&mut self, parent: &DirEntry) {
+        self.parent = Some(*parent.uuid());
+    }
+
+    /// Check whether the current entry is the root node
+    pub fn is_root(&self) -> bool {
+        self.parent.is_none()
+    }
+
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
         Ok(DirEntry {
             uid: Uuid::new_v4(),
-            name: EntryName::from_str(name)?,
+            parent: None,
+            name: Some(EntryName::from_str(name)?),
             attributes: Attributes::from_preset(preset),
         })
     }

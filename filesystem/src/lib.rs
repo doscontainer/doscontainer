@@ -1,3 +1,7 @@
+use std::path::Path;
+
+use error::FileSystemError;
+
 mod allocationtable;
 mod attributes;
 mod direntry;
@@ -14,7 +18,7 @@ mod tests;
 
 pub trait FileSystem {
     /// Create a new file
-    fn mkfile();
+    fn mkfile(&mut self, path: &Path) -> Result<(), FileSystemError>;
 
     /// Create a directory
     fn mkdir();
