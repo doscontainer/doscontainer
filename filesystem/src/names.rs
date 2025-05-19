@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use crate::error::FileSystemError;
 
@@ -60,11 +60,28 @@ impl FromStr for EntryName {
 }
 
 impl EntryName {
+    pub fn to_string(&self) -> String {
+        if self.extension.is_empty() {
+            self.filename.clone()
+        } else {
+            format!("{}.{}", self.filename, self.extension)
+        }
+    }
     pub fn is_valid_char(c: char) -> bool {
         matches!(c,
             'A'..='Z' | '0'..='9' |
             '\u{0020}' | '!' | '#' | '$' | '%' | '&' | '\'' |
             '(' | ')' | '-' | '@' | '^' | '_' | '`' | '{' | '}' | '~'
         )
+    }
+}
+
+impl fmt::Display for EntryName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.extension.is_empty() {
+            write!(f, "{}", self.filename)
+        } else {
+            write!(f, "{}.{}", self.filename, self.extension)
+        }
     }
 }
