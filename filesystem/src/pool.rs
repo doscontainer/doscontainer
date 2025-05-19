@@ -149,8 +149,25 @@ impl Pool {
         self.entries.iter().find(|entry| entry.is_root())
     }
 
-    pub fn entry_by_path(&self, path: &Path) -> Option<&DirEntry> {
+    /// Resolves a path starting from the root directory and returns the corresponding `DirEntry`, if it exists.
+    ///
+    /// This method walks the given `Path`, component by component, and uses `entry_by_name` to locate
+    /// directory entries in a way consistent with MS-DOS-era FAT file systems (up to the mid-1990s).
+    ///
+    /// The path is resolved from the root and must contain only valid DOS-style directory and file names.
+    /// Special components like `.` (current directory) are ignored, and `..` (parent directory) is not supported,
+    /// as MS-DOS does not automatically interpret these in paths—`..` is only meaningful if explicitly created
+    /// as a directory entry, which is uncommon.
+    ///
+    /// Returns `Some(&DirEntry)` if the full path resolves to a valid entry, or `None` if any component
+    /// cannot be found.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - A &str representing the path to resolve.
+    pub fn entry_by_path(&self, path: &str) -> Option<&DirEntry> {
         let mut current = self.root_entry()?;
+        let path = Path::new(path);
 
         for component in path.components() {
             use std::path::Component;

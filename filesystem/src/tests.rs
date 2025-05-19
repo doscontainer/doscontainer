@@ -180,9 +180,8 @@ mod tests {
         assert!(pool.add_entry(dos).is_ok());
         // Adding EDIT.EXE under the DOS directory should also work.
         assert!(pool.add_entry(edit_exe).is_ok());
-        let pathbuf = PathBuf::from_str("DOS/EDIT.EXE").unwrap();
         assert_eq!(
-            pool.entry_by_path(pathbuf.as_path())
+            pool.entry_by_path("DOS/EDIT.EXE")
                 .unwrap()
                 .uuid()
                 .clone(),
