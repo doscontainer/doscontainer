@@ -167,4 +167,26 @@ mod tests {
         assert!(retrieved.is_ok());
         assert_eq!(edit_retrieved, retrieved.unwrap().unwrap());
     }
+
+    #[test]
+    fn pool_entry_by_path() {
+        let mut pool = Pool::default();
+        let mut dos = DirEntry::new_directory("DOS").unwrap();
+        dos.set_parent(pool.root_entry().unwrap());
+        let mut edit_exe = DirEntry::new_file("EDIT.EXE").unwrap();
+        edit_exe.set_parent(&dos);
+        let edit_uuid = edit_exe.uuid().clone();
+        // Creating a DOS subdir should work
+        assert!(pool.add_entry(dos).is_ok());
+        // Adding EDIT.EXE under the DOS directory should also work.
+        assert!(pool.add_entry(edit_exe).is_ok());
+        let pathbuf = PathBuf::from_str("DOS/EDIT.EXE").unwrap();
+        assert_eq!(
+            pool.entry_by_path(pathbuf.as_path())
+                .unwrap()
+                .uuid()
+                .clone(),
+            edit_uuid
+        );
+    }
 }

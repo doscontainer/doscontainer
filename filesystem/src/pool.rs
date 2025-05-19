@@ -150,11 +150,22 @@ impl Pool {
     }
 
     pub fn entry_by_path(&self, path: &Path) -> Option<&DirEntry> {
-        if let Some(mut current) = self.root_entry() {
-            for component in path.components() {}
-            None
-        } else {
-            None
+        let mut current = self.root_entry()?;
+
+        for component in path.components() {
+            use std::path::Component;
+
+            let name = match component {
+                Component::Normal(os_str) => os_str.to_str()?,
+                Component::RootDir => continue, // skip root if present
+                Component::CurDir => continue,  // skip "."
+                Component::ParentDir => continue, // skip ".."
+                _ => return None,               // other cases not supported
+            };
+
+            current = self.entry_by_name(name, current).ok().flatten()?;
         }
+
+        Some(current)
     }
 }
