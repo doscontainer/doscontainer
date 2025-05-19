@@ -107,6 +107,12 @@ mod tests {
         assert_eq!(table.allocate_entry(16384).unwrap().len(), 32);
         assert_eq!(table.allocate_entry(16385).unwrap().len(), 33);
     }
+
+    #[test]
+    fn allocationtable_out_of_clusters() {
+        let mut table = AllocationTable::default();
+        assert_eq!(table.allocate_entry(327680), Err(FileSystemError::NotEnoughFreeClusters));
+    }
     
     #[test]
     fn new_fat12() {
