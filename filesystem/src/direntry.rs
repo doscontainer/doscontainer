@@ -4,10 +4,7 @@ use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
 
 use crate::{
-    attributes::{Attributes, AttributesPreset},
-    error::FileSystemError,
-    names::EntryName,
-    ClusterIndex,
+    attributes::{Attributes, AttributesPreset}, error::FileSystemError, names::EntryName, pool::Pool, ClusterIndex
 };
 
 #[derive(Debug, PartialEq)]
@@ -87,6 +84,10 @@ impl DirEntry {
         self.parent.is_none()
     }
 
+    pub fn children(&self, pool: &Pool) -> Option<Vec<&DirEntry>> {
+        None
+    }
+    
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
         match self.entry_type {
@@ -100,14 +101,6 @@ impl DirEntry {
         match self.entry_type {
             DirEntryType::Directory => true,
             _ => false,
-        }
-    }
-
-    /// Check if I can accept child entries
-    pub fn can_be_parent(&self) -> bool {
-        match self.entry_type {
-            DirEntryType::Directory => true,
-            _ => false
         }
     }
 
