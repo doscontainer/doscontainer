@@ -96,6 +96,7 @@ mod tests {
         let mut fat = Fat12::default();
         assert_eq!(fat.mkfile(".."), Err(FileSystemError::CannotCreateDotfiles));
         assert_eq!(fat.mkfile("."), Err(FileSystemError::CannotCreateDotfiles));
+        assert_eq!(fat.mkfile(".DOTFIL"), Err(FileSystemError::EmptyFileName));
     }
 
     #[test]
