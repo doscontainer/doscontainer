@@ -3,6 +3,7 @@ pub enum FileSystemError {
     CannotAddParentlessEntry,
     ClusterAlreadyAllocated,
     ClusterNotUsable,
+    DuplicateEntry,
     EntryCannotHaveChildren,
     EmptyFileName,
     ExtensionTooLong,

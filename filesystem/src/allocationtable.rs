@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::{error::FileSystemError, ClusterIndex};
 
+#[derive(Debug)]
 pub enum ClusterValue {
     Next(ClusterIndex),
     EndOfChain,
@@ -10,10 +11,12 @@ pub enum ClusterValue {
     Bad,
 }
 
+#[derive(Debug)]
 pub enum FatType {
     Fat12,
 }
 
+#[derive(Debug)]
 pub struct AllocationTable {
     clusters: BTreeMap<ClusterIndex, ClusterValue>,
     cluster_count: usize,

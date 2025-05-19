@@ -1,15 +1,17 @@
 use std::path::Path;
 
-use crate::{direntry::DirEntry, error::FileSystemError, pool::Pool, FileSystem};
+use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool, FileSystem};
 
 #[derive(Debug)]
 pub struct Fat12 {
+    allocation_table: AllocationTable,
     pool: Pool,
 }
 
 impl Default for Fat12 {
     fn default() -> Self {
         Fat12 {
+            allocation_table: AllocationTable::default(),
             pool: Pool::default(),
         }
     }
