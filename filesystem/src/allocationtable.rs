@@ -19,6 +19,7 @@ pub enum FatType {
 #[derive(Debug)]
 pub struct AllocationTable {
     clusters: BTreeMap<ClusterIndex, ClusterValue>,
+    cluster_size: usize,
     cluster_count: usize,
     fat_type: FatType,
 }
@@ -27,7 +28,8 @@ impl Default for AllocationTable {
     fn default() -> Self {
         AllocationTable {
             clusters: BTreeMap::new(),
-            cluster_count: 0,
+            cluster_size: 512,
+            cluster_count: 340,
             fat_type: FatType::Fat12,
         }
     }
@@ -41,6 +43,37 @@ impl AllocationTable {
         self.cluster_count = cluster_count;
         Ok(())
     }
+
+pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileSystemError> {
+    // Always allocate at least one cluster
+    let clusters_needed = std::cmp::max(1, size.div_ceil(self.cluster_size));
+
+    let mut free_clusters = Vec::with_capacity(clusters_needed);
+    for index in 0..self.cluster_count {
+        if self.is_free(index)? {
+            free_clusters.push(index);
+            if free_clusters.len() == clusters_needed {
+                break;
+            }
+        }
+    }
+
+    if free_clusters.len() < clusters_needed {
+        return Err(FileSystemError::NotEnoughFreeClusters);
+    }
+
+    for i in 0..clusters_needed {
+        let current = free_clusters[i];
+        let next = if i + 1 < clusters_needed {
+            Some(free_clusters[i + 1])
+        } else {
+            None
+        };
+        self.allocate(current, next)?;
+    }
+
+    Ok(free_clusters)
+}
 
     pub fn allocate(
         &mut self,

@@ -70,10 +70,7 @@ mod tests {
     #[test]
     fn wont_shrink_allocationtable() {
         let mut fat = AllocationTable::default();
-        fat.set_cluster_count(50)
-            .expect("Something BAD just happened!");
-        let result = fat.set_cluster_count(40);
-        assert_eq!(result, Err(FileSystemError::WontShrinkAllocationTable));
+        assert_eq!(fat.set_cluster_count(50), Err(FileSystemError::WontShrinkAllocationTable));
     }
 
     #[test]
@@ -102,6 +99,15 @@ mod tests {
         assert!(table.set_cluster_count(340).is_ok());
         assert_eq!(table.allocate(350, None), Err(FileSystemError::InvalidClusterIndex));
     }
+
+    #[test]
+    fn allocationtable_allocate_entry() {
+        let mut table = AllocationTable::default();
+        assert!(table.allocate_entry(16384).is_ok());
+        assert_eq!(table.allocate_entry(16384).unwrap().len(), 32);
+        assert_eq!(table.allocate_entry(16385).unwrap().len(), 33);
+    }
+    
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::default();
