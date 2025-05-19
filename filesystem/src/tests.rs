@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12, names::EntryName, pool::Pool, FileSystem};
+    use crate::{
+        allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12,
+        names::EntryName, pool::Pool, FileSystem,
+    };
 
     use std::{path::PathBuf, str::FromStr};
 
@@ -84,7 +87,10 @@ mod tests {
     fn invalid_mkfile_fat12() {
         let mut fat = Fat12::default();
         let path = PathBuf::from("/var/run/COMMANDISFARTOOLONG.COM");
-        assert_eq!(fat.mkfile(path.as_path()), Err(FileSystemError::FileNameTooLong));
+        assert_eq!(
+            fat.mkfile(path.as_path()),
+            Err(FileSystemError::FileNameTooLong)
+        );
     }
 
     #[test]
@@ -99,13 +105,30 @@ mod tests {
         // Adding the first entry should succeed
         assert!(pool.add_entry(entry).is_ok());
         // The duplicate should complain about being a duplicate.
-        assert_eq!(pool.add_entry(duplicate), Err(FileSystemError::DuplicateEntry));
+        assert_eq!(
+            pool.add_entry(duplicate),
+            Err(FileSystemError::DuplicateEntry)
+        );
     }
 
     #[test]
     fn pool_parentless_entry() {
         let mut pool = Pool::default();
         let entry = DirEntry::new_file("COMMAND.COM").unwrap();
-        assert_eq!(pool.add_entry(entry), Err(FileSystemError::CannotAddParentlessEntry));
+        assert_eq!(
+            pool.add_entry(entry),
+            Err(FileSystemError::CannotAddParentlessEntry)
+        );
+    }
+
+    #[test]
+    fn pool_add_child_to_file() {
+        let mut pool = Pool::default();
+        let mut entry = DirEntry::new_file("COMMAND.COM").unwrap();
+        entry.set_parent(pool.root_entry().unwrap());
+        let mut child = DirEntry::new_file("AUTOEXEC.BAT").unwrap();
+        child.set_parent(&entry);
+        assert!(pool.add_entry(entry).is_ok());
+        assert_eq!(pool.add_entry(child), Err(FileSystemError::EntryCannotHaveChildren));
     }
 }
