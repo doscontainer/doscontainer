@@ -5,7 +5,7 @@ mod tests {
         names::EntryName, pool::Pool, FileSystem,
     };
 
-    use std::{path::PathBuf, str::FromStr};
+    use std::{ops::Deref, path::PathBuf, str::FromStr};
 
     #[test]
     fn test_valid_filenames() {
@@ -129,7 +129,10 @@ mod tests {
         let mut child = DirEntry::new_file("AUTOEXEC.BAT").unwrap();
         child.set_parent(&entry);
         assert!(pool.add_entry(entry).is_ok());
-        assert_eq!(pool.add_entry(child), Err(FileSystemError::EntryCannotHaveChildren));
+        assert_eq!(
+            pool.add_entry(child),
+            Err(FileSystemError::EntryCannotHaveChildren)
+        );
     }
 
     #[test]
@@ -143,5 +146,25 @@ mod tests {
         assert!(pool.add_entry(dos).is_ok());
         // Adding EDIT.EXE under the DOS directory should also work.
         assert!(pool.add_entry(edit_exe).is_ok());
+    }
+
+    #[test]
+    fn pool_retrieve_entry_by_name() {
+        let mut pool = Pool::default();
+        let mut dos = DirEntry::new_directory("DOS").unwrap();
+        dos.set_parent(pool.root_entry().unwrap());
+        let dos_uuid = dos.uuid().clone();
+        let mut edit_exe = DirEntry::new_file("EDIT.EXE").unwrap();
+        let edit_uuid = edit_exe.uuid().clone();
+        edit_exe.set_parent(&dos);
+        // Creating a DOS subdir should work
+        assert!(pool.add_entry(dos).is_ok());
+        // Adding EDIT.EXE under the DOS directory should also work.
+        assert!(pool.add_entry(edit_exe).is_ok());
+        let dos_retrieved = pool.entry(&dos_uuid).unwrap();
+        let edit_retrieved = pool.entry(&edit_uuid).unwrap();
+        let retrieved = pool.entry_by_name("EDIT.EXE", dos_retrieved);
+        assert!(retrieved.is_ok());
+        assert_eq!(edit_retrieved, retrieved.unwrap().unwrap());
     }
 }
