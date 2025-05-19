@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool, FileSystem};
+use crate::{
+    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
+    FileSystem,
+};
 
 #[derive(Debug)]
 pub struct Fat12 {
@@ -33,6 +36,15 @@ impl Fat12 {
 }
 
 impl FileSystem for Fat12 {
+    /// Creates a new file entry at the specified path.
+    ///
+    /// The path should include the filename. The file will be added
+    /// under its parent directory if it exists in the pool.
+    ///
+    /// # Errors
+    /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
+    /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
+    /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
     fn mkfile(&mut self, path: &str) -> Result<(), FileSystemError> {
         let path = Path::new(path);
 
@@ -40,15 +52,17 @@ impl FileSystem for Fat12 {
 
         let mut entry = DirEntry::new_file(filename.as_str())?;
 
-        let parent = self
-            .pool
-            .root_entry()
-            .ok_or(FileSystemError::ParentNotFound)?;
+        // Get the parent directory path (if any)
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
 
-        entry.set_parent(parent);
-        self.pool.add_entry(entry)?;
-
-        Ok(())
+        // Find the parent entry in the pool
+        if let Some(parent) = self.pool.entry_by_path(parent_path) {
+            entry.set_parent(parent);
+            self.pool.add_entry(entry)?;
+            Ok(())
+        } else {
+            Err(FileSystemError::ParentNotFound)
+        }
     }
 
     fn mkdir() {

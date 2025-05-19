@@ -165,9 +165,8 @@ impl Pool {
     /// # Arguments
     ///
     /// * `path` - A &str representing the path to resolve.
-    pub fn entry_by_path(&self, path: &str) -> Option<&DirEntry> {
+    pub fn entry_by_path(&self, path: &Path) -> Option<&DirEntry> {
         let mut current = self.root_entry()?;
-        let path = Path::new(path);
 
         for component in path.components() {
             use std::path::Component;

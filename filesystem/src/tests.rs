@@ -5,7 +5,7 @@ mod tests {
         names::EntryName, pool::Pool, FileSystem,
     };
 
-    use std::str::FromStr;
+    use std::{path::Path, str::FromStr};
 
     #[test]
     fn test_valid_filenames() {
@@ -79,7 +79,7 @@ mod tests {
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::default();
-        assert!(fat.mkfile("/var/run/COMMAND.COM").is_ok());
+        assert!(fat.mkfile("/COMMAND.COM").is_ok());
     }
 
     #[test]
@@ -187,7 +187,7 @@ mod tests {
         // Adding EDIT.EXE under the DOS directory should also work.
         assert!(pool.add_entry(edit_exe).is_ok());
         assert_eq!(
-            pool.entry_by_path("DOS/EDIT.EXE").unwrap().uuid().clone(),
+            pool.entry_by_path(Path::new("DOS/EDIT.EXE")).unwrap().uuid().clone(),
             edit_uuid
         );
     }
