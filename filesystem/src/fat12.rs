@@ -45,7 +45,7 @@ impl FileSystem for Fat12 {
     /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
     /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
     /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
-    fn mkfile(&mut self, path: &str) -> Result<(), FileSystemError> {
+    fn mkfile(&mut self, path: &str, data: &[u8]) -> Result<(), FileSystemError> {
         let path = Path::new(path);
 
         let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;

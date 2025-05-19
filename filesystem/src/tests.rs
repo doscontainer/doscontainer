@@ -79,14 +79,14 @@ mod tests {
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::default();
-        assert!(fat.mkfile("/COMMAND.COM").is_ok());
+        assert!(fat.mkfile("/COMMAND.COM", &Vec::new()).is_ok());
     }
 
     #[test]
     fn invalid_mkfile_fat12() {
         let mut fat = Fat12::default();
         assert_eq!(
-            fat.mkfile("/var/run/COMMANDISFARTOOLONG.COM"),
+            fat.mkfile("/var/run/COMMANDISFARTOOLONG.COM", &Vec::new()),
             Err(FileSystemError::FileNameTooLong)
         );
     }
@@ -94,9 +94,10 @@ mod tests {
     #[test]
     fn invalid_dotfiles_fat12() {
         let mut fat = Fat12::default();
-        assert_eq!(fat.mkfile(".."), Err(FileSystemError::CannotCreateDotfiles));
-        assert_eq!(fat.mkfile("."), Err(FileSystemError::CannotCreateDotfiles));
-        assert_eq!(fat.mkfile(".DOTFIL"), Err(FileSystemError::EmptyFileName));
+        let data: Vec<u8> = Vec::new(); // These files don't need any real bytes.
+        assert_eq!(fat.mkfile("..", &data), Err(FileSystemError::CannotCreateDotfiles));
+        assert_eq!(fat.mkfile(".", &data), Err(FileSystemError::CannotCreateDotfiles));
+        assert_eq!(fat.mkfile(".DOTFIL", &data), Err(FileSystemError::EmptyFileName));
     }
 
     #[test]

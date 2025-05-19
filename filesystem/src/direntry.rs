@@ -94,6 +94,10 @@ impl DirEntry {
         self.name.as_ref()
     }
     
+    pub fn set_data(&mut self, data: &[u8]) {
+        self.data = data.to_vec();
+    }
+
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
         match self.entry_type {
