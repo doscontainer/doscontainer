@@ -6,19 +6,27 @@ use uuid::Uuid;
 use crate::{
     attributes::{Attributes, AttributesPreset},
     error::FileSystemError,
-    names::EntryName, ClusterIndex,
+    names::EntryName,
+    ClusterIndex,
 };
 
 #[derive(Debug, PartialEq)]
 pub struct DirEntry {
     uid: Uuid,
+    entry_type: DirEntryType,
     parent: Option<Uuid>,
     attributes: Attributes,
     name: Option<EntryName>,
     creation_time: NaiveDateTime,
     start_cluster: ClusterIndex,
     file_size: usize,
-    can_be_parent: bool,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum DirEntryType {
+    File,
+    Directory,
+    VolumeLabel,
 }
 
 impl DirEntry {
@@ -33,12 +41,12 @@ impl DirEntry {
         Self {
             uid: Uuid::new_v4(),
             parent: None,
+            entry_type: DirEntryType::Directory,
             attributes: Attributes::from_preset(AttributesPreset::Directory),
             name: None,
             creation_time: Local::now().naive_local(),
             start_cluster: 0,
             file_size: 0,
-            can_be_parent: true,
         }
     }
 
@@ -79,22 +87,47 @@ impl DirEntry {
         self.parent.is_none()
     }
 
+    /// Is the entry a file?
+    pub fn is_file(&self) -> bool {
+        match self.entry_type {
+            DirEntryType::File => true,
+            _ => false,
+        }
+    }
+
+    /// Is the entry a directory?
+    pub fn is_directory(&self) -> bool {
+        match self.entry_type {
+            DirEntryType::Directory => true,
+            _ => false,
+        }
+    }
+
     /// Check if I can accept child entries
     pub fn can_be_parent(&self) -> bool {
-        self.can_be_parent
+        match self.entry_type {
+            DirEntryType::Directory => true,
+            _ => false
+        }
     }
 
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
-        let can_be_parent = matches!(preset, AttributesPreset::Directory);
+        let entry_type = match preset {
+            AttributesPreset::Directory => DirEntryType::Directory,
+            AttributesPreset::EmptyPlaceholder
+            | AttributesPreset::RegularFile
+            | AttributesPreset::SystemFile => DirEntryType::File,
+            AttributesPreset::VolumeLabel => DirEntryType::VolumeLabel,
+        };
         Ok(DirEntry {
             uid: Uuid::new_v4(),
+            entry_type,
             parent: None,
             name: Some(EntryName::from_str(name)?),
             attributes: Attributes::from_preset(preset),
             creation_time: Local::now().naive_local(),
             start_cluster: 0,
             file_size: 0,
-            can_be_parent,
         })
     }
 }
