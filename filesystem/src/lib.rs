@@ -15,9 +15,6 @@ pub type ClusterIndex = usize;
 mod tests;
 
 pub trait FileSystem {
-    /// Make a new filesystem
-    fn new(sector_size: usize, cluster_size: usize, cluster_count: usize) -> Self;
-    
     /// Create a new file
     fn mkfile(&mut self, path: &str, data: &[u8]) -> Result<(), FileSystemError>;
 

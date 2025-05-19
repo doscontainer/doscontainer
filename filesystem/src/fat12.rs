@@ -27,6 +27,19 @@ impl Default for Fat12 {
 }
 
 impl Fat12 {
+    pub fn new(
+        sector_size: usize,
+        cluster_size: usize,
+        cluster_count: usize,
+    ) -> Result<Self, FileSystemError> {
+        let mut filesystem = Fat12::default();
+        filesystem.allocation_table.set_cluster_count(cluster_count)?;
+        filesystem.cluster_count = cluster_count;
+        filesystem.cluster_size = cluster_size;
+        filesystem.sector_size = sector_size;
+        Ok(filesystem)
+    }
+
     /// Helper method: takes a path, returns the filename from it if it exists.
     fn get_filename(path: &Path) -> Result<Option<String>, FileSystemError> {
         let filename = path
@@ -42,14 +55,6 @@ impl Fat12 {
 }
 
 impl FileSystem for Fat12 {
-    fn new(sector_size: usize, cluster_size: usize, cluster_count: usize) -> Self {
-        let mut filesystem = Fat12::default();
-        filesystem.cluster_count = cluster_count;
-        filesystem.cluster_size = cluster_size;
-        filesystem.sector_size = sector_size;
-        filesystem
-    }
-
     /// Creates a new file entry at the specified path.
     ///
     /// The path should include the filename. The file will be added
