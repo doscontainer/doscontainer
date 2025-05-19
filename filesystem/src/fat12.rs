@@ -9,6 +9,9 @@ use crate::{
 pub struct Fat12 {
     allocation_table: AllocationTable,
     pool: Pool,
+    cluster_size: usize, // Cluster size in sectors
+    cluster_count: usize,
+    sector_size: usize,
 }
 
 impl Default for Fat12 {
@@ -16,6 +19,9 @@ impl Default for Fat12 {
         Fat12 {
             allocation_table: AllocationTable::default(),
             pool: Pool::default(),
+            cluster_size: 1,    // Size in sectors
+            cluster_count: 340, // Number of clusters in the filesystem
+            sector_size: 512,   // Sector size in bytes
         }
     }
 }
@@ -36,6 +42,14 @@ impl Fat12 {
 }
 
 impl FileSystem for Fat12 {
+    fn new(sector_size: usize, cluster_size: usize, cluster_count: usize) -> Self {
+        let mut filesystem = Fat12::default();
+        filesystem.cluster_count = cluster_count;
+        filesystem.cluster_size = cluster_size;
+        filesystem.sector_size = sector_size;
+        filesystem
+    }
+
     /// Creates a new file entry at the specified path.
     ///
     /// The path should include the filename. The file will be added
