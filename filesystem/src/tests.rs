@@ -2,7 +2,7 @@
 mod tests {
     use crate::{allocationtable::AllocationTable, error::FileSystemError, fat12::Fat12, names::EntryName, FileSystem};
 
-    use std::{path::{Path, PathBuf}, str::FromStr};
+    use std::{path::PathBuf, str::FromStr};
 
     #[test]
     fn test_valid_filenames() {
