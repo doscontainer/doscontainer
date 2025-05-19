@@ -5,7 +5,7 @@ mod tests {
         names::EntryName, pool::Pool, FileSystem,
     };
 
-    use std::{ops::Deref, path::PathBuf, str::FromStr};
+    use std::str::FromStr;
 
     #[test]
     fn test_valid_filenames() {
@@ -79,16 +79,14 @@ mod tests {
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::default();
-        let path = PathBuf::from("/var/run/COMMAND.COM");
-        assert!(fat.mkfile(path.as_path()).is_ok());
+        assert!(fat.mkfile("/var/run/COMMAND.COM").is_ok());
     }
 
     #[test]
     fn invalid_mkfile_fat12() {
         let mut fat = Fat12::default();
-        let path = PathBuf::from("/var/run/COMMANDISFARTOOLONG.COM");
         assert_eq!(
-            fat.mkfile(path.as_path()),
+            fat.mkfile("/var/run/COMMANDISFARTOOLONG.COM"),
             Err(FileSystemError::FileNameTooLong)
         );
     }
@@ -181,10 +179,7 @@ mod tests {
         // Adding EDIT.EXE under the DOS directory should also work.
         assert!(pool.add_entry(edit_exe).is_ok());
         assert_eq!(
-            pool.entry_by_path("DOS/EDIT.EXE")
-                .unwrap()
-                .uuid()
-                .clone(),
+            pool.entry_by_path("DOS/EDIT.EXE").unwrap().uuid().clone(),
             edit_uuid
         );
     }

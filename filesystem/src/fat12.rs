@@ -33,7 +33,9 @@ impl Fat12 {
 }
 
 impl FileSystem for Fat12 {
-    fn mkfile(&mut self, path: &Path) -> Result<(), FileSystemError> {
+    fn mkfile(&mut self, path: &str) -> Result<(), FileSystemError> {
+        let path = Path::new(path);
+
         let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
 
         let mut entry = DirEntry::new_file(filename.as_str())?;
