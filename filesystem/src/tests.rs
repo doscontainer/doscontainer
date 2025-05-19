@@ -101,4 +101,11 @@ mod tests {
         // The duplicate should complain about being a duplicate.
         assert_eq!(pool.add_entry(duplicate), Err(FileSystemError::DuplicateEntry));
     }
+
+    #[test]
+    fn pool_parentless_entry() {
+        let mut pool = Pool::default();
+        let entry = DirEntry::new_file("COMMAND.COM").unwrap();
+        assert_eq!(pool.add_entry(entry), Err(FileSystemError::CannotAddParentlessEntry));
+    }
 }
