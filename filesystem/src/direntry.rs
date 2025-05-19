@@ -17,6 +17,7 @@ pub struct DirEntry {
     creation_time: NaiveDateTime,
     start_cluster: ClusterIndex,
     file_size: usize,
+    data: Vec<u8>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -44,6 +45,7 @@ impl DirEntry {
             creation_time: Local::now().naive_local(),
             start_cluster: 0,
             file_size: 0,
+            data: Vec::new(),
         }
     }
 
@@ -87,6 +89,10 @@ impl DirEntry {
     pub fn children(&self, pool: &Pool) -> Option<Vec<&DirEntry>> {
         None
     }
+
+    pub fn name(&self) -> Option<&EntryName> {
+        self.name.as_ref()
+    }
     
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
@@ -121,6 +127,7 @@ impl DirEntry {
             creation_time: Local::now().naive_local(),
             start_cluster: 0,
             file_size: 0,
+            data: Vec::new(),
         })
     }
 }
