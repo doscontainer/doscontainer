@@ -1,8 +1,8 @@
-use std::path::Path;
+use std::{path::Path, str::FromStr};
 
 use uuid::Uuid;
 
-use crate::{direntry::DirEntry, error::FileSystemError};
+use crate::{direntry::DirEntry, error::FileSystemError, names::EntryName};
 
 #[derive(Debug)]
 pub struct Pool {
@@ -38,7 +38,38 @@ impl Pool {
     pub fn entry(&self, uuid: &Uuid) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.uuid() == uuid)
     }
-    
+
+    /// Finds a directory entry by its name within the children of a given parent directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the entry to find (as a string slice).
+    /// * `parent` - A reference to the parent directory entry whose children will be searched.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing:
+    /// - `Ok(Some(&DirEntry))` if an entry with the specified name exists among the parent's children.
+    /// - `Ok(None)` if no matching entry is found.
+    /// - `Err(FileSystemError)` if the provided name is invalid or cannot be parsed into an `EntryName`.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if `name` is not a valid entry name as defined by `EntryName::from_str`.
+    pub fn entry_by_name(
+        &self,
+        name: &str,
+        parent: &DirEntry,
+    ) -> Result<Option<&DirEntry>, FileSystemError> {
+        let entry_name = EntryName::from_str(name)?;
+        let children = self.children(parent);
+        let entry = children
+            .iter()
+            .find(|entry| entry.name() == Some(&entry_name))
+            .copied();
+        Ok(entry)
+    }
+
     /// Returns all directory entries that are direct children of the given parent entry.
     ///
     /// This method filters the internal list of directory entries and returns those whose
