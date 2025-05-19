@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{allocationtable::AllocationTable, error::FileSystemError, fat12::Fat12, names::EntryName, FileSystem};
+    use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12, names::EntryName, pool::Pool, FileSystem};
 
     use std::{path::PathBuf, str::FromStr};
 
@@ -85,5 +85,20 @@ mod tests {
         let mut fat = Fat12::default();
         let path = PathBuf::from("/var/run/COMMANDISFARTOOLONG.COM");
         assert_eq!(fat.mkfile(path.as_path()), Err(FileSystemError::FileNameTooLong));
+    }
+
+    #[test]
+    fn pool_prevent_duplicates() {
+        let mut pool = Pool::default();
+        // Initial entry under root
+        let mut entry = DirEntry::new_file("COMMAND.COM").unwrap();
+        entry.set_parent(pool.root_entry().unwrap());
+        // This creates a new entry with the same name under the same parent.
+        let mut duplicate = DirEntry::new_file("COMMAND.COM").unwrap();
+        duplicate.set_parent(pool.root_entry().unwrap());
+        // Adding the first entry should succeed
+        assert!(pool.add_entry(entry).is_ok());
+        // The duplicate should complain about being a duplicate.
+        assert_eq!(pool.add_entry(duplicate), Err(FileSystemError::DuplicateEntry));
     }
 }
