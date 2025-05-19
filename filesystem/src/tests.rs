@@ -100,7 +100,7 @@ mod tests {
     fn allocationtable_out_of_bounds() {
         let mut table = AllocationTable::default();
         assert!(table.set_cluster_count(340).is_ok());
-        assert!(table.allocate(350, None).is_ok());
+        assert_eq!(table.allocate(350, None), Err(FileSystemError::InvalidClusterIndex));
     }
     #[test]
     fn new_fat12() {
