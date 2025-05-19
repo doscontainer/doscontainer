@@ -42,7 +42,11 @@ impl AllocationTable {
         Ok(())
     }
 
-    pub fn allocate(&mut self, index: ClusterIndex) -> Result<(), FileSystemError> {
+    pub fn allocate(
+        &mut self,
+        index: ClusterIndex,
+        next: Option<ClusterIndex>,
+    ) -> Result<(), FileSystemError> {
         if index >= self.cluster_count {
             return Err(FileSystemError::InvalidClusterIndex);
         }
@@ -51,15 +55,33 @@ impl AllocationTable {
             Some(ClusterValue::Next(_)) | Some(ClusterValue::EndOfChain) => {
                 return Err(FileSystemError::ClusterAlreadyAllocated)
             }
-            Some(ClusterValue::Bad) => return Err(FileSystemError::ClusterNotUsable),
-            Some(ClusterValue::Reserved) => return Err(FileSystemError::ClusterNotUsable),
+            Some(ClusterValue::Bad) | Some(ClusterValue::Reserved) => {
+                return Err(FileSystemError::ClusterNotUsable)
+            }
             Some(ClusterValue::Free) | None => {
-                // Ok to allocate
+                let value = match next {
+                    Some(n) => ClusterValue::Next(n),
+                    None => ClusterValue::EndOfChain,
+                };
+                self.clusters.insert(index, value);
             }
         }
 
-        self.clusters.insert(index, ClusterValue::EndOfChain); // Start a new chain
         Ok(())
+    }
+
+    pub fn mark_end_of_chain(&mut self, index: ClusterIndex) -> Result<(), FileSystemError> {
+        if index >= self.cluster_count {
+            return Err(FileSystemError::InvalidClusterIndex);
+        }
+
+        match self.clusters.get(&index) {
+            Some(ClusterValue::Free) | None => {
+                self.clusters.insert(index, ClusterValue::EndOfChain);
+                Ok(())
+            }
+            _ => return Err(FileSystemError::ClusterNotUsable),
+        }
     }
 
     pub fn is_free(&self, index: ClusterIndex) -> Result<bool, FileSystemError> {

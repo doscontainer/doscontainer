@@ -77,6 +77,32 @@ mod tests {
     }
 
     #[test]
+    fn allocationtable_allocate_cluster() {
+        let mut table = AllocationTable::default();
+        assert!(table.set_cluster_count(340).is_ok());
+        assert!(table.allocate(1, Some(2)).is_ok());
+        assert!(table.is_allocated(1).is_ok());
+        assert!(table.is_allocated(1).unwrap());
+    }
+
+    #[test]
+    fn allocationtable_allocate_occupied() {
+        let mut table = AllocationTable::default();
+        assert!(table.set_cluster_count(340).is_ok());
+        assert!(table.allocate(1, Some(2)).is_ok());
+        assert_eq!(
+            table.allocate(1, Some(3)),
+            Err(FileSystemError::ClusterAlreadyAllocated)
+        );
+    }
+
+    #[test]
+    fn allocationtable_out_of_bounds() {
+        let mut table = AllocationTable::default();
+        assert!(table.set_cluster_count(340).is_ok());
+        assert!(table.allocate(350, None).is_ok());
+    }
+    #[test]
     fn new_fat12() {
         let mut fat = Fat12::default();
         assert!(fat.mkfile("/COMMAND.COM", &Vec::new()).is_ok());
@@ -95,9 +121,18 @@ mod tests {
     fn invalid_dotfiles_fat12() {
         let mut fat = Fat12::default();
         let data: Vec<u8> = Vec::new(); // These files don't need any real bytes.
-        assert_eq!(fat.mkfile("..", &data), Err(FileSystemError::CannotCreateDotfiles));
-        assert_eq!(fat.mkfile(".", &data), Err(FileSystemError::CannotCreateDotfiles));
-        assert_eq!(fat.mkfile(".DOTFIL", &data), Err(FileSystemError::EmptyFileName));
+        assert_eq!(
+            fat.mkfile("..", &data),
+            Err(FileSystemError::CannotCreateDotfiles)
+        );
+        assert_eq!(
+            fat.mkfile(".", &data),
+            Err(FileSystemError::CannotCreateDotfiles)
+        );
+        assert_eq!(
+            fat.mkfile(".DOTFIL", &data),
+            Err(FileSystemError::EmptyFileName)
+        );
     }
 
     #[test]
@@ -188,7 +223,10 @@ mod tests {
         // Adding EDIT.EXE under the DOS directory should also work.
         assert!(pool.add_entry(edit_exe).is_ok());
         assert_eq!(
-            pool.entry_by_path(Path::new("DOS/EDIT.EXE")).unwrap().uuid().clone(),
+            pool.entry_by_path(Path::new("DOS/EDIT.EXE"))
+                .unwrap()
+                .uuid()
+                .clone(),
             edit_uuid
         );
     }
