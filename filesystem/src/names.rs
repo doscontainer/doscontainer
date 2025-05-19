@@ -12,6 +12,10 @@ impl FromStr for EntryName {
     type Err = FileSystemError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s == "." || s == ".." {
+            return Err(FileSystemError::CannotCreateDotfiles);
+        }
+        
         let parts: Vec<&str> = s.split('.').collect();
 
         // Must have at least one part for a valid file name

@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum FileSystemError {
     CannotAddParentlessEntry,
+    CannotCreateDotfiles,
     ClusterAlreadyAllocated,
     ClusterNotUsable,
     DuplicateEntry,

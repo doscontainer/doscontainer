@@ -92,6 +92,13 @@ mod tests {
     }
 
     #[test]
+    fn invalid_dotfiles_fat12() {
+        let mut fat = Fat12::default();
+        assert_eq!(fat.mkfile(".."), Err(FileSystemError::CannotCreateDotfiles));
+        assert_eq!(fat.mkfile("."), Err(FileSystemError::CannotCreateDotfiles));
+    }
+
+    #[test]
     fn pool_prevent_duplicates() {
         let mut pool = Pool::default();
         // Initial entry under root
