@@ -98,6 +98,10 @@ impl DirEntry {
         self.data = data.to_vec();
     }
 
+    pub fn set_start_cluster(&mut self, start_cluster: usize) {
+        self.start_cluster = start_cluster;
+    }
+    
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
         match self.entry_type {

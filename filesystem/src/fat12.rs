@@ -34,6 +34,8 @@ impl Fat12 {
     ) -> Result<Self, FileSystemError> {
         let mut filesystem = Fat12::default();
         filesystem.allocation_table.set_cluster_count(cluster_count)?;
+        filesystem.allocation_table.reserve(0)?;
+        filesystem.allocation_table.mark_end_of_chain(1)?;
         filesystem.cluster_count = cluster_count;
         filesystem.cluster_size = cluster_size;
         filesystem.sector_size = sector_size;
@@ -77,6 +79,8 @@ impl FileSystem for Fat12 {
         // Find the parent entry in the pool
         if let Some(parent) = self.pool.entry_by_path(parent_path) {
             entry.set_parent(parent);
+            let clusters = self.allocation_table.allocate_entry(data.len())?;
+            entry.set_start_cluster(clusters[0]);
             self.pool.add_entry(entry)?;
             Ok(())
         } else {

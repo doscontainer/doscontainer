@@ -116,8 +116,17 @@ mod tests {
     
     #[test]
     fn new_fat12() {
-        let mut fat = Fat12::default();
+        let mut fat = Fat12::new(512, 1, 340).unwrap();
         assert!(fat.mkfile("/COMMAND.COM", &Vec::new()).is_ok());
+    }
+
+    #[test]
+    fn fat12_mkfile_with_length() {
+        let data = vec![0u8; 4000];
+        let mut fat = Fat12::new(512, 1, 340).unwrap();;
+        assert!(fat.mkfile("/COMMAND.COM", &data).is_ok());
+        assert!(fat.mkfile("/AUTOEXEC.BAT", &data).is_ok());
+        println!("{:?}", fat);
     }
 
     #[test]
