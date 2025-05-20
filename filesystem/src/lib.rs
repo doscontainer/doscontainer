@@ -16,7 +16,7 @@ mod tests;
 
 pub trait FileSystem {
     /// Create a new file
-    fn mkfile(&mut self, path: &str, data: &[u8]) -> Result<(), FileSystemError>;
+    fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
 
     /// Create a directory
     fn mkdir();

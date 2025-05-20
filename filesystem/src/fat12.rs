@@ -66,7 +66,7 @@ impl FileSystem for Fat12 {
     /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
     /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
     /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
-    fn mkfile(&mut self, path: &str, data: &[u8]) -> Result<(), FileSystemError> {
+    fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError> {
         let path = Path::new(path);
 
         let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
@@ -79,8 +79,9 @@ impl FileSystem for Fat12 {
         // Find the parent entry in the pool
         if let Some(parent) = self.pool.entry_by_path(parent_path) {
             entry.set_parent(parent);
-            let clusters = self.allocation_table.allocate_entry(data.len())?;
+            let clusters = self.allocation_table.allocate_entry(filesize)?;
             entry.set_start_cluster(clusters[0]);
+            entry.set_filesize(filesize);
             self.pool.add_entry(entry)?;
             Ok(())
         } else {

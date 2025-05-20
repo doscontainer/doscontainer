@@ -15,9 +15,8 @@ pub struct DirEntry {
     attributes: Attributes,
     name: Option<EntryName>,
     creation_time: NaiveDateTime,
-    start_cluster: ClusterIndex,
+    start_cluster: Option<ClusterIndex>,
     file_size: usize,
-    data: Vec<u8>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -43,9 +42,8 @@ impl DirEntry {
             attributes: Attributes::from_preset(AttributesPreset::Directory),
             name: None,
             creation_time: Local::now().naive_local(),
-            start_cluster: 0,
+            start_cluster: None,
             file_size: 0,
-            data: Vec::new(),
         }
     }
 
@@ -94,12 +92,12 @@ impl DirEntry {
         self.name.as_ref()
     }
     
-    pub fn set_data(&mut self, data: &[u8]) {
-        self.data = data.to_vec();
+    pub fn set_start_cluster(&mut self, start_cluster: usize) {
+        self.start_cluster = Some(start_cluster);
     }
 
-    pub fn set_start_cluster(&mut self, start_cluster: usize) {
-        self.start_cluster = start_cluster;
+    pub fn set_filesize(&mut self, filesize: usize) {
+        self.file_size = filesize;
     }
     
     /// Is the entry a file?
@@ -133,9 +131,8 @@ impl DirEntry {
             name: Some(EntryName::from_str(name)?),
             attributes: Attributes::from_preset(preset),
             creation_time: Local::now().naive_local(),
-            start_cluster: 0,
+            start_cluster: None,
             file_size: 0,
-            data: Vec::new(),
         })
     }
 }
