@@ -78,8 +78,7 @@ mod tests {
         let mut table = AllocationTable::default();
         assert!(table.set_cluster_count(340).is_ok());
         assert!(table.allocate(1, Some(2)).is_ok());
-        assert!(table.is_allocated(1).is_ok());
-        assert!(table.is_allocated(1).unwrap());
+        assert!(!table.is_free(1).unwrap());
     }
 
     #[test]
@@ -119,7 +118,7 @@ mod tests {
         let mut table = AllocationTable::default();
         assert_eq!(table.set_cluster_count(5000), Err(FileSystemError::FatSizeTooLarge));
     }
-    
+
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::new(512, 1, 340).unwrap();

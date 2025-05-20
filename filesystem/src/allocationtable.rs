@@ -116,7 +116,7 @@ pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileS
             return Err(FileSystemError::InvalidClusterIndex);
         }
 
-        if self.is_allocated(index)? {
+        if !self.is_free(index)? {
             return Err(FileSystemError::ClusterNotUsable);
         } else {
             self.clusters.insert(index, ClusterValue::Reserved);
@@ -145,19 +145,6 @@ pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileS
         match self.clusters.get(&index) {
             Some(ClusterValue::Free) | None => Ok(true),
              _ => Ok(false),
-        }
-    }
-
-    pub fn is_allocated(&self, index: ClusterIndex) -> Result<bool, FileSystemError> {
-        if index >= self.cluster_count {
-            return Err(FileSystemError::InvalidClusterIndex);
-        }
-        match self.clusters.get(&index) {
-            Some(ClusterValue::Next(_))
-            | Some(ClusterValue::EndOfChain)
-            | Some(ClusterValue::Reserved)
-            | Some(ClusterValue::Bad) => Ok(true),
-            _ => Ok(false),
         }
     }
 }
