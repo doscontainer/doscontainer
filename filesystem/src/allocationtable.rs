@@ -40,6 +40,14 @@ impl AllocationTable {
         if cluster_count < self.cluster_count {
             return Err(FileSystemError::WontShrinkAllocationTable);
         }
+        let max_cluster_count = match self.fat_type {
+            FatType::Fat12 => 4096,
+        };
+
+        if cluster_count > max_cluster_count {
+            return Err(FileSystemError::FatSizeTooLarge);
+        }
+
         self.cluster_count = cluster_count;
         Ok(())
     }

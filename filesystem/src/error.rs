@@ -8,6 +8,7 @@ pub enum FileSystemError {
     EntryCannotHaveChildren,
     EmptyFileName,
     ExtensionTooLong,
+    FatSizeTooLarge,
     FileNameTooLong,
     InvalidCharInExt,
     InvalidCharInName,
