@@ -1,167 +1,134 @@
 use std::path::Path;
 
 use crate::{
-    allocationtable::AllocationTable,
-    direntry::{DirEntry, DirEntryType},
-    error::FileSystemError,
-    pool::Pool,
-    ClusterIndex, FileSystem, FileType,
+    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
+    FileSystem,
 };
-use disk::{disktype::DiskType, Disk};
-use operatingsystem::{OperatingSystem, OsShortName};
 
+#[derive(Debug)]
 pub struct Fat12 {
     allocation_table: AllocationTable,
     pool: Pool,
-    os: OperatingSystem,
+    cluster_size: usize, // Cluster size in sectors
+    cluster_count: usize,
+    sector_size: usize,
 }
 
-impl FileSystem for Fat12 {
-    fn mkfile(
-        &mut self,
-        path: &Path,
-        data: Vec<u8>,
-        filetype: FileType,
-    ) -> Result<Vec<ClusterIndex>, FileSystemError> {
-        // Figure out how many clusters we're going to need for the file we're making
-        let size = data.len();
-        let cluster_count = size.div_ceil(self.allocation_table.cluster_size());
-
-        // Prep the list of clusters by reserving them in the AllocationTable
-        let mut reserved_clusters = Vec::with_capacity(cluster_count);
-        for _ in 0..cluster_count {
-            match self.allocation_table.reserve_cluster() {
-                Ok(index) => reserved_clusters.push(index),
-                Err(e) => return Err(e),
-            }
+impl Default for Fat12 {
+    fn default() -> Self {
+        Fat12 {
+            allocation_table: AllocationTable::default(),
+            pool: Pool::default(),
+            cluster_size: 1,    // Size in sectors
+            cluster_count: 340, // Number of clusters in the filesystem
+            sector_size: 512,   // Sector size in bytes
         }
-
-        // Create the directory entry as needed by filetype
-        match filetype {
-            FileType::RegularFile => {
-                let mut entry = DirEntry::new(DirEntryType::File);
-                entry.set_allocated_clusters(&reserved_clusters);
-                todo!();
-            }
-            FileType::SystemFile => {
-                let mut entry = DirEntry::new(DirEntryType::SysFile);
-                entry.set_allocated_clusters(&reserved_clusters);
-                todo!();
-            }
-        }
-
-        // Write file's bytes to the disk
-    }
-
-    fn mkdir(
-        &mut self,
-        path: &Path,
-    ) -> Result<Vec<crate::ClusterIndex>, crate::error::FileSystemError> {
-        todo!()
-    }
-
-    /// Returns a reference to the `AllocationTable` of the filesystem.
-    ///
-    /// This method provides access to the allocation table, allowing read-only access
-    /// to the table. It can be used to inspect the allocation of clusters in the
-    /// FAT12 file system.
-    ///
-    /// # Returns
-    /// * `&AllocationTable` - A reference to the `AllocationTable` instance associated
-    ///   with this `Fat12` filesystem.
-    fn allocation_table(&self) -> &AllocationTable {
-        &self.allocation_table
-    }
-
-    /// Returns a mutable reference to the `AllocationTable` of the filesystem.
-    ///
-    /// This method allows mutable access to the allocation table, enabling modifications
-    /// to the allocation of clusters within the FAT12 filesystem. It is typically used
-    /// for operations that modify the allocation table, such as allocating new clusters
-    /// or updating existing ones.
-    ///
-    /// # Returns
-    /// * `&mut AllocationTable` - A mutable reference to the `AllocationTable` instance
-    ///   associated with this `Fat12` filesystem, allowing modifications to the table.
-    fn allocation_table_mut(&mut self) -> &mut AllocationTable {
-        &mut self.allocation_table
     }
 }
 
 impl Fat12 {
-    pub fn new(os: OperatingSystem, disk: &dyn Disk) -> Result<Self, FileSystemError> {
-        let cluster_size = match disk.disktype() {
-            DiskType::F525_160 => 1,
-            DiskType::F525_180 => 1,
-            DiskType::F525_320 => 2,
-            DiskType::F525_360 => 2,
-            _ => return Err(FileSystemError::InvalidDiskType),
-        };
-
-        // Cluster count comes from Microsoft docs. Error for not-yet supported types. Numbers are present
-        // in the code but commented out to save the effort of looking them up again. Enable as needed when
-        // supporting newer DOS versions.
-        let cluster_count = match disk.disktype() {
-            DiskType::F525_160 => 340,
-            DiskType::F525_180 => 351,
-            DiskType::F525_320 => 315,
-            DiskType::F525_360 => 354,
-            // DiskType::F525_1200 => 2371,
-            // DiskType::F35_720 => 713,
-            // DiskType::F35_1440 => 2847,
-            // DiskType::F35_2880 => 2863,
-            _ => return Err(FileSystemError::InvalidDiskType),
-        };
-        let mut filesystem = Fat12 {
-            allocation_table: AllocationTable::new(cluster_count, cluster_size)?,
-            pool: Pool::default(),
-            os: os,
-        };
-
-        // Different OS'es do different things with the first clusters in the allocation table
-        match filesystem.os.shortname() {
-            OsShortName::IBMDOS100 => {
-                // Allocate the first two clusters as they are in PC-DOS 1.00
-                filesystem
-                    .allocation_table_mut()
-                    .allocate_cluster(0, 0xFFE)?;
-                filesystem
-                    .allocation_table_mut()
-                    .allocate_cluster(1, 0xFFF)?;
-            }
-            OsShortName::IBMDOS110 => {
-                filesystem
-                    .allocation_table_mut()
-                    .allocate_cluster(0, 0xFFF)?;
-                filesystem
-                    .allocation_table_mut()
-                    .allocate_cluster(1, 0xFFF)?;
-            }
-            OsShortName::IBMDOS200 => {
-                // FAT ID depends on the media descriptor byte
-                match disk.disktype() {
-                    DiskType::F525_180 => filesystem
-                        .allocation_table_mut()
-                        .allocate_cluster(0, 0xFFC)?,
-                    DiskType::F525_160 => filesystem
-                        .allocation_table_mut()
-                        .allocate_cluster(0, 0xFFE)?,
-                    DiskType::F525_360 => filesystem
-                        .allocation_table_mut()
-                        .allocate_cluster(0, 0xFFD)?,
-                    DiskType::F525_320 => filesystem
-                        .allocation_table_mut()
-                        .allocate_cluster(0, 0xFFF)?,
-                    _ => return Err(FileSystemError::UnsupportedDiskType),
-                }
-                filesystem
-                    .allocation_table_mut()
-                    .allocate_cluster(1, 0xFFF)?;
-            }
-            _ => (),
-        }
-
-        // Only then we return the filesystem for further use.
+    pub fn new(
+        sector_size: usize,
+        cluster_size: usize,
+        cluster_count: usize,
+    ) -> Result<Self, FileSystemError> {
+        let mut filesystem = Fat12::default();
+        filesystem
+            .allocation_table
+            .set_cluster_count(cluster_count)?;
+        filesystem.allocation_table.reserve(0)?;
+        filesystem.allocation_table.mark_end_of_chain(1)?;
+        filesystem.cluster_count = cluster_count;
+        filesystem.cluster_size = cluster_size;
+        filesystem.sector_size = sector_size;
         Ok(filesystem)
+    }
+
+    pub fn allocation_table(&self) -> &AllocationTable {
+        &self.allocation_table
+    }
+
+    /// Helper method: takes a path, returns the filename from it if it exists.
+    fn get_filename(path: &Path) -> Result<Option<String>, FileSystemError> {
+        let filename = path
+            .components()
+            .last()
+            .and_then(|c| c.as_os_str().to_str());
+
+        match filename {
+            Some(name) => Ok(Some(name.to_string())),
+            None => Ok(None),
+        }
+    }
+}
+
+impl FileSystem for Fat12 {
+    /// Creates a new file entry at the specified path.
+    ///
+    /// The path should include the filename. The file will be added
+    /// under its parent directory if it exists in the pool.
+    ///
+    /// # Errors
+    /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
+    /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
+    /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
+    fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError> {
+        let path = Path::new(path);
+
+        let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+
+        let mut entry = DirEntry::new_file(filename.as_str())?;
+
+        // Get the parent directory path (if any)
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+
+        // Find the parent entry in the pool
+        if let Some(parent) = self.pool.entry_by_path(parent_path) {
+            entry.set_parent(parent);
+            let clusters = self.allocation_table.allocate_entry(filesize)?;
+            entry.set_cluster_map(&clusters);
+            entry.set_start_cluster(clusters[0]);
+            entry.set_filesize(filesize);
+            self.pool.add_entry(entry)?;
+            Ok(())
+        } else {
+            Err(FileSystemError::ParentNotFound)
+        }
+    }
+
+    fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError> {
+        let path = Path::new(path);
+
+        const DIRENTRY_SIZE: usize = 32;
+        const SYSTEM_ENTRIES: usize = 2;
+
+        // The SYSTEM_ENTRIES are "." and "..". They don't exist in the in-memory model
+        // but they will upon final allocation, so take them into account here to ensure
+        // correct sizing calculations.
+        let on_disk_size = (entries_count + SYSTEM_ENTRIES) * DIRENTRY_SIZE;
+
+        let dirname = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+
+        let mut entry = DirEntry::new_directory(dirname.as_str())?;
+
+        // Get the parent directory path (if any)
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+
+        // Find the parent entry in the pool
+        if let Some(parent) = self.pool.entry_by_path(parent_path) {
+            entry.set_parent(parent);
+
+            // Allocate one cluster for the directory
+            let clusters = self.allocation_table.allocate_entry(on_disk_size)?;
+            entry.set_cluster_map(&clusters);
+            entry.set_start_cluster(clusters[0]);
+            entry.set_filesize(on_disk_size);
+
+            // Add the directory entry to the pool
+            self.pool.add_entry(entry)?;
+            Ok(())
+        } else {
+            Err(FileSystemError::ParentNotFound)
+        }
     }
 }

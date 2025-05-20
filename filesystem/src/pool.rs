@@ -1,398 +1,187 @@
-use std::path::{Component::*, Path};
+use std::{path::Path, str::FromStr};
 
 use uuid::Uuid;
 
-use crate::{
-    direntry::{DirEntry, DirEntryType},
-    error::FileSystemError,
-};
+use crate::{direntry::DirEntry, error::FileSystemError, names::EntryName};
 
+#[derive(Debug)]
 pub struct Pool {
     entries: Vec<DirEntry>,
 }
 
 impl Default for Pool {
-    /// Initializes the Pool struct with an intial directory entry that
-    /// serves as the pool's root directory.
-    fn default() -> Self {
-        Pool {
-            entries: vec![DirEntry::default()],
+    /// Returns a new `Pool` containing only the root directory entry.
+    fn default() -> Pool {
+        Self {
+            entries: vec![DirEntry::new_rootdir()],
         }
     }
 }
 
 impl Pool {
-    /// Adds a directory entry to the pool.
+    /// Adds a new directory entry to the file system.
     ///
-    /// # Parameters
-    /// - `entry`: The [`DirEntry`] to be added to the pool.
+    /// This function validates the following before inserting the entry:
+    /// - The entry must have a parent.
+    /// - The parent must exist in the file system.
+    /// - The parent must be a directory (not a file).
+    /// - No other entry with the same name already exists under the same parent.
+    ///
+    /// # Arguments
+    ///
+    /// * `entry` - The `DirEntry` to be added.
     ///
     /// # Returns
-    /// - `Ok(())` if the entry is successfully added.
-    /// - `Err(FileSystemError::InvalidEntryType)` if the pool is empty and the
-    ///   provided entry is not a directory.
     ///
-    /// # Special Behavior
-    /// - If the pool is empty, only a root directory entry (of type [`DirEntryType::Directory`])
-    ///   can be added as the first entry. Adding any other entry type will result in an error.
+    /// * `Ok(())` if the entry was successfully added.
+    /// * `Err(FileSystemError)` if:
+    ///   - The entry has no parent.
+    ///   - The parent cannot be found.
+    ///   - The parent is not a directory.
+    ///   - A duplicate entry with the same name already exists under the parent.
+    ///
+    /// # Errors
+    ///
+    /// Returns one of the following `FileSystemError` variants:
+    /// - `CannotAddParentlessEntry` if the entry lacks a parent reference.
+    /// - `ParentNotFound` if the referenced parent does not exist.
+    /// - `EntryCannotHaveChildren` if the parent is not a directory.
+    /// - `DuplicateEntry` if another entry with the same name exists under the same parent.
     pub fn add_entry(&mut self, entry: DirEntry) -> Result<(), FileSystemError> {
-        // Special case: pool is empty, we only allow adding a root directory entry.
-        if self.entries.is_empty() {
-            // First entry must be a directory
-            if entry.entry_type() != DirEntryType::Directory {
-                return Err(FileSystemError::InvalidEntryType);
-            }
-            // First entry must not have a parent
-            if entry.parent().is_some() {
-                return Err(FileSystemError::InvalidEntryType);
-            }
+        let parent_uuid = entry
+            .parent()
+            .ok_or(FileSystemError::CannotAddParentlessEntry)?;
+
+        let parent_entry = self
+            .entry(parent_uuid)
+            .ok_or(FileSystemError::ParentNotFound)?;
+
+        if !parent_entry.is_directory() {
+            return Err(FileSystemError::EntryCannotHaveChildren);
         }
 
-        // Ensure only one parentless entry exists in the pool
-        if entry.parent().is_none() && self.entries.iter().any(|e| e.parent().is_none()) {
+        if self
+            .children(parent_entry)
+            .iter()
+            .any(|e| e.name() == entry.name())
+        {
             return Err(FileSystemError::DuplicateEntry);
         }
 
-        // Ensure only one VolumeLabel entry exists in the pool and that it has the root directory as its parent
-        if entry.entry_type() == DirEntryType::VolumeLabel {
-            // Check if the VolumeLabel has a parent and if that parent is the root directory
-            if let Some(parent_id) = entry.parent() {
-                if let Some(parent_entry) = self.entry_by_id(parent_id) {
-                    if parent_entry.entry_type() != DirEntryType::Directory {
-                        return Err(FileSystemError::VolumeLabelParentError); // Parent must be a directory
-                    }
-                    // Ensure the parent is the root directory (the one with no parent)
-                    if parent_entry.parent().is_some() {
-                        return Err(FileSystemError::VolumeLabelParentError); // Parent must be the root directory
-                    }
-                } else {
-                    return Err(FileSystemError::EntryDoesNotExist); // Parent entry does not exist
-                }
-            } else {
-                return Err(FileSystemError::VolumeLabelParentError); // VolumeLabel must have a parent
-            }
-
-            // Ensure only one VolumeLabel entry exists
-            if self
-                .entries
-                .iter()
-                .any(|e| e.entry_type() == DirEntryType::VolumeLabel)
-            {
-                return Err(FileSystemError::TooManyVolumeLabels);
-            }
-        }
-
-        // Ensure the entry's ID is unique in the pool
-        if self.entries.iter().any(|e| e.id() == entry.id()) {
-            return Err(FileSystemError::DuplicateEntry);
-        }
-
-        // Ensure the entry's parent is present in the pool and is of a type that's allowed to have children
-        if let Some(parent_id) = entry.parent() {
-            match self.entry_by_id(parent_id) {
-                Some(parent_entry) => {
-                    // Ensure the parent is of a type that's allowed to have children
-                    if parent_entry.entry_type() != DirEntryType::Directory {
-                        return Err(FileSystemError::EntryCanNotHaveChildren);
-                    }
-                    // Directories can have children, but not the special cases of "." and ".."
-                    if let Some(parent_name) = parent_entry.name() {
-                        if parent_name == ".." || parent_name == "." {
-                            return Err(FileSystemError::EntryCanNotHaveChildren);
-                        }
-                    }
-
-                    // Find and remove exactly one EmptyPlaceholder child if present
-                    if let Some(pos) = self.entries.iter().position(|e| {
-                        e.parent() == Some(parent_id)
-                            && e.entry_type() == DirEntryType::EmptyPlaceholder
-                    }) {
-                        self.entries.remove(pos);
-                    }
-                }
-                None => {
-                    return Err(FileSystemError::EntryDoesNotExist);
-                }
-            }
-        }
-
-        // Add the entry to the pool
         self.entries.push(entry);
         Ok(())
     }
 
-    /// Retrieves the direct descendants of a given entry.
-    ///
-    /// This function returns a vector containing the IDs of all entries in the file system
-    /// whose parent is the specified entry. The parent-child relationship is determined
-    /// by the `parent` field of each entry.
+    /// Return an entry by its Uuid
     ///
     /// # Arguments
     ///
-    /// * `id` - The unique identifier (`Uuid`) of the entry whose descendants are to be retrieved.
+    /// * `uuid` - A reference to the Uuid for the entry you're looking for.
     ///
     /// # Returns
     ///
-    /// * `Ok(Vec<Uuid>)` - A vector of IDs representing the direct descendants of the given entry.
-    /// * `Err(FileSystemError::EntryDoesNotExist)` - Returned if no entry with the specified ID exists.
+    /// - `Option<&DirEntry>` an optional reference to a DirEntry.
+    pub fn entry(&self, uuid: &Uuid) -> Option<&DirEntry> {
+        self.entries.iter().find(|entry| entry.uuid() == uuid)
+    }
+
+    /// Finds a directory entry by its name within the children of a given parent directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the entry to find (as a string slice).
+    /// * `parent` - A reference to the parent directory entry whose children will be searched.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing:
+    /// - `Ok(Some(&DirEntry))` if an entry with the specified name exists among the parent's children.
+    /// - `Ok(None)` if no matching entry is found.
+    /// - `Err(FileSystemError)` if the provided name is invalid or cannot be parsed into an `EntryName`.
     ///
     /// # Errors
     ///
-    /// This function will return an error in the following cases:
-    /// - The `id` does not correspond to any entry in the file system.
-    ///
-    /// # Performance
-    ///
-    /// This function performs a linear scan of the `entries` collection, which may be
-    /// inefficient for very large file systems. Consider optimizing the storage of
-    /// entries if performance becomes a concern.
-    pub fn direct_descendants(&self, id: Uuid) -> Result<Vec<Uuid>, FileSystemError> {
-        if !self.entries.iter().any(|entry| entry.id() == id) {
-            return Err(FileSystemError::EntryDoesNotExist);
-        }
-        Ok(self
-            .entries
-            .iter()
-            .filter(|entry| entry.parent() == Some(id))
-            .map(|entry| entry.id())
-            .collect())
-    }
-
-    /// Retrieve a directory entry by its unique identifier.
-    ///
-    /// This function searches for a directory entry in the pool by its unique `Uuid`.
-    /// It returns a reference to the entry if found, or `None` if no entry with the
-    /// given ID exists in the pool.
-    ///
-    /// # Parameters
-    ///
-    /// * `id` - The `Uuid` of the directory entry to search for.
-    ///
-    /// # Returns
-    ///
-    /// * `Some(&DirEntry)` if a directory entry with the specified ID is found.
-    /// * `None` if no directory entry with the given ID exists in the pool.
-    pub fn entry_by_id(&self, id: Uuid) -> Option<&DirEntry> {
-        self.entries.iter().find(|entry| entry.id() == id)
-    }
-
-    /// Searches for a `DirEntry` with a matching name.
-    ///
-    /// This method iterates over all entries in the pool and returns a reference to
-    /// the first entry whose name matches the given `name` exactly. The comparison is
-    /// case-sensitive and does not check for parent-child relationships or entry type.
-    ///
-    /// # Arguments
-    ///
-    /// * `name` - The name of the entry to search for (not including extension).
-    ///
-    /// # Returns
-    ///
-    /// * `Some(&DirEntry)` if a matching entry is found.
-    /// * `None` if no entry with the given name exists.
+    /// This function returns an error if `name` is not a valid entry name as defined by `EntryName::from_str`.
     pub fn entry_by_name(
         &self,
-        parent: Uuid,
         name: &str,
+        parent: &DirEntry,
     ) -> Result<Option<&DirEntry>, FileSystemError> {
-        let descendant_uuids = self.direct_descendants(parent)?;
-
-        Ok(descendant_uuids
+        let entry_name = EntryName::from_str(name)?;
+        let children = self.children(parent);
+        let entry = children
             .iter()
-            .filter_map(|uuid| self.entries.iter().find(|e| e.id() == *uuid))
-            .find(|entry| entry.name().map(|n| n == name).unwrap_or(false)))
+            .find(|entry| entry.name() == Some(&entry_name))
+            .copied();
+        Ok(entry)
     }
 
-    /// Searches for a `DirEntry` whose normalized name matches the given string.
+    /// Returns all directory entries that are direct children of the given parent entry.
     ///
-    /// This method iterates over all entries in the pool and compares their normalized
-    /// names—constructed from the entry's `name` and optional `extension`—against the
-    /// provided `name`. The comparison is exact and case-sensitive.
+    /// This method filters the internal list of directory entries and returns those whose
+    /// parent UUID matches the UUID of the provided `parent`. If the parent has no children,
+    /// an empty vector is returned.
     ///
     /// # Arguments
     ///
-    /// * `name` - A string slice representing the full normalized name (e.g., `"foo.txt"`).
+    /// * `parent` - A reference to the `DirEntry` whose children you want to retrieve.
     ///
     /// # Returns
     ///
-    /// * `Some(&DirEntry)` if a matching entry is found.
-    /// * `None` if no entry has a normalized name equal to the provided string.
-    ///
-    /// # Notes
-    ///
-    /// The normalized name is typically formed by joining the entry's `name` and `extension`
-    /// with a dot, e.g., `"foo.txt"` for a name of `"foo"` and an extension of `"txt"`.
-    pub fn entry_by_normalized_name(
-        &self,
-        parent: Uuid,
-        name: &str,
-    ) -> Result<Option<&DirEntry>, FileSystemError> {
-        let descendant_uuids = self.direct_descendants(parent)?;
-
-        Ok(descendant_uuids
+    /// A `Vec` of references to `DirEntry` instances that are children of the given parent.
+    pub fn children(&self, parent: &DirEntry) -> Vec<&DirEntry> {
+        let parent_uuid = parent.uuid();
+        self.entries
             .iter()
-            .filter_map(|uuid| self.entries.iter().find(|e| e.id() == *uuid))
-            .find(|entry| entry.normalized_name().as_deref() == Some(name)))
+            .filter(|entry| entry.parent() == Some(parent_uuid))
+            .collect()
     }
 
-    /// Retrieve the root directory entry from the pool.
+    /// Returns a reference to the root entry (if any)
     ///
-    /// This function looks for the directory entry that has no parent, which is
-    /// typically the root directory of a filesystem. It assumes that there is only
-    /// one root directory in the pool. If no root directory exists, it returns `None`.
+    /// This method traverses the pool to find the root entry and returns either a reference
+    /// to it or None if the pool doesn't have a root entry.
     ///
     /// # Returns
     ///
-    /// * `Some(&DirEntry)` if the root directory is found (the entry with no parent).
-    /// * `None` if no root directory is found, which could happen if the pool is empty
-    ///   or the root directory has not been added yet.
-    ///
-    /// # Assumptions
-    ///
-    /// The function assumes that there is **only one root directory** in the pool. If
-    /// your filesystem allows for multiple root directories, this function would need
-    /// to be adjusted accordingly.
-    pub fn root_dir(&self) -> Option<&DirEntry> {
-        self.entries.iter().find(|entry| entry.parent().is_none())
+    /// An Option<&DirEntry>
+    pub fn root_entry(&self) -> Option<&DirEntry> {
+        self.entries.iter().find(|entry| entry.is_root())
     }
 
-    /// Checks whether the given path exists in the pool's directory hierarchy.
+    /// Resolves a path starting from the root directory and returns the corresponding `DirEntry`, if it exists.
     ///
-    /// This method walks the `Path` from the root directory, resolving each component
-    /// using normalized names. If all components are found in the correct order as
-    /// direct descendants, the method returns `true`. If any part of the path is missing,
-    /// or if the path contains unsupported components (e.g., `..`, `.`, or a Windows prefix),
-    /// the method returns `false`.
+    /// This method walks the given `Path`, component by component, and uses `entry_by_name` to locate
+    /// directory entries in a way consistent with MS-DOS-era FAT file systems (up to the mid-1990s).
+    ///
+    /// The path is resolved from the root and must contain only valid DOS-style directory and file names.
+    /// Special components like `.` (current directory) are ignored, and `..` (parent directory) is not supported,
+    /// as MS-DOS does not automatically interpret these in paths—`..` is only meaningful if explicitly created
+    /// as a directory entry, which is uncommon.
+    ///
+    /// Returns `Some(&DirEntry)` if the full path resolves to a valid entry, or `None` if any component
+    /// cannot be found.
     ///
     /// # Arguments
     ///
-    /// * `path` - A reference to a `std::path::Path` representing the fully qualified path
-    /// to check within the pool.
-    ///
-    /// # Returns
-    ///
-    /// * `true` if the entire path exists from root to leaf in the directory hierarchy.
-    /// * `false` if any part of the path does not exist or is invalid.
-    pub fn path_exists(&self, path: &Path) -> bool {
-        let mut current_entry = match self.root_dir() {
-            Some(entry) => entry,
-            None => return false,
-        };
+    /// * `path` - A &str representing the path to resolve.
+    pub fn entry_by_path(&self, path: &Path) -> Option<&DirEntry> {
+        let mut current = self.root_entry()?;
 
         for component in path.components() {
+            use std::path::Component;
+
             let name = match component {
-                Normal(component) => component.to_string_lossy(),
-                RootDir => continue,
-                CurDir | ParentDir | Prefix(_) => return false,
+                Component::Normal(os_str) => os_str.to_str()?,
+                Component::RootDir => continue, // skip root if present
+                Component::CurDir => continue,  // skip "."
+                Component::ParentDir => continue, // skip ".."
+                _ => return None,               // other cases not supported
             };
 
-            match self.entry_by_normalized_name(current_entry.id(), &name) {
-                Ok(Some(entry)) => current_entry = entry,
-                Ok(None) => return false, // not found
-                Err(_) => return false,   // this is wonky!
-            }
+            current = self.entry_by_name(name, current).ok().flatten()?;
         }
-        true
-    }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_pool_new_initializes_with_rootdir() {
-        let pool = Pool::default();
-        assert_eq!(
-            pool.entries.len(),
-            1,
-            "Pool should start with a single root directory entry."
-        );
-        assert_eq!(
-            pool.entries[0].entry_type(),
-            DirEntryType::Directory,
-            "The initial entry should be of type Directory."
-        );
-    }
-
-    #[test]
-    fn test_add_entry_to_empty_pool() {
-        let mut pool = Pool {
-            entries: Vec::new(),
-        };
-
-        let root_dir = DirEntry::new(DirEntryType::Directory);
-        assert!(
-            pool.add_entry(root_dir).is_ok(),
-            "Should allow adding a root directory to an empty pool."
-        );
-    }
-
-    #[test]
-    fn test_add_non_directory_to_empty_pool() {
-        let mut pool = Pool {
-            entries: Vec::new(),
-        };
-
-        let file_entry = DirEntry::new(DirEntryType::File);
-        let result = pool.add_entry(file_entry);
-        assert!(
-            matches!(result, Err(FileSystemError::InvalidEntryType)),
-            "Adding a non-directory entry to an empty pool should return InvalidEntryType error."
-        );
-    }
-
-    #[test]
-    fn test_add_entry_to_non_empty_pool() {
-        let mut pool = Pool::default();
-
-        let mut file_entry = DirEntry::new(DirEntryType::File);
-        let parent_uuid = pool.root_dir().unwrap().id();
-        file_entry.set_parent(parent_uuid);
-        assert!(
-            pool.add_entry(file_entry).is_ok(),
-            "Should allow adding a file entry to a non-empty pool."
-        );
-        assert_eq!(
-            pool.entries.len(),
-            2,
-            "Pool should contain two entries after adding a file entry."
-        );
-    }
-
-    #[test]
-    fn test_multiple_entries_in_pool() {
-        let mut pool = Pool::default();
-        let parent_uuid = pool.root_dir().unwrap().id();
-
-        let mut subdir = DirEntry::new(DirEntryType::Directory);
-        subdir.set_parent(parent_uuid);
-        let mut file_entry = DirEntry::new(DirEntryType::File);
-        file_entry.set_parent(parent_uuid);
-
-        assert!(
-            pool.add_entry(subdir).is_ok(),
-            "Should allow adding a directory entry to a non-empty pool."
-        );
-        assert!(
-            pool.add_entry(file_entry).is_ok(),
-            "Should allow adding a file entry to a non-empty pool."
-        );
-
-        assert_eq!(
-            pool.entries.len(),
-            3,
-            "Pool should contain three entries after adding two more."
-        );
-        assert_eq!(
-            pool.entries[1].entry_type(),
-            DirEntryType::Directory,
-            "Second entry should be of type Directory."
-        );
-        assert_eq!(
-            pool.entries[2].entry_type(),
-            DirEntryType::File,
-            "Third entry should be of type File."
-        );
+        Some(current)
     }
 }
