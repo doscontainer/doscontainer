@@ -19,23 +19,5 @@ pub trait FileSystem {
     fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
 
     /// Create a directory
-    fn mkdir(&mut self, path: &str) -> Result<(), FileSystemError>;
-
-    /// Remove a file
-    fn rmfile(&mut self, path: &str) -> Result<(), FileSystemError>;
-
-    /// Remove a directory
-    fn rmdir();
-
-    /// Check if an entry is a file
-    fn is_file();
-
-    /// Check if an entry is a directory
-    fn is_directory();
-
-    /// Get the file system attributes from an entry
-    fn attrib();
-
-    /// Set the file system attributes on an entry
-    fn set_attrib();
+    fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError>;
 }

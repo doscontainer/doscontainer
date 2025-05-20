@@ -92,8 +92,16 @@ impl FileSystem for Fat12 {
         }
     }
 
-    fn mkdir(&mut self, path: &str) -> Result<(), FileSystemError> {
+    fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError> {
         let path = Path::new(path);
+
+        const DIRENTRY_SIZE: usize = 32;
+        const SYSTEM_ENTRIES: usize = 2;
+
+        // The SYSTEM_ENTRIES are "." and "..". They don't exist in the in-memory model
+        // but they will upon final allocation, so take them into account here to ensure
+        // correct sizing calculations.
+        let on_disk_size = (entries_count + SYSTEM_ENTRIES)*DIRENTRY_SIZE;
 
         let dirname = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
 
@@ -107,10 +115,10 @@ impl FileSystem for Fat12 {
             entry.set_parent(parent);
 
             // Allocate one cluster for the directory
-            let clusters = self.allocation_table.allocate_entry(0)?;
+            let clusters = self.allocation_table.allocate_entry(on_disk_size)?;
             entry.set_cluster_map(&clusters);
             entry.set_start_cluster(clusters[0]);
-            entry.set_filesize(64); // 64 bytes for '.' and '..' are the bare minimum even though they don't exist in memory yet!
+            entry.set_filesize(on_disk_size);
 
             // Add the directory entry to the pool
             self.pool.add_entry(entry)?;
@@ -118,29 +126,5 @@ impl FileSystem for Fat12 {
         } else {
             Err(FileSystemError::ParentNotFound)
         }
-    }
-
-    fn rmfile(&mut self, path: &str) -> Result<(), FileSystemError> {
-        todo!()
-    }
-
-    fn rmdir() {
-        todo!()
-    }
-
-    fn is_file() {
-        todo!()
-    }
-
-    fn is_directory() {
-        todo!()
-    }
-
-    fn attrib() {
-        todo!()
-    }
-
-    fn set_attrib() {
-        todo!()
     }
 }

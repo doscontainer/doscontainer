@@ -253,7 +253,13 @@ mod tests {
     #[test]
     fn fat12_mkdir() {
         let mut filesystem = Fat12::new(512, 1, 340).unwrap();
-        assert!(filesystem.mkdir("/DOS").is_ok());
+        assert!(filesystem.mkdir("/DOS", 2).is_ok());
         assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221).is_ok());
+    }
+
+    #[test]
+    fn fat12_mkdir_hugedir() {
+        let mut fat = Fat12::new(512,1,340).unwrap();
+        assert!(fat.mkdir("/DOS", 600).is_ok());
     }
 }
