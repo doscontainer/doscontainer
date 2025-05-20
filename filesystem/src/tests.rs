@@ -115,6 +115,12 @@ mod tests {
     }
     
     #[test]
+    fn allocationtable_too_large() {
+        let mut table = AllocationTable::default();
+        assert_eq!(table.set_cluster_count(5000), Err(FileSystemError::FatSizeTooLarge));
+    }
+    
+    #[test]
     fn new_fat12() {
         let mut fat = Fat12::new(512, 1, 340).unwrap();
         assert!(fat.mkfile("/COMMAND.COM", 10).is_ok());
