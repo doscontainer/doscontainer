@@ -1,7 +1,14 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12, names::EntryName, pool::Pool, serializer::{self, ibmdos100::{self, IbmDos100}, Fat12Serializer}, FileSystem
+        allocationtable::AllocationTable,
+        direntry::DirEntry,
+        error::FileSystemError,
+        fat12::Fat12,
+        names::EntryName,
+        pool::Pool,
+        serializer::{ibmdos100::IbmDos100, Fat12Serializer},
+        FileSystem,
     };
 
     use std::{path::Path, str::FromStr};
@@ -69,7 +76,10 @@ mod tests {
     #[test]
     fn wont_shrink_allocationtable() {
         let mut fat = AllocationTable::default();
-        assert_eq!(fat.set_cluster_count(50), Err(FileSystemError::WontShrinkAllocationTable));
+        assert_eq!(
+            fat.set_cluster_count(50),
+            Err(FileSystemError::WontShrinkAllocationTable)
+        );
     }
 
     #[test]
@@ -95,7 +105,10 @@ mod tests {
     fn allocationtable_out_of_bounds() {
         let mut table = AllocationTable::default();
         assert!(table.set_cluster_count(340).is_ok());
-        assert_eq!(table.allocate(350, None), Err(FileSystemError::InvalidClusterIndex));
+        assert_eq!(
+            table.allocate(350, None),
+            Err(FileSystemError::InvalidClusterIndex)
+        );
     }
 
     #[test]
@@ -109,13 +122,19 @@ mod tests {
     #[test]
     fn allocationtable_out_of_clusters() {
         let mut table = AllocationTable::default();
-        assert_eq!(table.allocate_entry(327680), Err(FileSystemError::NotEnoughFreeClusters));
+        assert_eq!(
+            table.allocate_entry(327680),
+            Err(FileSystemError::NotEnoughFreeClusters)
+        );
     }
-    
+
     #[test]
     fn allocationtable_too_large() {
         let mut table = AllocationTable::default();
-        assert_eq!(table.set_cluster_count(5000), Err(FileSystemError::FatSizeTooLarge));
+        assert_eq!(
+            table.set_cluster_count(5000),
+            Err(FileSystemError::FatSizeTooLarge)
+        );
     }
 
     #[test]
@@ -263,13 +282,13 @@ mod tests {
 
     #[test]
     fn fat12_mkdir_hugedir() {
-        let mut fat = Fat12::new(512,1,340).unwrap();
+        let mut fat = Fat12::new(512, 1, 340).unwrap();
         assert!(fat.mkdir("/DOS", 600).is_ok());
     }
 
     #[test]
     fn fat12_serialize_empty_ibmdos100() {
-        let fat = Fat12::new(512,1,340).unwrap();
+        let fat = Fat12::new(512, 1, 340).unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(serializer, vec![0xFE, 0xFF, 0xFF]);
     }

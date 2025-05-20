@@ -105,7 +105,7 @@ impl FileSystem for Fat12 {
         // The SYSTEM_ENTRIES are "." and "..". They don't exist in the in-memory model
         // but they will upon final allocation, so take them into account here to ensure
         // correct sizing calculations.
-        let on_disk_size = (entries_count + SYSTEM_ENTRIES)*DIRENTRY_SIZE;
+        let on_disk_size = (entries_count + SYSTEM_ENTRIES) * DIRENTRY_SIZE;
 
         let dirname = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
 

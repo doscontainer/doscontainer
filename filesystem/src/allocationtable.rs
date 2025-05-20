@@ -56,36 +56,36 @@ impl AllocationTable {
         Ok(())
     }
 
-pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileSystemError> {
-    // Always allocate at least one cluster
-    let clusters_needed = std::cmp::max(1, size.div_ceil(self.cluster_size));
+    pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileSystemError> {
+        // Always allocate at least one cluster
+        let clusters_needed = std::cmp::max(1, size.div_ceil(self.cluster_size));
 
-    let mut free_clusters = Vec::with_capacity(clusters_needed);
-    for index in 0..self.cluster_count {
-        if self.is_free(index)? {
-            free_clusters.push(index);
-            if free_clusters.len() == clusters_needed {
-                break;
+        let mut free_clusters = Vec::with_capacity(clusters_needed);
+        for index in 0..self.cluster_count {
+            if self.is_free(index)? {
+                free_clusters.push(index);
+                if free_clusters.len() == clusters_needed {
+                    break;
+                }
             }
         }
-    }
 
-    if free_clusters.len() < clusters_needed {
-        return Err(FileSystemError::NotEnoughFreeClusters);
-    }
+        if free_clusters.len() < clusters_needed {
+            return Err(FileSystemError::NotEnoughFreeClusters);
+        }
 
-    for i in 0..clusters_needed {
-        let current = free_clusters[i];
-        let next = if i + 1 < clusters_needed {
-            Some(free_clusters[i + 1])
-        } else {
-            None
-        };
-        self.allocate(current, next)?;
-    }
+        for i in 0..clusters_needed {
+            let current = free_clusters[i];
+            let next = if i + 1 < clusters_needed {
+                Some(free_clusters[i + 1])
+            } else {
+                None
+            };
+            self.allocate(current, next)?;
+        }
 
-    Ok(free_clusters)
-}
+        Ok(free_clusters)
+    }
 
     pub fn allocate(
         &mut self,
@@ -148,7 +148,7 @@ pub fn allocate_entry(&mut self, size: usize) -> Result<Vec<ClusterIndex>, FileS
         }
         match self.clusters.get(&index) {
             Some(ClusterValue::Free) | None => Ok(true),
-             _ => Ok(false),
+            _ => Ok(false),
         }
     }
 }

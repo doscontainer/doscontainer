@@ -4,7 +4,11 @@ use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
 
 use crate::{
-    attributes::{Attributes, AttributesPreset}, error::FileSystemError, names::EntryName, pool::Pool, ClusterIndex
+    attributes::{Attributes, AttributesPreset},
+    error::FileSystemError,
+    names::EntryName,
+    pool::Pool,
+    ClusterIndex,
 };
 
 #[derive(Debug, PartialEq)]
@@ -88,7 +92,7 @@ impl DirEntry {
     pub fn name(&self) -> Option<&EntryName> {
         self.name.as_ref()
     }
-    
+
     pub fn set_start_cluster(&mut self, start_cluster: usize) {
         self.start_cluster = Some(start_cluster);
     }
@@ -100,11 +104,11 @@ impl DirEntry {
     pub fn set_cluster_map(&mut self, cluster_map: &[ClusterIndex]) {
         self.cluster_map = cluster_map.to_vec();
     }
-    
+
     pub fn cluster_map(&self) -> &[ClusterIndex] {
         &self.cluster_map
     }
-    
+
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
         match self.entry_type {
@@ -124,8 +128,7 @@ impl DirEntry {
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
         let entry_type = match preset {
             AttributesPreset::Directory => DirEntryType::Directory,
-            | AttributesPreset::RegularFile
-            | AttributesPreset::SystemFile => DirEntryType::File,
+            AttributesPreset::RegularFile | AttributesPreset::SystemFile => DirEntryType::File,
             AttributesPreset::VolumeLabel => DirEntryType::VolumeLabel,
         };
         Ok(DirEntry {

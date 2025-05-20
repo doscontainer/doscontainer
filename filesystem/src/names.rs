@@ -15,7 +15,7 @@ impl FromStr for EntryName {
         if s == "." || s == ".." {
             return Err(FileSystemError::CannotCreateDotfiles);
         }
-        
+
         let parts: Vec<&str> = s.split('.').collect();
 
         // Must have at least one part for a valid file name
