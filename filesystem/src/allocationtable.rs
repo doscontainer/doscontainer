@@ -36,6 +36,10 @@ impl Default for AllocationTable {
 }
 
 impl AllocationTable {
+    pub fn clusters(&self) -> &BTreeMap<ClusterIndex, ClusterValue> {
+        &self.clusters
+    }
+
     pub fn set_cluster_count(&mut self, cluster_count: usize) -> Result<(), FileSystemError> {
         if cluster_count < self.cluster_count {
             return Err(FileSystemError::WontShrinkAllocationTable);

@@ -4,6 +4,7 @@ pub enum FileSystemError {
     CannotCreateDotfiles,
     ClusterAlreadyAllocated,
     ClusterNotUsable,
+    ClusterOutOfBounds,
     DuplicateEntry,
     EntryCannotHaveChildren,
     EmptyFileName,

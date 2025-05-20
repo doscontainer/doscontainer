@@ -8,6 +8,7 @@ mod error;
 mod fat12;
 mod names;
 mod pool;
+mod serializer;
 
 // Cluster index into the FAT
 pub type ClusterIndex = usize;

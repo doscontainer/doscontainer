@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12,
-        names::EntryName, pool::Pool, FileSystem,
+        allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, fat12::Fat12, names::EntryName, pool::Pool, serializer::{self, ibmdos100::{self, IbmDos100}, Fat12Serializer}, FileSystem
     };
 
     use std::{path::Path, str::FromStr};
@@ -266,5 +265,12 @@ mod tests {
     fn fat12_mkdir_hugedir() {
         let mut fat = Fat12::new(512,1,340).unwrap();
         assert!(fat.mkdir("/DOS", 600).is_ok());
+    }
+
+    #[test]
+    fn fat12_serialize_empty_ibmdos100() {
+        let fat = Fat12::new(512,1,340).unwrap();
+        let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
+        assert_eq!(serializer, vec![0xFE, 0xFF, 0xFF]);
     }
 }

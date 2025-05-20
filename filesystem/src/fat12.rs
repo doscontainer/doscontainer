@@ -44,6 +44,10 @@ impl Fat12 {
         Ok(filesystem)
     }
 
+    pub fn allocation_table(&self) -> &AllocationTable {
+        &self.allocation_table
+    }
+
     /// Helper method: takes a path, returns the filename from it if it exists.
     fn get_filename(path: &Path) -> Result<Option<String>, FileSystemError> {
         let filename = path
