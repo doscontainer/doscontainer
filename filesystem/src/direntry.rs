@@ -106,6 +106,10 @@ impl DirEntry {
         self.cluster_map = cluster_map.to_vec();
     }
     
+    pub fn cluster_map(&self) -> &[ClusterIndex] {
+        &self.cluster_map
+    }
+    
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
         match self.entry_type {
