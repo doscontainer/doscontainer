@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn fat12_mkfile_with_length() {
         let data = vec![0u8; 4000];
-        let mut fat = Fat12::new(512, 1, 340).unwrap();;
+        let mut fat = Fat12::new(512, 1, 340).unwrap();
         assert!(fat.mkfile("/COMMAND.COM", data.len()).is_ok());
         assert!(fat.mkfile("/AUTOEXEC.BAT", data.len()).is_ok());
     }
