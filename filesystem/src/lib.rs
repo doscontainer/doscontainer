@@ -2,6 +2,7 @@ use error::FileSystemError;
 
 mod allocationtable;
 mod attributes;
+mod bpb;
 mod direntry;
 mod error;
 mod fat12;
