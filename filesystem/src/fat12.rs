@@ -33,7 +33,9 @@ impl Fat12 {
         cluster_count: usize,
     ) -> Result<Self, FileSystemError> {
         let mut filesystem = Fat12::default();
-        filesystem.allocation_table.set_cluster_count(cluster_count)?;
+        filesystem
+            .allocation_table
+            .set_cluster_count(cluster_count)?;
         filesystem.allocation_table.reserve(0)?;
         filesystem.allocation_table.mark_end_of_chain(1)?;
         filesystem.cluster_count = cluster_count;
@@ -80,6 +82,7 @@ impl FileSystem for Fat12 {
         if let Some(parent) = self.pool.entry_by_path(parent_path) {
             entry.set_parent(parent);
             let clusters = self.allocation_table.allocate_entry(filesize)?;
+            entry.set_cluster_map(&clusters);
             entry.set_start_cluster(clusters[0]);
             entry.set_filesize(filesize);
             self.pool.add_entry(entry)?;
@@ -89,11 +92,35 @@ impl FileSystem for Fat12 {
         }
     }
 
-    fn mkdir() {
-        todo!()
+    fn mkdir(&mut self, path: &str) -> Result<(), FileSystemError> {
+        let path = Path::new(path);
+
+        let dirname = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+
+        let mut entry = DirEntry::new_directory(dirname.as_str())?;
+
+        // Get the parent directory path (if any)
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+
+        // Find the parent entry in the pool
+        if let Some(parent) = self.pool.entry_by_path(parent_path) {
+            entry.set_parent(parent);
+
+            // Allocate one cluster for the directory
+            let clusters = self.allocation_table.allocate_entry(0)?;
+            entry.set_cluster_map(&clusters);
+            entry.set_start_cluster(clusters[0]);
+            entry.set_filesize(64); // 64 bytes for '.' and '..' are the bare minimum even though they don't exist in memory yet!
+
+            // Add the directory entry to the pool
+            self.pool.add_entry(entry)?;
+            Ok(())
+        } else {
+            Err(FileSystemError::ParentNotFound)
+        }
     }
 
-    fn rmfile() {
+    fn rmfile(&mut self, path: &str) -> Result<(), FileSystemError> {
         todo!()
     }
 

@@ -19,10 +19,10 @@ pub trait FileSystem {
     fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
 
     /// Create a directory
-    fn mkdir();
+    fn mkdir(&mut self, path: &str) -> Result<(), FileSystemError>;
 
     /// Remove a file
-    fn rmfile();
+    fn rmfile(&mut self, path: &str) -> Result<(), FileSystemError>;
 
     /// Remove a directory
     fn rmdir();

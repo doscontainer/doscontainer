@@ -16,6 +16,7 @@ pub struct DirEntry {
     name: Option<EntryName>,
     creation_time: NaiveDateTime,
     start_cluster: Option<ClusterIndex>,
+    cluster_map: Vec<ClusterIndex>,
     file_size: usize,
 }
 
@@ -43,6 +44,7 @@ impl DirEntry {
             name: None,
             creation_time: Local::now().naive_local(),
             start_cluster: None,
+            cluster_map: Vec::new(),
             file_size: 0,
         }
     }
@@ -99,6 +101,10 @@ impl DirEntry {
     pub fn set_filesize(&mut self, filesize: usize) {
         self.file_size = filesize;
     }
+
+    pub fn set_cluster_map(&mut self, cluster_map: &[ClusterIndex]) {
+        self.cluster_map = cluster_map.to_vec();
+    }
     
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
@@ -132,6 +138,7 @@ impl DirEntry {
             attributes: Attributes::from_preset(preset),
             creation_time: Local::now().naive_local(),
             start_cluster: None,
+            cluster_map: Vec::new(),
             file_size: 0,
         })
     }

@@ -126,7 +126,6 @@ mod tests {
         let mut fat = Fat12::new(512, 1, 340).unwrap();;
         assert!(fat.mkfile("/COMMAND.COM", data.len()).is_ok());
         assert!(fat.mkfile("/AUTOEXEC.BAT", data.len()).is_ok());
-        println!("{:?}", fat);
     }
 
     #[test]
@@ -249,5 +248,12 @@ mod tests {
                 .clone(),
             edit_uuid
         );
+    }
+
+    #[test]
+    fn fat12_mkdir() {
+        let mut filesystem = Fat12::new(512, 1, 340).unwrap();
+        assert!(filesystem.mkdir("/DOS").is_ok());
+        assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221).is_ok());
     }
 }
