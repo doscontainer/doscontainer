@@ -12,7 +12,6 @@ pub struct Attributes {
 }
 
 pub enum AttributesPreset {
-    EmptyPlaceholder,
     RegularFile,
     SystemFile,
     Directory,
@@ -51,15 +50,6 @@ impl fmt::Display for Attributes {
 impl Attributes {
     pub fn from_preset(preset: AttributesPreset) -> Attributes {
         match preset {
-            AttributesPreset::EmptyPlaceholder => Attributes {
-                read_only: false,
-                hidden: false,
-                system: false,
-                volume_label: false,
-                subdir: false,
-                archive: false,
-                device: false,
-            },
             AttributesPreset::RegularFile => Attributes {
                 read_only: false,
                 hidden: false,
@@ -151,13 +141,6 @@ mod tests {
         let attrib = Attributes::from_preset(AttributesPreset::SystemFile);
         let byte = attrib.as_byte();
         assert_eq!(byte, 6);
-    }
-
-    #[test]
-    fn placeholder() {
-        let attrib = Attributes::from_preset(AttributesPreset::EmptyPlaceholder);
-        let byte = attrib.as_byte();
-        assert_eq!(byte, 0xF6);
     }
 
     #[test]

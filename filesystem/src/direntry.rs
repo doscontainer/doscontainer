@@ -64,11 +64,6 @@ impl DirEntry {
         Self::new_from_preset(name, AttributesPreset::VolumeLabel)
     }
 
-    /// Create a new placeholder record (this is an IBM-ism, see docs)
-    pub fn new_placeholder(name: &str) -> Result<Self, FileSystemError> {
-        Self::new_from_preset(name, AttributesPreset::EmptyPlaceholder)
-    }
-
     pub fn uuid(&self) -> &Uuid {
         &self.uid
     }
@@ -129,7 +124,6 @@ impl DirEntry {
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
         let entry_type = match preset {
             AttributesPreset::Directory => DirEntryType::Directory,
-            AttributesPreset::EmptyPlaceholder
             | AttributesPreset::RegularFile
             | AttributesPreset::SystemFile => DirEntryType::File,
             AttributesPreset::VolumeLabel => DirEntryType::VolumeLabel,
