@@ -34,6 +34,10 @@ impl SectorSize {
             SectorSize::S4096 => 4096,
         }
     }
+
+    pub fn get(&self) -> usize {
+        self.as_usize()
+    }
 }
 
 impl fmt::Display for SectorSize {
