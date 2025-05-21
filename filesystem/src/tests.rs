@@ -155,7 +155,7 @@ mod tests {
     fn invalid_mkfile_fat12() {
         let mut fat = Fat12::default();
         assert_eq!(
-            fat.mkfile("/var/run/COMMANDISFARTOOLONG.COM", 10),
+            fat.mkfile("COMMANDISFARTOOLONG.COM", 10),
             Err(FileSystemError::FileNameTooLong)
         );
     }
