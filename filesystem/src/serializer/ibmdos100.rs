@@ -127,3 +127,58 @@ impl NameSerializer for IbmDos100 {
         Ok(raw)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::names::EntryName;
+
+    fn make_name(filename: &str, extension: &str) -> EntryName {
+        EntryName {
+            filename: filename.to_string(),
+            extension: extension.to_string(),
+        }
+    }
+
+    #[test]
+    fn test_valid_short_name() {
+        let name = make_name("FOO", "TXT");
+        let raw = IbmDos100::serialize_entryname(&name).unwrap();
+        assert_eq!(&raw, b"FOO     TXT");
+    }
+
+    #[test]
+    fn test_exactly_8_plus_3() {
+        let name = make_name("ABCDEFGH", "XYZ");
+        let raw = IbmDos100::serialize_entryname(&name).unwrap();
+        assert_eq!(&raw, b"ABCDEFGHXYZ");
+    }
+
+    #[test]
+    fn test_padding_spaces() {
+        let name = make_name("A", "B");
+        let raw = IbmDos100::serialize_entryname(&name).unwrap();
+        assert_eq!(&raw, b"A       B  ");
+    }
+
+    #[test]
+    fn test_uppercase_conversion() {
+        let name = make_name("foo", "txt");
+        let raw = IbmDos100::serialize_entryname(&name).unwrap();
+        assert_eq!(&raw, b"FOO     TXT");
+    }
+
+    #[test]
+    fn test_too_long_filename() {
+        let name = make_name("TOOLONGNAME", "OK");
+        let err = IbmDos100::serialize_entryname(&name).unwrap_err();
+        assert!(matches!(err, FileSystemError::FileNameTooLong));
+    }
+
+    #[test]
+    fn test_too_long_extension() {
+        let name = make_name("OK", "TOOLONG");
+        let err = IbmDos100::serialize_entryname(&name).unwrap_err();
+        assert!(matches!(err, FileSystemError::FileNameTooLong));
+    }
+}
