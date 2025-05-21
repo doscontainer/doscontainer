@@ -41,7 +41,7 @@ impl Fat12Serializer for IbmDos100 {
             fat_entries.push(entry);
         }
 
-        let mut bytes = Vec::with_capacity((fat_entries.len() * 3 + 1) / 2);
+        let mut bytes = Vec::with_capacity((fat_entries.len() * 3).div_ceil(2));
         let mut i = 0;
 
         while i + 1 < fat_entries.len() {

@@ -19,7 +19,7 @@ impl FromStr for EntryName {
         let parts: Vec<&str> = s.split('.').collect();
 
         // Must have at least one part for a valid file name
-        if parts.len() == 0 {
+        if parts.is_empty() {
             return Err(FileSystemError::EmptyFileName);
         }
 
@@ -47,11 +47,11 @@ impl FromStr for EntryName {
         }
 
         // Check each character is valid and uppercase
-        if !name_part.chars().all(|c| Self::is_valid_char(c)) {
+        if !name_part.chars().all(Self::is_valid_char) {
             return Err(FileSystemError::InvalidCharInName);
         }
 
-        if !ext_part.chars().all(|c| Self::is_valid_char(c)) {
+        if !ext_part.chars().all(Self::is_valid_char) {
             return Err(FileSystemError::InvalidCharInExt);
         }
 

@@ -138,7 +138,7 @@ impl AllocationTable {
                 self.clusters.insert(index, ClusterValue::EndOfChain);
                 Ok(())
             }
-            _ => return Err(FileSystemError::ClusterNotUsable),
+            _ => Err(FileSystemError::ClusterNotUsable),
         }
     }
 

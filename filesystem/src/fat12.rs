@@ -52,7 +52,7 @@ impl Fat12 {
     fn get_filename(path: &Path) -> Result<Option<String>, FileSystemError> {
         let filename = path
             .components()
-            .last()
+            .next_back()
             .and_then(|c| c.as_os_str().to_str());
 
         match filename {
