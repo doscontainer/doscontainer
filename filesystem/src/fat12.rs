@@ -49,15 +49,15 @@ impl Fat12 {
     }
 
     /// Helper method: takes a path, returns the filename from it if it exists.
-    fn get_filename(path: &Path) -> Result<Option<String>, FileSystemError> {
+    fn get_filename(path: &Path) -> Option<String> {
         let filename = path
             .components()
             .next_back()
             .and_then(|c| c.as_os_str().to_str());
 
         match filename {
-            Some(name) => Ok(Some(name.to_string())),
-            None => Ok(None),
+            Some(name) => Some(name.to_string()),
+            None => None,
         }
     }
 }
@@ -72,28 +72,28 @@ impl FileSystem for Fat12 {
     /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
     /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
     /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
-    fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError> {
-        let path = Path::new(path);
+    fn mkfile(&mut self, path_str: &str, filesize: usize) -> Result<(), FileSystemError> {
+        let path = Path::new(path_str);
 
-        let filename = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+        // Convert Option to Result here
+        let filename = Self::get_filename(path).ok_or(FileSystemError::EmptyFileName)?;
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+        let parent = self
+            .pool
+            .entry_by_path(parent_path)
+            .ok_or(FileSystemError::ParentNotFound)?;
 
         let mut entry = DirEntry::new_file(filename.as_str())?;
+        entry.set_parent(parent);
 
-        // Get the parent directory path (if any)
-        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+        let clusters = self.allocation_table.allocate_entry(filesize)?;
+        entry.set_cluster_map(&clusters);
+        entry.set_start_cluster(clusters[0]);
+        entry.set_filesize(filesize);
 
-        // Find the parent entry in the pool
-        if let Some(parent) = self.pool.entry_by_path(parent_path) {
-            entry.set_parent(parent);
-            let clusters = self.allocation_table.allocate_entry(filesize)?;
-            entry.set_cluster_map(&clusters);
-            entry.set_start_cluster(clusters[0]);
-            entry.set_filesize(filesize);
-            self.pool.add_entry(entry)?;
-            Ok(())
-        } else {
-            Err(FileSystemError::ParentNotFound)
-        }
+        self.pool.add_entry(entry)?;
+
+        Ok(())
     }
 
     fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError> {
@@ -107,7 +107,7 @@ impl FileSystem for Fat12 {
         // correct sizing calculations.
         let on_disk_size = (entries_count + SYSTEM_ENTRIES) * DIRENTRY_SIZE;
 
-        let dirname = Self::get_filename(path)?.ok_or(FileSystemError::EmptyFileName)?;
+        let dirname = Self::get_filename(path).ok_or(FileSystemError::EmptyFileName)?;
 
         let mut entry = DirEntry::new_directory(dirname.as_str())?;
 

@@ -33,10 +33,9 @@ impl Fat12Serializer for IbmDos100 {
                     *n as u16
                 }
                 Some(ClusterValue::EndOfChain) => 0xFFF,
-                Some(ClusterValue::Free) => 0x000,
+                Some(ClusterValue::Free) | None => 0x000,
                 Some(ClusterValue::Bad) => 0xFF7,
                 Some(ClusterValue::Reserved) => 0xFF0, // or any valid reserved value
-                None => 0x000,                         // default to Free
             };
             fat_entries.push(entry);
         }
@@ -49,8 +48,11 @@ impl Fat12Serializer for IbmDos100 {
             let b = fat_entries[i + 1];
 
             bytes.push((a & 0xFF) as u8); // Low 8 bits of a
-            bytes.push(((a >> 8) as u8 & 0x0F) | ((b << 4) as u8 & 0xF0)); // High 4 bits of a + low 4 bits of b
-            bytes.push((b >> 4) as u8); // High 8 bits of b
+
+            let middle_byte = (((a >> 8) as u8) & 0x0F) | (((b << 4) as u8) & 0xF0);
+            bytes.push(middle_byte); // High 4 bits of a + low 4 bits of b
+
+            bytes.push(u8::try_from(b >> 4).map_err(|_| FileSystemError::RangeLostInTruncation)?); // High 8 bits of b
 
             i += 2;
         }

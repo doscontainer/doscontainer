@@ -80,7 +80,7 @@ impl Pool {
     ///
     /// # Returns
     ///
-    /// - `Option<&DirEntry>` an optional reference to a DirEntry.
+    /// - `Option<&DirEntry>` an optional reference to a `DirEntry`.
     pub fn entry(&self, uuid: &Uuid) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.uuid() == uuid)
     }
@@ -144,7 +144,7 @@ impl Pool {
     ///
     /// # Returns
     ///
-    /// An Option<&DirEntry>
+    /// An Option<&`DirEntry`>
     pub fn root_entry(&self) -> Option<&DirEntry> {
         self.entries.iter().find(|entry| entry.is_root())
     }

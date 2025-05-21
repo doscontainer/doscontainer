@@ -97,10 +97,10 @@ impl AllocationTable {
         }
 
         match self.clusters.get(&index) {
-            Some(ClusterValue::Next(_)) | Some(ClusterValue::EndOfChain) => {
+            Some(ClusterValue::Next(_) | ClusterValue::EndOfChain) => {
                 return Err(FileSystemError::ClusterAlreadyAllocated)
             }
-            Some(ClusterValue::Bad) | Some(ClusterValue::Reserved) => {
+            Some(ClusterValue::Bad | ClusterValue::Reserved) => {
                 return Err(FileSystemError::ClusterNotUsable)
             }
             Some(ClusterValue::Free) | None => {
@@ -120,10 +120,10 @@ impl AllocationTable {
             return Err(FileSystemError::InvalidClusterIndex);
         }
 
-        if !self.is_free(index)? {
-            return Err(FileSystemError::ClusterNotUsable);
-        } else {
+        if self.is_free(index)? {
             self.clusters.insert(index, ClusterValue::Reserved);
+        } else {
+            return Err(FileSystemError::ClusterNotUsable);
         }
         Ok(())
     }

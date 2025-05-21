@@ -17,6 +17,7 @@ pub enum FileSystemError {
     InvalidPath,
     NotEnoughFreeClusters,
     ParentNotFound,
+    RangeLostInTruncation,
     TooManyFileNameParts,
     WontShrinkAllocationTable,
 }

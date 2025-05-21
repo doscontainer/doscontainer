@@ -38,7 +38,7 @@ impl BiosParameterBlock {
         let time_part: u16 = (hour << 11) | (minute << 5) | second;
         let date_part: u16 = (year << 9) | (month << 5) | day;
 
-        ((time_part as u32) << 16) | date_part as u32
+        (u32::from(time_part) << 16) | u32::from(date_part)
     }
 }
 pub enum MediaDescriptor {}
