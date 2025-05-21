@@ -106,18 +106,13 @@ impl DirEntry {
 
     /// Is the entry a file?
     pub fn is_file(&self) -> bool {
-        match self.entry_type {
-            DirEntryType::File => true,
-            _ => false,
-        }
+        matches!(self.entry_type, DirEntryType::File)
     }
 
     /// Is the entry a directory?
     pub fn is_directory(&self) -> bool {
-        match self.entry_type {
-            DirEntryType::Directory => true,
-            _ => false,
-        }
+        matches!(self.entry_type, DirEntryType::Directory)
+
     }
 
     fn new_from_preset(name: &str, preset: AttributesPreset) -> Result<Self, FileSystemError> {
