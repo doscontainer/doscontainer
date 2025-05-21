@@ -292,4 +292,22 @@ mod tests {
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(serializer, vec![0xFE, 0xFF, 0xFF]);
     }
+
+    #[test]
+    // Compares the actual FAT for an IBM PC-DOS 1.00 original boot disk with our serializer
+    fn fat12_test_actual_pcdos100() {
+        let mut fat = Fat12::new(512, 1, 340).unwrap();
+        fat.mkfile("IBMBIO.COM", 1920).unwrap();
+        fat.mkfile("IBMDOS.COM", 6400).unwrap();
+        fat.mkfile("COMMAND.COM", 3231).unwrap();
+        let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
+        assert_eq!(
+            serializer,
+            vec![
+                0xFE, 0xFF, 0xFF, 0x03, 0x40, 0x00, 0x05, 0xF0, 0xFF, 0x07, 0x80, 0x00, 0x09, 0xa0,
+                0x00, 0x0b, 0xc0, 0x00, 0x0d, 0xe0, 0x00, 0x0f, 0x00, 0x01, 0x11, 0x20, 0x01,
+                0x0ff, 0x4f, 0x01, 0x15, 0x60, 0x01, 0x17, 0x80, 0x01, 0x19, 0xf0, 0xff
+            ]
+        );
+    }
 }
