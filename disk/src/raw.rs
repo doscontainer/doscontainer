@@ -14,7 +14,7 @@ pub struct RawImage {
 impl RawImage {
     pub fn new(path: &Path, sector_size: SectorSize) -> Result<Self, DiskError> {
         // Open the file for reading and writing
-        let mut file = File::options()
+        let file = File::options()
             .read(true)
             .write(true)
             .open(path)
@@ -106,6 +106,26 @@ mod tests {
             .set_len(size as u64)
             .expect("Failed to set file size");
         tmp
+    }
+
+     #[test]
+    fn raw_image_new_works_and_cleans_up() {
+        let sector_size = SectorSize::S512;
+        let sector_count = 4;
+        let total_size = sector_size.as_usize() * sector_count;
+
+        // Create a temporary file
+        let mut tmpfile = NamedTempFile::new().expect("Failed to create temp file");
+        tmpfile
+            .as_file_mut()
+            .set_len(total_size as u64)
+            .expect("Failed to set size");
+
+        let path = tmpfile.path();
+
+        // Construct RawImage
+        let raw_image = RawImage::new(path, sector_size);
+        assert!(raw_image.is_ok());
     }
 
     #[test]

@@ -6,4 +6,6 @@ description = "DOSContainer disk management library."
 authors = ["Bas v.d. Wiel <bas@area536.com>"]
 
 [dependencies]
+
+[dev-dependencies]
 tempfile = { workspace = true }
