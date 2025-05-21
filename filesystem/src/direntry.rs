@@ -98,7 +98,15 @@ impl DirEntry {
         self.name.as_ref()
     }
 
+    pub fn creation_time(&self) -> NaiveDateTime {
+        self.creation_time
+    }
+
+    pub fn set_creation_time(&mut self, creation_time: NaiveDateTime) {
+        self.creation_time = creation_time;
+    }
     pub fn set_start_cluster(&mut self, start_cluster: usize) {
+        println!("Setting start cluster to: {}", start_cluster);
         self.start_cluster = Some(start_cluster);
     }
 

@@ -1,3 +1,5 @@
+use chrono::{Datelike, NaiveDateTime, Timelike};
+
 use crate::{
     allocationtable::{AllocationTable, ClusterValue},
     direntry::DirEntry,
@@ -9,6 +11,22 @@ use super::{DirEntrySerializer, Fat12Serializer, NameSerializer};
 
 #[allow(dead_code)]
 pub struct IbmDos100 {}
+
+impl IbmDos100 {
+    pub fn encode_time(dt: NaiveDateTime) -> u16 {
+        let hour = dt.hour();
+        let minute = dt.minute();
+        let second = dt.second() / 2;
+        ((hour as u16) << 11) | ((minute as u16) << 5) | (second as u16)
+    }
+
+    pub fn encode_date(dt: NaiveDateTime) -> u16 {
+        let year = dt.year().clamp(1980, 2107) - 1980;
+        let month = dt.month();
+        let day = dt.day();
+        ((year as u16) << 9) | ((month as u16) << 5) | (day as u16)
+    }
+}
 
 impl DirEntrySerializer for IbmDos100 {
     fn serialize_direntry(entry: &DirEntry) -> Result<Vec<u8>, FileSystemError> {
@@ -24,9 +42,13 @@ impl DirEntrySerializer for IbmDos100 {
         // Attributes
         buf[11] = entry.attributes().as_byte(); // Make sure this method exists
 
-        // Reserved (0x0C–0x15): leave as zero
+        // 22–23: creation time
+        let time = Self::encode_time(entry.creation_time());
+        buf[22..24].copy_from_slice(&time.to_le_bytes());
 
-        // Time/date (0x16–0x19): leave as zero
+        // 24–25: creation date
+        let date = Self::encode_date(entry.creation_time());
+        buf[24..26].copy_from_slice(&date.to_le_bytes());
 
         // Start cluster (0x1A–0x1B)
         let start_cluster = match entry.start_cluster() {
@@ -130,6 +152,8 @@ impl NameSerializer for IbmDos100 {
 
 #[cfg(test)]
 mod tests {
+    use chrono::{NaiveDate, NaiveTime};
+
     use super::*;
     use crate::names::EntryName;
 
@@ -180,5 +204,30 @@ mod tests {
         let name = make_name("OK", "TOOLONG");
         let err = IbmDos100::serialize_entryname(&name).unwrap_err();
         assert!(matches!(err, FileSystemError::FileNameTooLong));
+    }
+
+    #[test]
+    /// This test recreates a DirEntry for a system file named IBMBIO.COM, which was on the
+    /// original release floppy for PC-DOS 1.00. It had a creation date/time of July 23 1981
+    /// at midnight, which we'll replicate here. The start cluster on the original floppy was
+    /// 2, which we reflect here, and the size of the original file was 1920 bytes
+    /// which we're also reflecting in this test. The validation is for the serializer to create
+    /// the exact 32 bytes that were in the original floppy's root directory for this file.
+    fn serialize_ibmbio_com() {
+        let date = NaiveDate::from_ymd_opt(1981, 7, 23).unwrap();
+        let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+        let datetime = NaiveDateTime::new(date, time);
+        let mut ibmbio_com = DirEntry::new_sysfile("IBMBIO.COM").unwrap();
+        ibmbio_com.set_creation_time(datetime);
+        ibmbio_com.set_start_cluster(2); // Mkfile does this for us automatically
+        ibmbio_com.set_filesize(1920);
+        assert_eq!(
+            IbmDos100::serialize_direntry(&ibmbio_com).unwrap(),
+            vec![
+                0x49, 0x42, 0x4d, 0x42, 0x49, 0x4f, 0x20, 0x20, 0x43, 0x4F, 0x4D, 0x06, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF7, 0x02, 0x02, 0x00,
+                0x80, 0x07, 0x00, 0x00
+            ]
+        );
     }
 }
