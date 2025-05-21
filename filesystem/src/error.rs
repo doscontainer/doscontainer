@@ -10,6 +10,7 @@ pub enum FileSystemError {
     EmptyFileName,
     ExtensionTooLong,
     FatSizeTooLarge,
+    FileTooLarge,
     FileNameTooLong,
     InvalidCharInExt,
     InvalidCharInName,

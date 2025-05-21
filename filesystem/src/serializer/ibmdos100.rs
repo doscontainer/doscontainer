@@ -1,12 +1,50 @@
 use crate::{
     allocationtable::{AllocationTable, ClusterValue},
+    direntry::DirEntry,
     error::FileSystemError,
+    names::EntryName,
 };
 
-use super::Fat12Serializer;
+use super::{DirEntrySerializer, Fat12Serializer, NameSerializer};
 
 #[allow(dead_code)]
 pub struct IbmDos100 {}
+
+impl DirEntrySerializer for IbmDos100 {
+    fn serialize_direntry(entry: &DirEntry) -> Result<Vec<u8>, FileSystemError> {
+        let mut buf = [0u8; 32];
+
+        // Name + extension
+        let name_bytes = match &entry.name() {
+            Some(name) => IbmDos100::serialize_entryname(name)?,
+            None => return Err(FileSystemError::EmptyFileName),
+        };
+        buf[0..11].copy_from_slice(&name_bytes);
+
+        // Attributes
+        buf[11] = entry.attributes().as_byte(); // Make sure this method exists
+
+        // Reserved (0x0C–0x15): leave as zero
+
+        // Time/date (0x16–0x19): leave as zero
+
+        // Start cluster (0x1A–0x1B)
+        let start_cluster = match entry.start_cluster() {
+            Some(cluster) if cluster <= 0xFFF => cluster as u16,
+            Some(_) => return Err(FileSystemError::ClusterOutOfBounds),
+            None => 0,
+        };
+        buf[26..28].copy_from_slice(&start_cluster.to_le_bytes());
+
+        // File size (0x1C–0x1F)
+        if entry.file_size() > u32::MAX as usize {
+            return Err(FileSystemError::FileTooLarge);
+        }
+        buf[28..32].copy_from_slice(&(entry.file_size() as u32).to_le_bytes());
+
+        Ok(buf.to_vec())
+    }
+}
 
 impl Fat12Serializer for IbmDos100 {
     fn serialize_fat12(fat: &AllocationTable) -> Result<Vec<u8>, FileSystemError> {
@@ -64,5 +102,28 @@ impl Fat12Serializer for IbmDos100 {
         }
 
         Ok(bytes)
+    }
+}
+
+impl NameSerializer for IbmDos100 {
+    fn serialize_entryname(name: &EntryName) -> Result<[u8; 11], FileSystemError> {
+        let mut raw = [b' '; 11];
+
+        let fname = name.filename.to_uppercase();
+        let ext = name.extension.to_uppercase();
+
+        if fname.len() > 8 || ext.len() > 3 {
+            return Err(FileSystemError::FileNameTooLong);
+        }
+
+        for (i, c) in fname.bytes().take(8).enumerate() {
+            raw[i] = c;
+        }
+
+        for (i, c) in ext.bytes().take(3).enumerate() {
+            raw[8 + i] = c;
+        }
+
+        Ok(raw)
     }
 }

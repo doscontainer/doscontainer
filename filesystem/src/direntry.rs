@@ -84,6 +84,16 @@ impl DirEntry {
         self.parent.is_none()
     }
 
+    pub fn attributes(&self) -> &Attributes {
+        &self.attributes
+    }
+    pub fn file_size(&self) -> usize {
+        self.file_size
+    }
+
+    pub fn start_cluster(&self) -> Option<usize> {
+        self.start_cluster
+    }
     pub fn name(&self) -> Option<&EntryName> {
         self.name.as_ref()
     }
