@@ -621,6 +621,9 @@ dependencies = [
 [[package]]
 name = "disk"
 version = "0.2.0"
+dependencies = [
+ "tempfile",
+]
 
 [[package]]
 name = "displaydoc"
