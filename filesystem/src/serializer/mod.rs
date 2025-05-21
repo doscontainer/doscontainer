@@ -1,4 +1,6 @@
-use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, names::EntryName};
+use crate::{
+    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, names::EntryName,
+};
 
 pub mod ibmdos100;
 

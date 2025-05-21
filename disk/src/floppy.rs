@@ -51,7 +51,7 @@ impl Disk for Floppy {
     fn file_mut(&mut self) -> &mut File {
         &mut self.file
     }
-    
+
     fn disktype(&self) -> &DiskType {
         &self.disktype
     }
@@ -59,11 +59,11 @@ impl Disk for Floppy {
     fn volumes(&self) -> &Vec<Volume> {
         &self.volumes
     }
-    
+
     fn volumes_mut(&mut self) -> &mut Vec<Volume> {
         &mut self.volumes
     }
-    
+
     fn disktype_mut(&mut self) -> &mut DiskType {
         &mut self.disktype
     }
@@ -102,7 +102,7 @@ impl Floppy {
         };
 
         // Floppies get a default volume from the outset
-        floppy.add_volume(0,1)?;
+        floppy.add_volume(0, 1)?;
         Ok(floppy)
     }
 }

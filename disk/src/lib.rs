@@ -80,11 +80,11 @@ pub trait Disk {
     fn disktype(&self) -> &DiskType;
 
     /// Returns a mutable reference to the disk type
-    /// 
+    ///
     /// This function allows modification of the disk type.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns a mutable reference to a DiskType
     fn disktype_mut(&mut self) -> &mut DiskType;
 
@@ -110,7 +110,7 @@ pub trait Disk {
     fn volumes_mut(&mut self) -> &mut Vec<Volume>;
 
     /// Sets the disk type based on a given string representation
-    /// 
+    ///
     /// This method takes a string input, normalizes it by trimming whitespace and
     /// converting it to lowercase, and then attempts to match it to a known disk type.
     /// If the string matches a valid disk type, the disk type is updated. Otherwise,

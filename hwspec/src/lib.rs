@@ -10,8 +10,8 @@ use config::FileFormat;
 use cpu::Cpu;
 use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
-use serde_with::OneOrMany;
 use serde_with::serde_as;
+use serde_with::OneOrMany;
 use storage::Floppy;
 use storage::FloppyType;
 use video::VideoDevice;
@@ -34,7 +34,7 @@ pub struct HwSpec {
     audio: Vec<AudioDevice>,
     #[serde_as(as = "OneOrMany<_>")]
     video: Vec<VideoDevice>,
-    floppy: Option<Floppy>
+    floppy: Option<Floppy>,
 }
 
 impl Default for HwSpec {
@@ -223,7 +223,7 @@ impl fmt::Display for HwSpec {
         writeln!(f, " Audio  : {}", audio_str)?;
 
         if let Some(myfloppy) = &self.floppy {
-        writeln!(f, " Floppy : {}", myfloppy)?;
+            writeln!(f, " Floppy : {}", myfloppy)?;
         }
         Ok(())
     }

@@ -70,59 +70,85 @@ impl FromStr for Cpu {
 #[derive(Debug, Deserialize, PartialEq)]
 pub enum CpuFamily {
     /// Intel 8086 CPU, a 16-bit processor that introduced the x86 architecture.
-    #[serde(rename="8086")]
+    #[serde(rename = "8086")]
     I8086,
 
     /// Intel 8088 CPU, similar to the 8086 but with an 8-bit external data bus; used in the original IBM PC.
-    #[serde(rename="8088")]
+    #[serde(rename = "8088")]
     I8088,
 
     /// NEC V20, a compatible and faster 8088 CPU with additional instructions and better performance.
-    #[serde(rename="necv20", alias="v20", alias="nec v20")]
+    #[serde(rename = "necv20", alias = "v20", alias = "nec v20")]
     NECV20,
 
     /// NEC V30, a compatible 8086 processor, similar to the 8086 but with additional instructions and higher performance.
-    #[serde(rename="necv30", alias="v30", alias="nec v30")]
+    #[serde(rename = "necv30", alias = "v30", alias = "nec v30")]
     NECV30,
 
     /// Intel 80186, a more advanced version of the 8086, often used in embedded systems and industrial applications (rare in consumer PCs).
-    #[serde(rename="80186")]
+    #[serde(rename = "80186")]
     I80186,
 
     /// Intel 80286, used in the IBM PC/AT, it introduced protected mode allowing for more advanced memory management.
-    #[serde(rename="286", alias="80286", alias="i286", alias="i80286")]
+    #[serde(rename = "286", alias = "80286", alias = "i286", alias = "i80286")]
     I80286,
 
     /// Intel 80386SX, a 16-bit external data bus version of the 80386 processor, used in lower-end systems.
-    #[serde(rename = "386sx", alias="80386sx", alias="i386sx", alias="i80386sx")]
+    #[serde(
+        rename = "386sx",
+        alias = "80386sx",
+        alias = "i386sx",
+        alias = "i80386sx"
+    )]
     I80386SX,
 
     /// Intel 80386DX, the full 32-bit version of the 80386 processor, offering significant performance improvements over earlier models.
-    #[serde(rename = "386dx", alias="80386dx", alias="i386dx", alias="i80386dx", alias="386")]
+    #[serde(
+        rename = "386dx",
+        alias = "80386dx",
+        alias = "i386dx",
+        alias = "i80386dx",
+        alias = "386"
+    )]
     I80386DX,
 
     /// Intel 80486SL, a mobile version of the 80486 processor, offering power management features for portable devices.
-    #[serde(rename="486sl", alias="i486sl", alias="80486sl", alias="i80486sl")]
+    #[serde(
+        rename = "486sl",
+        alias = "i486sl",
+        alias = "80486sl",
+        alias = "i80486sl"
+    )]
     I80486SL,
 
     /// Intel 80486SX, a 486 processor with a 16-bit external data bus and no integrated floating point unit (FPU).
-    #[serde(rename="486sx", alias="80486sx", alias="i80486sx")]
+    #[serde(rename = "486sx", alias = "80486sx", alias = "i80486sx")]
     I80486SX,
 
     /// Intel 80486SX2, a clock-doubled version of the 80486SX processor, offering increased performance without requiring a new socket.
-    #[serde(rename="486sx2", alias="80486sx2", alias="i80486sx2")]
+    #[serde(rename = "486sx2", alias = "80486sx2", alias = "i80486sx2")]
     I80486SX2,
 
     /// Intel 80486DX, a 486 processor with an integrated floating point unit (FPU), offering high performance for computational tasks.
-    #[serde(rename="486dx", alias="80486dx", alias="i80486dx", alias="486")]
+    #[serde(rename = "486dx", alias = "80486dx", alias = "i80486dx", alias = "486")]
     I80486DX,
 
     /// Intel 80486DX2, a clock-doubled version of the 80486DX processor, providing a significant performance boost for users.
-    #[serde(rename="486dx2", alias="80486dx2", alias="i486dx2", alias="i80486dx2")]
+    #[serde(
+        rename = "486dx2",
+        alias = "80486dx2",
+        alias = "i486dx2",
+        alias = "i80486dx2"
+    )]
     I80486DX2,
 
     /// Intel 80486DX4, a clock-tripled version of the 80486DX processor, offering even greater performance for demanding applications.
-    #[serde(rename="486dx4", alias="80486dx4", alias="i486dx4", alias="i80486dx4")]
+    #[serde(
+        rename = "486dx4",
+        alias = "80486dx4",
+        alias = "i486dx4",
+        alias = "i80486dx4"
+    )]
     I80486DX4,
 }
 

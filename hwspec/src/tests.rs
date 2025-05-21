@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        HwSpec,
         audio::AudioDevice,
         cpu::{Cpu, CpuFamily},
         storage::Floppy,
+        HwSpec,
     };
     use std::io::Write;
     use std::str::FromStr;
@@ -170,7 +170,7 @@ mod tests {
             assert!(Floppy::from_str(element).is_ok())
         }
     }
-    
+
     #[test]
     fn valid_audio_from_string() {
         for device in [

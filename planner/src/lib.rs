@@ -1,7 +1,7 @@
 use disk::disktype::DiskType;
 use error::PlanError;
-use hwspec::HwSpec;
 use hwspec::storage::FloppyType;
+use hwspec::HwSpec;
 use manifest::Manifest;
 
 mod error;
@@ -28,7 +28,7 @@ impl InstallationPlanner {
             Some(FloppyType::F35_720) => Some(DiskType::F35_720),
             Some(FloppyType::F35_1440) => Some(DiskType::F35_1440),
             Some(FloppyType::F35_2880) => Some(DiskType::F35_2880),
-            None => None
+            None => None,
         }
     }
 }
