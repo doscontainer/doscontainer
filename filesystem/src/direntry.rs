@@ -7,7 +7,6 @@ use crate::{
     attributes::{Attributes, AttributesPreset},
     error::FileSystemError,
     names::EntryName,
-    pool::Pool,
     ClusterIndex,
 };
 
@@ -83,10 +82,6 @@ impl DirEntry {
     /// Check whether the current entry is the root node
     pub fn is_root(&self) -> bool {
         self.parent.is_none()
-    }
-
-    pub fn children(&self, pool: &Pool) -> Option<Vec<&DirEntry>> {
-        None
     }
 
     pub fn name(&self) -> Option<&EntryName> {

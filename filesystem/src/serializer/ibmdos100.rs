@@ -5,6 +5,7 @@ use crate::{
 
 use super::Fat12Serializer;
 
+#[allow(dead_code)]
 pub struct IbmDos100 {}
 
 impl Fat12Serializer for IbmDos100 {

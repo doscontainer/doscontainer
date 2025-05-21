@@ -64,13 +64,6 @@ impl FromStr for EntryName {
 }
 
 impl EntryName {
-    pub fn to_string(&self) -> String {
-        if self.extension.is_empty() {
-            self.filename.clone()
-        } else {
-            format!("{}.{}", self.filename, self.extension)
-        }
-    }
     pub fn is_valid_char(c: char) -> bool {
         matches!(c,
             'A'..='Z' | '0'..='9' |

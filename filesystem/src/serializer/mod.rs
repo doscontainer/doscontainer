@@ -2,9 +2,12 @@ use crate::{allocationtable::AllocationTable, direntry::DirEntry, error::FileSys
 
 pub mod ibmdos100;
 
+#[allow(dead_code)]
 pub trait DirEntrySerializer {
     fn serialize_direntry(entry: &DirEntry) -> Result<Vec<u8>, FileSystemError>;
 }
+
+#[allow(dead_code)]
 pub trait Fat12Serializer {
     fn serialize_fat12(fat: &AllocationTable) -> Result<Vec<u8>, FileSystemError>;
 }
