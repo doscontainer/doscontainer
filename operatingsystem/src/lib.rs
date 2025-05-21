@@ -8,7 +8,6 @@ use url::Url;
 use vendor::OsVendor;
 use version::OsVersion;
 
-pub mod bpb;
 pub mod error;
 pub mod product;
 pub mod vendor;
