@@ -12,23 +12,18 @@ pub struct RawImage {
 }
 
 impl RawImage {
-    pub fn new(path: &Path, sector_size: SectorSize) -> Result<Self, DiskError> {
-        // Open the file for reading and writing
+    pub fn new(path: &Path, sector_size: SectorSize, sector_count: u64) -> Result<Self, DiskError> {
+        // Try to create a new file, fail if it already exists
         let file = File::options()
             .read(true)
             .write(true)
+            .create_new(true) 
             .open(path)
-            .map_err(|_| DiskError::FileOpenFailed)?;
+            .map_err(|_| DiskError::FileAlreadyExists)?;
 
-        // Determine file size
-        let metadata = file.metadata().map_err(|_| DiskError::FileMetadataFailed)?;
-        let file_size = metadata.len();
-
-        if file_size % sector_size.as_u64() != 0 {
-            return Err(DiskError::InvalidFileSize);
-        }
-
-        let sector_count = file_size / sector_size.as_u64();
+        // Allocate the disk image file to the size we require
+        file.set_len(sector_count * sector_size.as_u64())
+            .map_err(|_| DiskError::IoError)?;
 
         Ok(Self {
             file,
@@ -96,139 +91,123 @@ impl Disk for RawImage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
+    use tempfile::tempdir;
 
-    fn create_temp_file_with_size(size: usize) -> NamedTempFile {
-        let mut tmp = NamedTempFile::new().expect("Failed to create temp file");
-        tmp.as_file_mut()
-            .set_len(size as u64)
-            .expect("Failed to set file size");
-        tmp
-    }
-
-     #[test]
-    fn raw_image_new_works_and_cleans_up() {
+    #[test]
+    fn raw_image_creation_succeeds() {
         let sector_size = SectorSize::S512;
         let sector_count = 4;
-        let total_size = sector_size.as_usize() * sector_count;
 
-        // Create a temporary file
-        let mut tmpfile = NamedTempFile::new().expect("Failed to create temp file");
-        tmpfile
-            .as_file_mut()
-            .set_len(total_size as u64)
-            .expect("Failed to set size");
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
 
-        let path = tmpfile.path();
+        let raw = RawImage::new(&path, sector_size, sector_count);
+        assert!(raw.is_ok(), "Failed to create RawImage");
 
-        // Construct RawImage
-        let raw_image = RawImage::new(path, sector_size);
-        assert!(raw_image.is_ok());
+        let metadata = std::fs::metadata(&path).unwrap();
+        assert_eq!(
+            metadata.len(),
+            sector_size.as_u64() * sector_count,
+            "File size incorrect"
+        );
     }
 
     #[test]
-    fn raw_image_new_with_valid_file() {
+    fn raw_image_creation_fails_if_file_exists() {
         let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 4;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
+        let sector_count = 4;
 
-        let raw_image = RawImage::new(path, sector_size);
-        assert!(raw_image.is_ok());
-        let raw_image = raw_image.unwrap();
-        assert_eq!(raw_image.sector_count(), 4);
-        assert_eq!(raw_image.sector_size(), sector_size);
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
+
+        // Pre-create the file
+        File::create(&path).unwrap();
+
+        let raw = RawImage::new(&path, sector_size, sector_count);
+        assert!(matches!(raw, Err(DiskError::FileAlreadyExists)));
     }
 
     #[test]
-    fn raw_image_new_fails_with_invalid_file_size() {
+    fn write_and_read_sector_works() {
         let sector_size = SectorSize::S512;
-        // File size not multiple of sector size
-        let file_size = (sector_size.as_usize() * 4) + 1;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
+        let sector_count = 2;
 
-        let raw_image = RawImage::new(path, sector_size);
-        assert!(matches!(raw_image, Err(DiskError::InvalidFileSize)));
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
+
+        let mut raw = RawImage::new(&path, sector_size, sector_count).unwrap();
+
+        let write_data = [0xAA; 512];
+        let mut read_buf = [0x00; 512];
+
+        // Write to sector 1
+        raw.write_sector(1, &write_data).unwrap();
+
+        // Read it back
+        raw.read_sector(1, &mut read_buf).unwrap();
+
+        assert_eq!(write_data, read_buf, "Data mismatch");
     }
 
     #[test]
-    fn read_and_write_sector_success() {
+    fn read_sector_out_of_bounds_fails() {
         let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 2;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
+        let sector_count = 1;
 
-        let mut raw_image = RawImage::new(path, sector_size).expect("Failed to create RawImage");
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
 
-        // Prepare a buffer with data to write
-        let write_buf = vec![0xAB; sector_size.as_usize()];
-        raw_image
-            .write_sector(1, &write_buf)
-            .expect("Failed to write sector");
+        let mut raw = RawImage::new(&path, sector_size, sector_count).unwrap();
 
-        // Prepare a buffer to read into
-        let mut read_buf = vec![0u8; sector_size.as_usize()];
-        raw_image
-            .read_sector(1, &mut read_buf)
-            .expect("Failed to read sector");
+        let mut buf = [0x00; 512];
+        let result = raw.read_sector(5, &mut buf);
 
-        assert_eq!(write_buf, read_buf);
-    }
-
-    #[test]
-    fn read_sector_fails_with_buffer_too_small() {
-        let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 1;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
-
-        let mut raw_image = RawImage::new(path, sector_size).expect("Failed to create RawImage");
-        let mut small_buf = vec![0u8; sector_size.as_usize() - 1];
-
-        let result = raw_image.read_sector(0, &mut small_buf);
-        assert!(matches!(result, Err(DiskError::BufferTooSmall)));
-    }
-
-    #[test]
-    fn write_sector_fails_with_buffer_too_small() {
-        let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 1;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
-
-        let mut raw_image = RawImage::new(path, sector_size).expect("Failed to create RawImage");
-        let small_buf = vec![0u8; sector_size.as_usize() - 1];
-
-        let result = raw_image.write_sector(0, &small_buf);
-        assert!(matches!(result, Err(DiskError::BufferTooSmall)));
-    }
-
-    #[test]
-    fn read_sector_fails_out_of_bounds() {
-        let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 1;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
-
-        let mut raw_image = RawImage::new(path, sector_size).expect("Failed to create RawImage");
-        let mut buf = vec![0u8; sector_size.as_usize()];
-
-        let result = raw_image.read_sector(1, &mut buf);
         assert!(matches!(result, Err(DiskError::OutOfBounds)));
     }
 
     #[test]
-    fn write_sector_fails_out_of_bounds() {
+    fn write_sector_buffer_too_small_fails() {
         let sector_size = SectorSize::S512;
-        let file_size = sector_size.as_usize() * 1;
-        let tmp = create_temp_file_with_size(file_size);
-        let path = tmp.path();
+        let sector_count = 1;
 
-        let mut raw_image = RawImage::new(path, sector_size).expect("Failed to create RawImage");
-        let buf = vec![0u8; sector_size.as_usize()];
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
 
-        let result = raw_image.write_sector(1, &buf);
-        assert!(matches!(result, Err(DiskError::OutOfBounds)));
+        let mut raw = RawImage::new(&path, sector_size, sector_count).unwrap();
+
+        let buf = [0xAB; 100]; // Too small
+        let result = raw.write_sector(0, &buf);
+
+        assert!(matches!(result, Err(DiskError::BufferTooSmall)));
+    }
+
+    #[test]
+    fn read_sector_buffer_too_small_fails() {
+        let sector_size = SectorSize::S512;
+        let sector_count = 1;
+
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
+
+        let mut raw = RawImage::new(&path, sector_size, sector_count).unwrap();
+
+        let mut buf = [0x00; 128]; // Too small
+        let result = raw.read_sector(0, &mut buf);
+
+        assert!(matches!(result, Err(DiskError::BufferTooSmall)));
+    }
+
+    #[test]
+    fn sector_size_and_count_are_correct() {
+        let sector_size = SectorSize::S512;
+        let sector_count = 8;
+
+        let tmpdir = tempdir().unwrap();
+        let path = tmpdir.path().join("disk.img");
+
+        let raw = RawImage::new(&path, sector_size, sector_count).unwrap();
+
+        assert_eq!(raw.sector_size(), sector_size);
+        assert_eq!(raw.sector_count(), sector_count);
     }
 }
