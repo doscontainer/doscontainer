@@ -1,7 +1,7 @@
 use std::{fmt, str::FromStr};
 
-use serde::de::{self, Deserializer};
 use serde::Deserialize;
+use serde::de::{self, Deserializer};
 
 use crate::error::HwSpecError;
 
@@ -27,6 +27,21 @@ pub enum FloppyType {
     F35_720,
     F35_1440,
     F35_2880,
+}
+
+impl FloppyType {
+    pub fn sector_count(&self) -> u64 {
+        match self {
+            FloppyType::F525_160 => 40 * 1 * 8,
+            FloppyType::F525_180 => 40 * 1 * 9,
+            FloppyType::F525_320 => 40 * 2 * 8,
+            FloppyType::F525_360 => 40 * 2 * 9,
+            FloppyType::F525_1200 => 80 * 2 * 15,
+            FloppyType::F35_720 => 80 * 2 * 9,
+            FloppyType::F35_1440 => 80 * 2 * 18,
+            FloppyType::F35_2880 => 80 * 2 * 36,
+        }
+    }
 }
 
 impl FromStr for Floppy {
