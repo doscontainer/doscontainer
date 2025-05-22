@@ -35,6 +35,17 @@ impl SectorSize {
         }
     }
 
+    pub fn as_u64(&self) -> u64 {
+        match self {
+            SectorSize::S128 => 128,
+            SectorSize::S256 => 256,
+            SectorSize::S512 => 512,
+            SectorSize::S1024 => 1024,
+            SectorSize::S2048 => 2048,
+            SectorSize::S4096 => 4096,
+        }
+    }
+
     pub fn get(&self) -> usize {
         self.as_usize()
     }

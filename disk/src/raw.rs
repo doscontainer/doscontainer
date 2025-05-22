@@ -24,13 +24,11 @@ impl RawImage {
         let metadata = file.metadata().map_err(|_| DiskError::FileMetadataFailed)?;
         let file_size = metadata.len();
 
-        let sector_size_usize = sector_size.as_usize() as u64;
-
-        if file_size % sector_size_usize != 0 {
+        if file_size % sector_size.as_u64() != 0 {
             return Err(DiskError::InvalidFileSize);
         }
 
-        let sector_count = file_size / sector_size_usize;
+        let sector_count = file_size / sector_size.as_u64();
 
         Ok(Self {
             file,
