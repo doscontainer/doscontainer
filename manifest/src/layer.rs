@@ -13,13 +13,13 @@ use zip::ZipArchive;
 
 use crate::error::ManifestError;
 
-#[derive(Default, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 pub struct Layer {
     url: Option<Url>,
     checksum: Option<String>,
     min_dos: Option<OsVersion>,
     max_dos: Option<OsVersion>,
-    dos_vendor: Option<OsVendor>,
+    os_vendor: Option<OsVendor>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -330,6 +330,9 @@ impl fmt::Display for Layer {
         }
         if let Some(checksum) = &self.checksum {
             writeln!(f, "  Checksum    : {}", checksum)?;
+        }
+        if let Some(os_vendor) = &self.os_vendor {
+            writeln!(f, "  DOS vendor  : {} ", os_vendor)?;
         }
         if let Some(min_dos) = &self.min_dos {
             writeln!(f, "  Minimum DOS version: {}", min_dos)?;

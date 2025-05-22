@@ -43,16 +43,12 @@ fn main() -> Result<(), std::io::Error> {
         } => {
             // Construct a HW Spec from a TOML file
             let spec = HwSpec::from_toml(hwspecpath).expect("Failed loading HwSpec.");
-            println!("{}", spec);
+
             // Download the layer content from the manifest
             let manifest = Manifest::from_toml(manifestpath).expect("Failed loading Manifest.");
-            println!("{}", manifest);
 
-            // Write the OS layer to the disk image
-
-            // Write all the other layers to the disk image
-            println!("Press key");
-            let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
+            // Invoke the Disk Image Planner
+            let planner = planner::InstallationPlanner::new(&spec, manifest);
             Ok(())
         }
         Commands::BuildCollection { startdir: _ } => {

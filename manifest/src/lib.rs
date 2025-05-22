@@ -1,12 +1,13 @@
 use config::{Config, File, FileFormat};
 use error::ManifestError;
+use hardware::Hardware;
 use serde::Deserialize;
-use storage::FileSystemType;
 
 use crate::layer::Layer;
 use std::{collections::HashMap, fmt, path::Path};
 
 mod error;
+mod hardware;
 mod layer;
 mod storage;
 mod tests;
@@ -14,7 +15,7 @@ mod tests;
 #[derive(Deserialize)]
 pub struct Manifest {
     version: u32,
-    filesystem: FileSystemType,
+    hardware: Hardware,
     layers: HashMap<String, Layer>,
 }
 
@@ -33,6 +34,10 @@ impl Manifest {
 
     pub fn layers(&self) -> &HashMap<String, Layer> {
         &self.layers
+    }
+
+    pub fn mut_layers(&mut self) -> &mut HashMap<String, Layer> {
+        &mut self.layers
     }
 
     pub fn layer(&self, name: &str) -> Option<&Layer> {
@@ -78,8 +83,8 @@ impl Default for Manifest {
     fn default() -> Manifest {
         Manifest {
             version: 1,
+            hardware: Hardware::default(),
             layers: HashMap::new(),
-            filesystem: FileSystemType::Fat12,
         }
     }
 }
@@ -89,7 +94,8 @@ impl fmt::Display for Manifest {
         writeln!(f, "DOSContainer build manifest")?;
         writeln!(f, "-----------------------------------")?;
         writeln!(f, " Manifest format version : {}", self.version())?;
-        writeln!(f, " File system(S)          : {}", self.filesystem)?;
+        writeln!(f, " Graphics support        : {} ", self.hardware.graphics().join(","))?;
+        writeln!(f, " Sound support           : {} ", self.hardware.sound().join(","))?;
         for layer in self.layers() {
             writeln!(f, "{} {}", layer.0, layer.1)?;
         }
