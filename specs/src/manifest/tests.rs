@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::layer::Layer;
+    use crate::manifest::layer::Layer;
 
     #[test]
     fn set_valid_url() {

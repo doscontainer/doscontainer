@@ -11,7 +11,7 @@ use tempfile::{tempdir, NamedTempFile, TempDir};
 use url::Url;
 use zip::ZipArchive;
 
-use crate::error::ManifestError;
+use crate::error::SpecError;
 
 #[derive(Default, Deserialize)]
 pub struct Layer {
@@ -27,13 +27,13 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn set_url(&mut self, url: &str) -> Result<(), ManifestError> {
+    pub fn set_url(&mut self, url: &str) -> Result<(), SpecError> {
         match Url::parse(url) {
             Ok(_) => {
                 self.url = Some(Url::parse(url).unwrap());
                 Ok(())
             }
-            Err(_) => Err(ManifestError::InvalidUrl),
+            Err(_) => Err(SpecError::InvalidUrl),
         }
     }
 
@@ -54,24 +54,24 @@ impl Layer {
     ///
     /// # Errors
     ///
-    /// Returns a [`ManifestError`] if:
+    /// Returns a [`SpecError`] if:
     ///
     /// - The layer is not of type `Software` (`InvalidLayerType`).
     /// - No URL is present for the layer (`MissingUrl`).
     /// - The URL scheme is unsupported (`UnsupportedUrlScheme`).
     /// - The actual download operation fails, as reported by `download_http` or `download_ftp`.
-    pub fn download(&mut self) -> Result<(), ManifestError> {
-        let url = self.url.as_ref().ok_or(ManifestError::MissingUrl)?;
+    pub fn download(&mut self) -> Result<(), SpecError> {
+        let url = self.url.as_ref().ok_or(SpecError::MissingUrl)?;
 
         let zipfile_path = match url.scheme() {
             "http" | "https" => self.download_http()?,
             "ftp" => self.download_ftp()?,
-            _ => return Err(ManifestError::UnsupportedUrlScheme),
+            _ => return Err(SpecError::UnsupportedUrlScheme),
         };
 
         if let Some(checksum) = &self.checksum {
             let file =
-                File::open(&zipfile_path).map_err(|_| ManifestError::ChecksumVerificationFailed)?;
+                File::open(&zipfile_path).map_err(|_| SpecError::ChecksumVerificationFailed)?;
 
             let mut reader = BufReader::new(file);
             let mut hasher = Sha256::new();
@@ -80,7 +80,7 @@ impl Layer {
             loop {
                 let n = reader
                     .read(&mut buffer)
-                    .map_err(|_| ManifestError::ChecksumVerificationFailed)?;
+                    .map_err(|_| SpecError::ChecksumVerificationFailed)?;
                 if n == 0 {
                     break;
                 }
@@ -91,7 +91,7 @@ impl Layer {
             let calculated_hex = format!("{:x}", calculated);
 
             if calculated_hex != checksum.to_lowercase() {
-                return Err(ManifestError::ChecksumVerificationFailed);
+                return Err(SpecError::ChecksumVerificationFailed);
             }
         }
 
@@ -100,32 +100,32 @@ impl Layer {
         Ok(())
     }
 
-    fn stage(&mut self) -> Result<(), ManifestError> {
+    fn stage(&mut self) -> Result<(), SpecError> {
         let zipfile = self
             .zipfile_path
             .as_ref()
-            .ok_or(ManifestError::TempDirError)?;
-        let staging_path = tempdir().map_err(|_| ManifestError::TempDirError)?;
-        let mut archive = ZipArchive::new(zipfile).map_err(|_| ManifestError::ZipFileCorrupt)?;
+            .ok_or(SpecError::TempDirError)?;
+        let staging_path = tempdir().map_err(|_| SpecError::TempDirError)?;
+        let mut archive = ZipArchive::new(zipfile).map_err(|_| SpecError::ZipFileCorrupt)?;
         let zipfile_logdisplay = zipfile.path();
         info!(target: "dosk8s_events", "Start extracting archive {zipfile_logdisplay:?}.");
 
         for i in 0..archive.len() {
             let mut file = archive
                 .by_index(i)
-                .map_err(|_| ManifestError::ZipFileCorrupt)?;
+                .map_err(|_| SpecError::ZipFileCorrupt)?;
             let target = staging_path.path().join(file.name());
 
             if file.is_dir() {
-                fs::create_dir_all(&target).map_err(|_| ManifestError::FileOpenError)?;
+                fs::create_dir_all(&target).map_err(|_| SpecError::FileOpenError)?;
             } else {
                 if let Some(parent) = target.parent() {
-                    fs::create_dir_all(parent).map_err(|_| ManifestError::FileOpenError)?;
+                    fs::create_dir_all(parent).map_err(|_| SpecError::FileOpenError)?;
                 }
 
                 let mut outfile =
-                    fs::File::create(&target).map_err(|_| ManifestError::FileOpenError)?;
-                std::io::copy(&mut file, &mut outfile).map_err(|_| ManifestError::FileOpenError)?;
+                    fs::File::create(&target).map_err(|_| SpecError::FileOpenError)?;
+                std::io::copy(&mut file, &mut outfile).map_err(|_| SpecError::FileOpenError)?;
             }
         }
 
@@ -143,7 +143,7 @@ impl Layer {
     ///
     /// # Errors
     ///
-    /// Returns a [`ManifestError`] if:
+    /// Returns a [`SpecError`] if:
     ///
     /// - `self.url` is not set (`InvalidUrl`)
     /// - The URL does not contain a valid file name (`InvalidUrl`)
@@ -158,27 +158,27 @@ impl Layer {
     ///
     /// On success, returns the full path to the downloaded file within the temporary directory.
     #[allow(clippy::manual_next_back)]
-    fn download_http(&mut self) -> Result<NamedTempFile, ManifestError> {
-        let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
+    fn download_http(&mut self) -> Result<NamedTempFile, SpecError> {
+        let url = self.url.as_ref().ok_or(SpecError::InvalidUrl)?;
         info!(target: "dosk8s_events", "Starting HTTP(S) download for {url}.");
 
         let response = attohttpc::get(url)
             .send()
-            .map_err(|_| ManifestError::HttpRequestError)?;
+            .map_err(|_| SpecError::HttpRequestError)?;
 
         if !response.is_success() {
-            return Err(ManifestError::HttpRequestError);
+            return Err(SpecError::HttpRequestError);
         }
 
         let content = response
             .bytes()
-            .map_err(|_| ManifestError::HttpRequestError)?;
+            .map_err(|_| SpecError::HttpRequestError)?;
 
-        let mut tempfile = NamedTempFile::new().map_err(|_| ManifestError::TempDirError)?;
+        let mut tempfile = NamedTempFile::new().map_err(|_| SpecError::TempDirError)?;
 
         tempfile
             .write_all(&content)
-            .map_err(|_| ManifestError::DownloadError)?;
+            .map_err(|_| SpecError::DownloadError)?;
         info!(target: "dosk8s_events", "Finished HTTP(S) download for {url}.");
         Ok(tempfile)
     }
@@ -197,7 +197,7 @@ impl Layer {
     ///
     /// # Errors
     ///
-    /// Returns a [`ManifestError`] if:
+    /// Returns a [`SpecError`] if:
     ///
     /// - The URL is missing, invalid, or lacks necessary components such as a host or file name.
     /// - The temporary directory could not be created.
@@ -223,21 +223,21 @@ impl Layer {
     ///
     /// [`tempdir`](https://docs.rs/tempfile/latest/tempfile/fn.tempdir.html)
     /// [`FtpStream`](https://docs.rs/ftp/latest/ftp/struct.FtpStream.html)
-    fn download_ftp(&mut self) -> Result<NamedTempFile, ManifestError> {
-        let url = self.url.as_ref().ok_or(ManifestError::InvalidUrl)?;
+    fn download_ftp(&mut self) -> Result<NamedTempFile, SpecError> {
+        let url = self.url.as_ref().ok_or(SpecError::InvalidUrl)?;
         info!(target: "dosk8s_events", "Start FTP download from {url}.");
-        let hostname = url.host_str().ok_or(ManifestError::InvalidUrl)?;
+        let hostname = url.host_str().ok_or(SpecError::InvalidUrl)?;
         let port = url.port_or_known_default().unwrap_or(21);
 
         let path = url.path();
         if path.is_empty() {
-            return Err(ManifestError::InvalidUrl);
+            return Err(SpecError::InvalidUrl);
         }
 
-        let tempfile = NamedTempFile::new().map_err(|_| ManifestError::TempDirError)?;
+        let tempfile = NamedTempFile::new().map_err(|_| SpecError::TempDirError)?;
 
         let mut ftp =
-            FtpStream::connect((hostname, port)).map_err(|_| ManifestError::FtpConnectionError)?;
+            FtpStream::connect((hostname, port)).map_err(|_| SpecError::FtpConnectionError)?;
 
         let username = if url.username().is_empty() {
             "anonymous"
@@ -247,10 +247,10 @@ impl Layer {
         let password = url.password().unwrap_or("doscontainer@area536.com");
 
         ftp.login(username, password)
-            .map_err(|_| ManifestError::FtpAuthenticationError)?;
+            .map_err(|_| SpecError::FtpAuthenticationError)?;
 
         ftp.transfer_type(ftp::types::FileType::Binary)
-            .map_err(|_| ManifestError::FtpTransferTypeError)?;
+            .map_err(|_| SpecError::FtpTransferTypeError)?;
 
         ftp.retr(path, |stream| {
             let mut local_file = File::create(&tempfile).map_err(FtpError::ConnectionError)?;
@@ -269,38 +269,38 @@ impl Layer {
             }
             Ok(())
         })
-        .map_err(|_| ManifestError::FtpConnectionError)?;
+        .map_err(|_| SpecError::FtpConnectionError)?;
 
-        ftp.quit().map_err(|_| ManifestError::FtpConnectionError)?;
+        ftp.quit().map_err(|_| SpecError::FtpConnectionError)?;
         info!(target: "dosk8s_events", "Finish FTP download from {url}.");
         Ok(tempfile)
     }
 
     /// Validate the Layer's own zipfile
-    pub fn validate_zip_file(&self) -> Result<(), ManifestError> {
+    pub fn validate_zip_file(&self) -> Result<(), SpecError> {
         if let Some(file) = &self.zipfile_path {
             info!(target: "dosk8s_events", "Start validating ZIP file {file:?}");
-            let zipfile = File::open(file).map_err(|_| ManifestError::FileOpenError)?;
+            let zipfile = File::open(file).map_err(|_| SpecError::FileOpenError)?;
             let reader = BufReader::new(zipfile);
             self.validate_zip_stream(reader)?;
         } else {
             info!(target: "dosk8s_events", "ZIP file validation failed.");
-            return Err(ManifestError::ZipFileNotSet);
+            return Err(SpecError::ZipFileNotSet);
         }
         info!(target: "dosk8s_events", "Finish validating ZIP file.");
         Ok(())
     }
 
     /// Generalized implementation so that validation is properly testable
-    fn validate_zip_stream<R: Read + Seek>(&self, reader: R) -> Result<(), ManifestError> {
+    fn validate_zip_stream<R: Read + Seek>(&self, reader: R) -> Result<(), SpecError> {
         // ..when they have an actual zipfile set.
-        let mut archive = ZipArchive::new(reader).map_err(|_| ManifestError::FileOpenError)?;
+        let mut archive = ZipArchive::new(reader).map_err(|_| SpecError::FileOpenError)?;
 
         // Loop over all files in the archive
         for i in 0..archive.len() {
             let mut file = archive
                 .by_index(i)
-                .map_err(|_| ManifestError::ZipFileCorrupt)?;
+                .map_err(|_| SpecError::ZipFileCorrupt)?;
 
             // We can't CRC-check a directory
             if file.is_dir() {
@@ -310,12 +310,12 @@ impl Layer {
             let expected_crc = file.crc32();
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)
-                .map_err(|_| ManifestError::ZipFileCorrupt)?;
+                .map_err(|_| SpecError::ZipFileCorrupt)?;
 
             // Do the actual CRC check
             let actual_crc = crc32fast::hash(&buffer);
             if expected_crc != actual_crc {
-                return Err(ManifestError::ZipFileCorrupt);
+                return Err(SpecError::ZipFileCorrupt);
             }
         }
         Ok(())

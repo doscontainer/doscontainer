@@ -5,5 +5,4 @@ edition = "2021"
 
 [dependencies]
 disk = { path = "../disk" }
-hwspec = { path = "../hwspec" }
-manifest = { path = "../manifest" }
+specs = { path = "../specs" }

@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::{fmt, str::FromStr};
 
-use crate::error::HwSpecError;
+use crate::error::SpecError;
 
 /// Represents a specific type of audio device typically found in MS-DOS-compatible PC systems
 /// manufactured between 1980 and 1996.
@@ -113,7 +113,7 @@ impl fmt::Display for AudioDevice {
 }
 
 impl FromStr for AudioDeviceType {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use AudioDeviceType::*;
@@ -137,7 +137,7 @@ impl FromStr for AudioDeviceType {
             "covox" | "disney" => Ok(COVOX),
             "gus" | "ultrasound" => Ok(GUS),
             "gusmax" | "ultrasoundmax" | "ultrasound max" => Ok(GUSMAX),
-            _ => Err(HwSpecError::InvalidAudioDevice(s.to_string())),
+            _ => Err(SpecError::InvalidAudioDevice(s.to_string())),
         }
     }
 }
@@ -339,7 +339,7 @@ impl AudioDevice {
 }
 
 impl FromStr for AudioDevice {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let devicetype = AudioDeviceType::from_str(s)?;

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use crate::hwspec::{
         audio::AudioDevice,
         cpu::{Cpu, CpuFamily},
         storage::Floppy,

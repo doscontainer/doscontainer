@@ -1,10 +1,11 @@
 [package]
-name = "manifest"
+name = "specs"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 attohttpc = { workspace = true }
+byte-unit = { workspace = true }
 config = { workspace = true }
 crc32fast = { workspace = true }
 directories = { workspace = true }
@@ -13,6 +14,7 @@ log = { workspace = true }
 operatingsystem = { path = "../operatingsystem" }
 url = { workspace = true }
 serde = { workspace = true }
+serde_with = { workspace = true}
 sha2 = { workspace = true }
 tempfile = { workspace = true }
 walkdir = { workspace = true }

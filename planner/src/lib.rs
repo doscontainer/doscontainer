@@ -1,9 +1,6 @@
 use disk::disktype::DiskType;
 use error::PlanError;
-use hwspec::storage::FloppyType;
-use hwspec::HwSpec;
-use manifest::Manifest;
-
+use specs::{hwspec::{storage::FloppyType, HwSpec}, manifest::Manifest};
 mod error;
 
 pub struct InstallationPlanner {

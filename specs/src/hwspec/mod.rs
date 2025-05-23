@@ -8,7 +8,6 @@ use config::Config;
 use config::File;
 use config::FileFormat;
 use cpu::Cpu;
-use error::HwSpecError;
 use serde::{Deserialize, Deserializer};
 use serde_with::serde_as;
 use serde_with::OneOrMany;
@@ -16,9 +15,10 @@ use storage::Floppy;
 use storage::FloppyType;
 use video::VideoDevice;
 
+use crate::error::SpecError;
+
 pub mod audio;
 pub mod cpu;
-mod error;
 pub mod storage;
 mod tests;
 pub mod video;
@@ -64,11 +64,11 @@ impl HwSpec {
     ///
     /// # Errors
     ///
-    /// Returns a [`HwSpecError::DuplicateAudioDevice`] if the exact same device is already present.
+    /// Returns a [`SpecError::DuplicateAudioDevice`] if the exact same device is already present.
     ///
-    pub fn add_audio_device(&mut self, device: AudioDevice) -> Result<(), HwSpecError> {
+    pub fn add_audio_device(&mut self, device: AudioDevice) -> Result<(), SpecError> {
         if self.audio.contains(&device) {
-            return Err(HwSpecError::DuplicateAudioDevice);
+            return Err(SpecError::DuplicateAudioDevice);
         }
         self.audio.push(device);
         Ok(())
@@ -96,10 +96,10 @@ impl HwSpec {
     ///
     /// # Errors
     ///
-    /// Returns a [`HwSpecError::DuplicateVideoDevice`] if the exact same device is already present.
-    pub fn add_video_device(&mut self, device: VideoDevice) -> Result<(), HwSpecError> {
+    /// Returns a [`SpecError::DuplicateVideoDevice`] if the exact same device is already present.
+    pub fn add_video_device(&mut self, device: VideoDevice) -> Result<(), SpecError> {
         if self.video.contains(&device) {
-            return Err(HwSpecError::DuplicateVideoDevice);
+            return Err(SpecError::DuplicateVideoDevice);
         }
         self.video.push(device);
         Ok(())
@@ -109,7 +109,7 @@ impl HwSpec {
         &self.video
     }
 
-    pub fn set_cpu(&mut self, cpu: &str) -> Result<(), HwSpecError> {
+    pub fn set_cpu(&mut self, cpu: &str) -> Result<(), SpecError> {
         self.cpu = Cpu::from_str(cpu)?;
         Ok(())
     }
@@ -128,20 +128,20 @@ impl HwSpec {
     ///
     /// # Returns
     /// - `Ok(HwSpec)`: If the file was successfully read and deserialized.
-    /// - `Err(HwSpecError)`: If there was an error reading or deserializing the file.
+    /// - `Err(SpecError)`: If there was an error reading or deserializing the file.
     ///
     /// # Errors
-    /// - Returns `HwSpecError::ConfigBuild` if the configuration builder fails.
-    /// - Returns `HwSpecError::Deserialize` if deserialization into `Manifest` fails.
-    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, HwSpecError> {
+    /// - Returns `SpecError::ConfigBuild` if the configuration builder fails.
+    /// - Returns `SpecError::Deserialize` if deserialization into `Manifest` fails.
+    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, SpecError> {
         let settings = Config::builder()
             .add_source(File::from(path.as_ref()).format(FileFormat::Toml))
             .build()
-            .map_err(HwSpecError::ConfigBuild)?;
+            .map_err(SpecError::ConfigBuild)?;
 
         settings
             .try_deserialize::<HwSpec>()
-            .map_err(HwSpecError::Deserialize)
+            .map_err(SpecError::Deserialize)
     }
     /// Sets the amount of system RAM.
     ///
@@ -155,17 +155,17 @@ impl HwSpec {
     ///
     /// # Errors
     ///
-    /// Returns a [`HwSpecError::InvalidRamString`] if the string cannot be parsed.
+    /// Returns a [`SpecError::InvalidRamString`] if the string cannot be parsed.
     ///
-    /// Returns a [`HwSpecError::TooMuchRamSpecified`] if the parsed RAM size cannot fit into a `u32`
+    /// Returns a [`SpecError::TooMuchRamSpecified`] if the parsed RAM size cannot fit into a `u32`
     /// (i.e., exceeds 4 GiB). This coincides with the theoretical maximum of the 32-bit Intel platform.
-    pub fn set_ram(&mut self, ram: &str) -> Result<(), HwSpecError> {
+    pub fn set_ram(&mut self, ram: &str) -> Result<(), SpecError> {
         const IGNORE_CASE: bool = true;
         let amount =
-            Byte::parse_str(ram, IGNORE_CASE).map_err(|_| HwSpecError::InvalidRamString)?;
+            Byte::parse_str(ram, IGNORE_CASE).map_err(|_| SpecError::InvalidRamString)?;
         self.ram = amount
             .try_into()
-            .map_err(|_| HwSpecError::TooMuchRamSpecified)?;
+            .map_err(|_| SpecError::TooMuchRamSpecified)?;
         Ok(())
     }
 

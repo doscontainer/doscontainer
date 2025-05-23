@@ -1,5 +1,5 @@
 [workspace]
-members = [ "cli", "disk", "filesystem", "hwspec", "manifest", "operatingsystem", "planner"]
+members = [ "cli", "disk", "filesystem", "operatingsystem", "specs", "planner"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -7,7 +7,7 @@ attohttpc = { version = "0.29", features=["tls-native-vendored"] }
 byte-unit = "5.1"
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
-config = { version = "0.15", features = ["toml"] }
+config = "0.15.11"
 crc32fast = { version = "1.4" }
 directories = { version = "6" }
 ftp = "3.0"
