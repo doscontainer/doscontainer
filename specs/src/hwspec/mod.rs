@@ -17,8 +17,8 @@ use video::VideoDevice;
 use crate::error::SpecError;
 use crate::types::audio::AudioDevice;
 use crate::types::audio::AudioDeviceType;
+use crate::types::cpu;
 
-pub mod cpu;
 pub mod storage;
 mod tests;
 pub mod video;
