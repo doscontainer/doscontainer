@@ -10,6 +10,8 @@ impl InstallationPlanner {
         println!("{}",hwspec);
         println!("{}", manifest);
 
+        let disk = RawDisk::new();
+
         let layers = manifest.layers_mut();
         for layer in layers {
             println!("Downloading {}", layer.0);

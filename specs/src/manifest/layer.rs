@@ -17,6 +17,7 @@ use crate::types::video::VideoDevice;
 
 #[derive(Default, Deserialize)]
 pub struct Layer {
+    comment: Option<String>,
     url: Option<Url>,
     checksum: Option<String>,
     min_dos: Option<OsVersion>,
@@ -29,6 +30,10 @@ pub struct Layer {
     audio: Vec<AudioDevice>,
     #[serde(default)]
     provides_graphics: Vec<VideoDevice>,
+    #[serde(default)]
+    autoexec_bat_lines: Vec<String>,
+    #[serde(default)]
+    config_sys_lines: Vec<String>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -335,6 +340,9 @@ impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Layer")?;
         writeln!(f, "-----")?;
+        if let Some(comment) = &self.comment {
+            writeln!(f, "  Comment : {}", comment)?;
+        }
         if let Some(url) = &self.url {
             writeln!(f, "  URL         : {}", url)?;
         }
