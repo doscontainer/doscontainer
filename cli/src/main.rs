@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use planner::InstallationPlanner;
 use specs::{hwspec::HwSpec, manifest::Manifest};
 use std::path::PathBuf;
 
@@ -42,11 +43,10 @@ fn main() -> Result<(), std::io::Error> {
         } => {
             // Construct a HW Spec from a TOML file
             let spec = HwSpec::from_toml(hwspecpath).expect("Failed loading HwSpec.");
-            println!("{}", spec);
             // Download the layer content from the manifest
             let manifest = Manifest::from_toml(manifestpath).expect("Failed loading Manifest.");
-            println!("{}", manifest);
 
+            let planner = InstallationPlanner::new(&spec, manifest).unwrap();
             // Write the OS layer to the disk image
 
             // Write all the other layers to the disk image

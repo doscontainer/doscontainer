@@ -27,6 +27,8 @@ pub struct Layer {
     graphics: Vec<VideoDevice>,
     #[serde(default)]
     audio: Vec<AudioDevice>,
+    #[serde(default)]
+    provides_graphics: Vec<VideoDevice>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -347,6 +349,9 @@ impl fmt::Display for Layer {
         }
         if !self.graphics.is_empty() {
             writeln!(f, "  Graphics support: {}", self.graphics.iter().map(|g| g.to_string()).collect::<Vec<_>>().join(", "))?;
+        }
+        if !self.provides_graphics.is_empty() {
+            writeln!(f, "  Provides support for: {}", self.provides_graphics.iter().map(|g| g.to_string()).collect::<Vec<_>>().join(", "))?;
         }
         Ok(())
     }

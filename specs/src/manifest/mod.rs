@@ -37,6 +37,10 @@ impl Manifest {
         &self.layers
     }
 
+    pub fn layers_mut(&mut self) -> &mut HashMap<String, Layer> {
+        &mut self.layers
+    }
+
     pub fn layer(&self, name: &str) -> Option<&Layer> {
         self.layers.get(name)
     }
