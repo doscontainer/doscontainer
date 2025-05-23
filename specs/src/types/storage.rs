@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr};
 use serde::Deserialize;
 use serde::de::{self, Deserializer};
 
-use crate::error::HwSpecError;
+use crate::error::SpecError;
 
 #[derive(Debug, Deserialize)]
 pub struct Floppy {
@@ -45,18 +45,18 @@ impl FloppyType {
 }
 
 impl FromStr for Floppy {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
-    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+    fn from_str(input: &str) -> Result<Self, SpecError> {
         let floppy_type = FloppyType::from_str(input)?;
         Ok(Self { floppy_type })
     }
 }
 
 impl FromStr for FloppyType {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
-    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+    fn from_str(input: &str) -> Result<Self, SpecError> {
         match input.to_uppercase().as_str() {
             "F525_160" | "F525160" | "160" | "160K" | "160KB" => Ok(Self::F525_160),
             "F525_180" | "F525180" | "180" | "180K" | "180KB" => Ok(Self::F525_180),
@@ -69,7 +69,7 @@ impl FromStr for FloppyType {
             | "1.44M" | "1.44MB" => Ok(Self::F35_1440),
             "F35_2880" | "F352880" | "F35_288" | "F35288" | "2880" | "2880K" | "2880KB"
             | "2.88M" | "2.88MB" => Ok(Self::F35_2880),
-            _ => Err(HwSpecError::InvalidFloppyType),
+            _ => Err(SpecError::InvalidFloppyType),
         }
     }
 }

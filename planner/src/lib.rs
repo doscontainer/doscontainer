@@ -1,4 +1,3 @@
-
 use error::PlanError;
 use hwspec::HwSpec;
 use manifest::Manifest;
@@ -11,12 +10,15 @@ pub struct InstallationPlanner {
 
 impl InstallationPlanner {
     pub fn new(hwspec: &HwSpec, mut manifest: Manifest) -> Result<(), PlanError> {
-        println!("{}", hwspec);
+        println!("{}",hwspec);
         println!("{}", manifest);
-        
-        
-        for layer in manifest.mut_layers() {
-            layer.1.download().unwrap();
+
+        let disk = RawDisk::new();
+
+        let layers = manifest.layers_mut();
+        for layer in layers {
+            println!("Downloading {}", layer.0);
+            println!("{:?}", layer.1.download());
         }
         Ok(())
     }

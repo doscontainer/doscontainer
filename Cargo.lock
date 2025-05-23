@@ -394,9 +394,8 @@ name = "cli"
 version = "0.1.0"
 dependencies = [
  "clap",
- "hwspec",
- "manifest",
  "planner",
+ "specs",
 ]
 
 [[package]]
@@ -849,17 +848,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hwspec"
-version = "0.1.0"
-dependencies = [
- "byte-unit",
- "config",
- "serde",
- "serde_with",
- "tempfile",
-]
-
-[[package]]
 name = "iana-time-zone"
 version = "0.1.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1151,25 +1139,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "manifest"
-version = "0.1.0"
-dependencies = [
- "attohttpc",
- "config",
- "crc32fast",
- "directories",
- "ftp",
- "log",
- "operatingsystem",
- "serde",
- "sha2",
- "tempfile",
- "url",
- "walkdir",
- "zip",
-]
-
-[[package]]
 name = "memchr"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1419,8 +1388,7 @@ name = "planner"
 version = "0.1.0"
 dependencies = [
  "disk",
- "hwspec",
- "manifest",
+ "specs",
 ]
 
 [[package]]
@@ -1860,6 +1828,27 @@ name = "smallvec"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
+
+[[package]]
+name = "specs"
+version = "0.1.0"
+dependencies = [
+ "attohttpc",
+ "byte-unit",
+ "config",
+ "crc32fast",
+ "directories",
+ "ftp",
+ "log",
+ "operatingsystem",
+ "serde",
+ "serde_with",
+ "sha2",
+ "tempfile",
+ "url",
+ "walkdir",
+ "zip",
+]
 
 [[package]]
 name = "stable_deref_trait"
@@ -2488,9 +2477,9 @@ dependencies = [
 
 [[package]]
 name = "yaml-rust2"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "818913695e83ece1f8d2a1c52d54484b7b46d0f9c06beeb2649b9da50d9b512d"
+checksum = "18b783b2c2789414f8bb84ca3318fc9c2d7e7be1c22907d37839a58dedb369d3"
 dependencies = [
  "arraydeque",
  "encoding_rs",

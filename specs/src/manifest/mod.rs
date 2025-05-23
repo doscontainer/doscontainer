@@ -1,21 +1,21 @@
 use config::{Config, File, FileFormat};
-use error::ManifestError;
-use hardware::Hardware;
+use metadata::Metadata;
+
+use crate::error::SpecError;
+use layer::Layer;
 use serde::Deserialize;
 
-use crate::layer::Layer;
 use std::{collections::HashMap, fmt, path::Path};
 
-mod error;
-mod hardware;
 mod layer;
+mod metadata;
 mod storage;
 mod tests;
 
 #[derive(Deserialize)]
 pub struct Manifest {
     version: u32,
-    hardware: Hardware,
+    metadata: Option<Metadata>,
     layers: HashMap<String, Layer>,
 }
 
@@ -62,20 +62,20 @@ impl Manifest {
     ///
     /// # Returns
     /// - `Ok(Manifest)`: If the file was successfully read and deserialized.
-    /// - `Err(ManifestError)`: If there was an error reading or deserializing the file.
+    /// - `Err(SpecError)`: If there was an error reading or deserializing the file.
     ///
     /// # Errors
-    /// - Returns `ManifestError::ConfigBuild` if the configuration builder fails.
-    /// - Returns `ManifestError::Deserialize` if deserialization into `Manifest` fails.
-    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, ManifestError> {
+    /// - Returns `SpecError::ConfigBuild` if the configuration builder fails.
+    /// - Returns `SpecError::Deserialize` if deserialization into `Manifest` fails.
+    pub fn from_toml<P: AsRef<Path>>(path: P) -> Result<Self, SpecError> {
         let settings = Config::builder()
             .add_source(File::from(path.as_ref()).format(FileFormat::Toml))
             .build()
-            .map_err(ManifestError::ConfigBuild)?;
+            .map_err(SpecError::ConfigBuild)?;
 
         settings
             .try_deserialize::<Manifest>()
-            .map_err(ManifestError::Deserialize)
+            .map_err(SpecError::Deserialize)
     }
 }
 
@@ -83,7 +83,7 @@ impl Default for Manifest {
     fn default() -> Manifest {
         Manifest {
             version: 1,
-            hardware: Hardware::default(),
+            metadata: None,
             layers: HashMap::new(),
         }
     }

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::error::HwSpecError;
+use crate::error::SpecError;
 use std::fmt;
 use std::str::FromStr;
 
@@ -26,12 +26,12 @@ impl Cpu {
     /// So yes, you can set a 27 MHz 386 and we won't complain, even if no such
     /// thing ever officially existed. But you won't be able to push it over 50 MHz
     /// into pure fantasy territory — for that, you'll need a proper 486.
-    pub fn set_clock(&mut self, clock: u8) -> Result<(), HwSpecError> {
+    pub fn set_clock(&mut self, clock: u8) -> Result<(), SpecError> {
         if clock < self.family.min_clock() {
-            return Err(HwSpecError::ClockTooLow);
+            return Err(SpecError::ClockTooLow);
         }
         if clock > self.family.max_clock() {
-            return Err(HwSpecError::ClockTooHigh);
+            return Err(SpecError::ClockTooHigh);
         }
         self.clock = clock;
         Ok(())
@@ -39,7 +39,7 @@ impl Cpu {
 }
 
 impl FromStr for Cpu {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
     /// Converts a string into the corresponding `Cpu` variant.
     ///
@@ -54,8 +54,8 @@ impl FromStr for Cpu {
     /// # Returns
     ///
     /// * `Ok(Cpu)` - The corresponding CPU variant if the string matches a valid CPU name.
-    /// * `Err(HwSpecError)` - An error if the string does not match any valid CPU name.
-    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+    /// * `Err(SpecError)` - An error if the string does not match any valid CPU name.
+    fn from_str(input: &str) -> Result<Self, SpecError> {
         let family = CpuFamily::from_str(input)?;
         let clock = family.default_clock();
         Ok(Cpu { family, clock })
@@ -241,7 +241,7 @@ impl fmt::Display for CpuFamily {
 }
 
 impl FromStr for CpuFamily {
-    type Err = HwSpecError;
+    type Err = SpecError;
 
     /// Converts a string into the corresponding `Cpu` variant.
     ///
@@ -256,8 +256,8 @@ impl FromStr for CpuFamily {
     /// # Returns
     ///
     /// * `Ok(Cpu)` - The corresponding CPU variant if the string matches a valid CPU name.
-    /// * `Err(HwSpecError)` - An error if the string does not match any valid CPU name.
-    fn from_str(input: &str) -> Result<Self, HwSpecError> {
+    /// * `Err(SpecError)` - An error if the string does not match any valid CPU name.
+    fn from_str(input: &str) -> Result<Self, SpecError> {
         match input.to_uppercase().as_str() {
             "I8086" | "8086" => Ok(CpuFamily::I8086),
             "I8088" | "8088" => Ok(CpuFamily::I8088),
@@ -277,7 +277,7 @@ impl FromStr for CpuFamily {
             } // DX is the default when a bare 486 is given
             "I80486DX2" | "80486DX2" | "486DX2" => Ok(CpuFamily::I80486DX2),
             "I80486DX4" | "80486DX4" | "486DX4" => Ok(CpuFamily::I80486DX4),
-            _ => Err(HwSpecError::InvalidCpu),
+            _ => Err(SpecError::InvalidCpu),
         }
     }
 }

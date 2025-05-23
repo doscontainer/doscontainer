@@ -1,11 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
-        audio::AudioDevice,
+    use crate::{hwspec::{
         cpu::{Cpu, CpuFamily},
         storage::Floppy,
         HwSpec,
-    };
+    }, types::audio::AudioDevice};
     use std::io::Write;
     use std::str::FromStr;
     use tempfile::NamedTempFile;

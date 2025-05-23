@@ -2,7 +2,7 @@ use std::{fmt, str::FromStr};
 
 use serde::Deserialize;
 
-use crate::error::ManifestError;
+use crate::error::SpecError;
 
 #[derive(Debug)]
 pub enum FileSystemType {
@@ -29,12 +29,12 @@ impl<'de> Deserialize<'de> for FileSystemType {
 }
 
 impl FromStr for FileSystemType {
-    type Err = ManifestError;
+    type Err = SpecError;
 
-    fn from_str(input: &str) -> Result<Self, ManifestError> {
+    fn from_str(input: &str) -> Result<Self, SpecError> {
         match input.to_lowercase().as_str() {
             "fat12" | "fat 12" => Ok(FileSystemType::Fat12),
-            _ => Err(ManifestError::InvalidFileSystemType),
+            _ => Err(SpecError::InvalidFileSystemType),
         }
     }
 }

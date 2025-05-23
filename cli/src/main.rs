@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
-use hwspec::HwSpec;
-use manifest::Manifest;
+use planner::InstallationPlanner;
+use specs::{hwspec::HwSpec, manifest::Manifest};
 use std::path::PathBuf;
 
 #[derive(Parser)]
