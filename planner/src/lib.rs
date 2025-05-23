@@ -1,4 +1,3 @@
-use disk::disktype::DiskType;
 use error::PlanError;
 use specs::{hwspec::HwSpec, manifest::Manifest};
 mod error;

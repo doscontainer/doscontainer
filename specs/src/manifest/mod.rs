@@ -1,21 +1,22 @@
 use config::{Config, File, FileFormat};
+use metadata::Metadata;
 
 use crate::error::SpecError;
 use layer::Layer;
 use serde::Deserialize;
-use storage::FileSystemType;
 
 
 use std::{collections::HashMap, fmt, path::Path};
 
 mod layer;
+mod metadata;
 mod storage;
 mod tests;
 
 #[derive(Deserialize)]
 pub struct Manifest {
     version: u32,
-    filesystem: FileSystemType,
+    metadata: Option<Metadata>,
     layers: HashMap<String, Layer>,
 }
 
@@ -79,8 +80,8 @@ impl Default for Manifest {
     fn default() -> Manifest {
         Manifest {
             version: 1,
+            metadata: None,
             layers: HashMap::new(),
-            filesystem: FileSystemType::Fat12,
         }
     }
 }
@@ -90,7 +91,12 @@ impl fmt::Display for Manifest {
         writeln!(f, "DOSContainer build manifest")?;
         writeln!(f, "-----------------------------------")?;
         writeln!(f, " Manifest format version : {}", self.version())?;
-        writeln!(f, " File system(S)          : {}", self.filesystem)?;
+        if let Some(metadata) = &self.metadata {
+            writeln!(f, " Application             : {}", metadata.application)?;
+            writeln!(f, " Developer               : {}", metadata.developer)?;
+            writeln!(f, " Genres                  : {}", metadata.genres.join(", "))?;
+            writeln!(f, " Year                    : {}", metadata.year)?;
+        }
         for layer in self.layers() {
             writeln!(f, "{} {}", layer.0, layer.1)?;
         }

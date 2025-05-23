@@ -12,6 +12,8 @@ use url::Url;
 use zip::ZipArchive;
 
 use crate::error::SpecError;
+use crate::types::audio::AudioDevice;
+use crate::types::video::VideoDevice;
 
 #[derive(Default, Deserialize)]
 pub struct Layer {
@@ -19,7 +21,12 @@ pub struct Layer {
     checksum: Option<String>,
     min_dos: Option<OsVersion>,
     max_dos: Option<OsVersion>,
-    dos_vendor: Option<OsVendor>,
+    #[serde(default)]
+    dos_vendors: Vec<OsVendor>,
+    #[serde(default)]
+    graphics: Vec<VideoDevice>,
+    #[serde(default)]
+    audio: Vec<AudioDevice>,
     #[serde(skip_deserializing)]
     zipfile_path: Option<NamedTempFile>,
     #[serde(skip_deserializing)]
@@ -325,6 +332,7 @@ impl Layer {
 impl fmt::Display for Layer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Layer")?;
+        writeln!(f, "-----")?;
         if let Some(url) = &self.url {
             writeln!(f, "  URL         : {}", url)?;
         }
@@ -336,6 +344,9 @@ impl fmt::Display for Layer {
         }
         if let Some(max_dos) = &self.max_dos {
             writeln!(f, "  Maximum DOS version: {}", max_dos)?;
+        }
+        if !self.graphics.is_empty() {
+            writeln!(f, "  Graphics support: {}", self.graphics.iter().map(|g| g.to_string()).collect::<Vec<_>>().join(", "))?;
         }
         Ok(())
     }
