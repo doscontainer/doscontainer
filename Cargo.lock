@@ -1388,6 +1388,7 @@ name = "planner"
 version = "0.1.0"
 dependencies = [
  "disk",
+ "operatingsystem",
  "specs",
 ]
 

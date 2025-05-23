@@ -349,9 +349,6 @@ impl fmt::Display for Layer {
         if let Some(checksum) = &self.checksum {
             writeln!(f, "  Checksum    : {}", checksum)?;
         }
-        if let Some(os_vendor) = &self.os_vendor {
-            writeln!(f, "  DOS vendor  : {} ", os_vendor)?;
-        }
         if let Some(min_dos) = &self.min_dos {
             writeln!(f, "  Minimum DOS version: {}", min_dos)?;
         }

@@ -1,4 +1,4 @@
 mod error;
 pub mod hwspec;
 pub mod manifest;
-mod types;
+pub mod types;

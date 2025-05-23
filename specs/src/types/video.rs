@@ -6,6 +6,7 @@ use std::{fmt, str::FromStr};
 #[derive(Debug, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum VideoDevice {
+    MDA,
     HCG,
     CGA,
     EGA,
@@ -22,6 +23,7 @@ impl fmt::Display for VideoDevice {
     /// the full name of the processor, e.g., "Intel 8086" or "Intel 80486DX".
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
+            VideoDevice::MDA => "IBM Monochrome Display Adapter",
             VideoDevice::HCG => "Hercules Monochrome",
             VideoDevice::CGA => "IBM CGA or compatible",
             VideoDevice::EGA => "IBM EGA or compatible",

@@ -2,8 +2,8 @@ use error::DiskError;
 use sectorsize::SectorSize;
 
 mod error;
-mod raw;
-mod sectorsize;
+pub mod raw;
+pub mod sectorsize;
 mod volume;
 
 pub trait Disk {

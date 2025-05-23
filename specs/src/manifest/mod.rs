@@ -94,8 +94,6 @@ impl fmt::Display for Manifest {
         writeln!(f, "DOSContainer build manifest")?;
         writeln!(f, "-----------------------------------")?;
         writeln!(f, " Manifest format version : {}", self.version())?;
-        writeln!(f, " Graphics support        : {} ", self.hardware.graphics().join(","))?;
-        writeln!(f, " Sound support           : {} ", self.hardware.sound().join(","))?;
         for layer in self.layers() {
             writeln!(f, "{} {}", layer.0, layer.1)?;
         }
