@@ -17,9 +17,9 @@ use crate::error::SpecError;
 use crate::types::audio::AudioDevice;
 use crate::types::audio::AudioDeviceType;
 use crate::types::cpu;
+use crate::types::storage;
 use crate::types::video::VideoDevice;
 
-pub mod storage;
 mod tests;
 
 /// Represents the hardware configuration of an MS-DOS compatible PC system.
