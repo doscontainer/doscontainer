@@ -2,7 +2,6 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-use audio::{AudioDevice, AudioDeviceType};
 use byte_unit::Byte;
 use config::Config;
 use config::File;
@@ -16,8 +15,9 @@ use storage::FloppyType;
 use video::VideoDevice;
 
 use crate::error::SpecError;
+use crate::types::audio::AudioDevice;
+use crate::types::audio::AudioDeviceType;
 
-pub mod audio;
 pub mod cpu;
 pub mod storage;
 mod tests;
