@@ -12,16 +12,15 @@ use serde_with::serde_as;
 use serde_with::OneOrMany;
 use storage::Floppy;
 use storage::FloppyType;
-use video::VideoDevice;
 
 use crate::error::SpecError;
 use crate::types::audio::AudioDevice;
 use crate::types::audio::AudioDeviceType;
 use crate::types::cpu;
+use crate::types::video::VideoDevice;
 
 pub mod storage;
 mod tests;
-pub mod video;
 
 /// Represents the hardware configuration of an MS-DOS compatible PC system.
 #[serde_as]
