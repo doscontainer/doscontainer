@@ -104,7 +104,7 @@ impl HwSpec {
         Ok(())
     }
 
-    pub fn video(&self) -> &[VideoDevice] {
+    pub fn video(&self) -> &Vec<VideoDevice> {
         &self.video
     }
 

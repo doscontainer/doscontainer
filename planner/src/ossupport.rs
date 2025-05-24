@@ -3,7 +3,7 @@ use specs::types::{cpu::CpuFamily, storage::FloppyType, video::VideoDevice};
 
 pub struct OsSupport {
     pub version: OsShortName,
-    pub min_ram_kib: usize,
+    pub min_ram_kib: u32,
     pub supported_cpu_families: &'static [CpuFamily],
     pub supported_floppies: &'static [FloppyType],
     pub supported_video: &'static [VideoDevice],

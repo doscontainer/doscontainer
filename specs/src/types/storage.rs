@@ -17,7 +17,7 @@ impl Floppy {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 pub enum FloppyType {
     F525_160,
     F525_320,
