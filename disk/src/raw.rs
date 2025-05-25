@@ -17,7 +17,7 @@ impl RawImage {
         let file = File::options()
             .read(true)
             .write(true)
-            .create_new(true) 
+            .create_new(true)
             .open(path)
             .map_err(|_| DiskError::FileAlreadyExists)?;
 
@@ -85,6 +85,26 @@ impl Disk for RawImage {
 
     fn sector_size(&self) -> SectorSize {
         self.sector_size
+    }
+
+    /// Overwrites every sector on the disk with the byte pattern `0xF6`.
+    ///
+    /// This pattern was commonly used by IBM and later by PC-DOS to mark
+    /// unallocated or empty sectors. It serves as a recognizable signature
+    /// indicating that the disk has been freshly formatted or wiped, but
+    /// does not contain meaningful data yet.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DiskError`] if any sector write operation fails.
+    ///
+    fn ibmwipe(&mut self) -> Result<(), DiskError> {
+        let sector_size = self.sector_size.as_usize();
+        let ibm_empty_sector = vec![0xF6u8; sector_size];
+        for sector in 0..self.sector_count() {
+            self.write_sector(sector, &ibm_empty_sector)?;
+        }
+        Ok(())
     }
 }
 
