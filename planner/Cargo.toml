@@ -5,5 +5,6 @@ edition = "2021"
 
 [dependencies]
 disk = { path = "../disk" }
+filesystem = { path = "../filesystem" }
 specs = { path = "../specs" }
 operatingsystem = { path = "../operatingsystem" }

@@ -48,6 +48,10 @@ impl Fat12 {
         &self.allocation_table
     }
 
+    pub fn pool(&self) -> &Pool {
+        &self.pool
+    }
+
     /// Helper method: takes a path, returns the filename from it if it exists.
     fn get_filename(path: &Path) -> Option<String> {
         let filename = path
@@ -95,6 +99,31 @@ impl FileSystem for Fat12 {
 
         Ok(())
     }
+
+        fn mksysfile(&mut self, path_str: &str, filesize: usize) -> Result<(), FileSystemError> {
+        let path = Path::new(path_str);
+
+        // Convert Option to Result here
+        let filename = Self::get_filename(path).ok_or(FileSystemError::EmptyFileName)?;
+        let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;
+        let parent = self
+            .pool
+            .entry_by_path(parent_path)
+            .ok_or(FileSystemError::ParentNotFound)?;
+
+        let mut entry = DirEntry::new_sysfile(filename.as_str())?;
+        entry.set_parent(parent);
+
+        let clusters = self.allocation_table.allocate_entry(filesize)?;
+        entry.set_cluster_map(&clusters);
+        entry.set_start_cluster(clusters[0]);
+        entry.set_filesize(filesize);
+
+        self.pool.add_entry(entry)?;
+
+        Ok(())
+    }
+
 
     fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError> {
         let path = Path::new(path);

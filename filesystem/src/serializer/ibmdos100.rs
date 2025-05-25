@@ -5,9 +5,10 @@ use crate::{
     direntry::DirEntry,
     error::FileSystemError,
     names::EntryName,
+    pool::Pool,
 };
 
-use super::{DirEntrySerializer, Fat12Serializer, NameSerializer};
+use super::{DirEntrySerializer, DirectorySerializer, Fat12Serializer, NameSerializer};
 
 #[allow(dead_code)]
 pub struct IbmDos100 {}
@@ -40,7 +41,7 @@ impl DirEntrySerializer for IbmDos100 {
         buf[0..11].copy_from_slice(&name_bytes);
 
         // Attributes
-        buf[11] = entry.attributes().as_byte(); // Make sure this method exists
+        buf[11] = entry.attributes().as_byte();
 
         // 22–23: creation time
         let time = Self::encode_time(entry.creation_time());
@@ -68,6 +69,37 @@ impl DirEntrySerializer for IbmDos100 {
     }
 }
 
+impl DirectorySerializer for IbmDos100 {
+    fn serialize_directory(pool: &Pool, directory: &DirEntry) -> Result<Vec<u8>, FileSystemError> {
+        let mut bytes: Vec<u8> = Vec::new();
+        let children: Vec<_> = pool
+            .iter()
+            .filter(|entry| entry.parent() == Some(directory.uuid()))
+            .collect();
+
+        for child in &children {
+            let child_bytes = <IbmDos100 as DirEntrySerializer>::serialize_direntry(child)?;
+            bytes.extend(child_bytes);
+        }
+
+        if directory.is_root() {
+            let placeholder_bytes: Vec<u8> = vec![
+                0xE5, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6,
+                0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6,
+                0xF6, 0xF6, 0xF6, 0xF6,
+            ];
+
+            if children.len() < 64 {
+                let placeholders_needed = 64 - children.len();
+                for _ in 0..placeholders_needed {
+                    bytes.extend(&placeholder_bytes);
+                }
+            }
+        }
+        Ok(bytes)
+    }
+}
+
 impl Fat12Serializer for IbmDos100 {
     fn serialize_fat12(fat: &AllocationTable) -> Result<Vec<u8>, FileSystemError> {
         const FAT12_MASK: u16 = 0x0FFF;
@@ -75,7 +107,7 @@ impl Fat12Serializer for IbmDos100 {
 
         let mut fat_entries: Vec<u16> = Vec::new();
 
-        // Set cluster 0 explicitly as media descriptor 0xFE (0xFFE 12-bit value)
+        // Set cluster 0 explicitly as media descriptor 0xFE
         fat_entries.push(0xFFE);
 
         // Set cluster 1 explicitly as EndOfChain
@@ -123,6 +155,7 @@ impl Fat12Serializer for IbmDos100 {
             bytes.push(((a >> 8) as u8) & 0x0F);
         }
 
+        bytes.resize(fat.cluster_size(), 0);
         Ok(bytes)
     }
 }

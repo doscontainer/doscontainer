@@ -40,6 +40,10 @@ impl AllocationTable {
         &self.clusters
     }
 
+    pub fn cluster_size(&self) -> usize {
+        self.cluster_size
+    }
+
     pub fn set_cluster_count(&mut self, cluster_count: usize) -> Result<(), FileSystemError> {
         if cluster_count < self.cluster_count {
             return Err(FileSystemError::WontShrinkAllocationTable);

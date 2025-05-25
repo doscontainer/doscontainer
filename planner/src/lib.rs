@@ -2,6 +2,11 @@ use std::path::Path;
 
 use disk::{raw::RawImage, sectorsize::SectorSize, Disk};
 use error::PlanError;
+use filesystem::{
+    fat12::Fat12,
+    serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer},
+    FileSystem,
+};
 use operatingsystem::OperatingSystem;
 use ossupport::OsSupport;
 use specs::{hwspec::HwSpec, manifest::Manifest};
@@ -37,7 +42,22 @@ impl InstallationPlanner {
             .expect("Failed to create disk");
         disk.ibmwipe().unwrap();
         let os = OperatingSystem::from_vendor_version("IBM", "1.00").unwrap();
+        let mut filesystem = Fat12::default();
+        filesystem.mksysfile("IBMBIO.COM", 1920).unwrap();
+        filesystem.mksysfile("IBMDOS.COM", 6400).unwrap();
+        filesystem.mkfile("COMMAND.COM", 3231).unwrap();
+        let fatbytes = IbmDos100::serialize_fat12(&filesystem.allocation_table()).unwrap();
+        let databytes = IbmDos100::serialize_directory(
+            filesystem.pool(),
+            filesystem.pool().root_entry().unwrap(),
+        )
+        .unwrap();
         disk.write_sector(0, os.bootsector()).unwrap();
+        disk.write_sector(1, &fatbytes).unwrap();
+        disk.write_sector(2, &fatbytes).unwrap();
+        for (i, chunk) in databytes.chunks(512).enumerate() {
+            disk.write_sector(3 + i as u64, chunk).unwrap();
+        }
 
         let layers = manifest.mut_layers();
         for layer in layers {

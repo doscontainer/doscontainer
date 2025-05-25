@@ -7,10 +7,10 @@ mod attributes;
 mod bpb;
 mod direntry;
 mod error;
-mod fat12;
+pub mod fat12;
 mod names;
 mod pool;
-mod serializer;
+pub mod serializer;
 
 // Cluster index into the FAT
 pub type ClusterIndex = usize;
@@ -21,6 +21,9 @@ mod tests;
 pub trait FileSystem {
     /// Create a new file
     fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
+
+    /// Create a new system file
+    fn mksysfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
 
     /// Create a directory
     fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError>;

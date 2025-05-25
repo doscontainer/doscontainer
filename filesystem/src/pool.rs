@@ -9,6 +9,12 @@ pub struct Pool {
     entries: Vec<DirEntry>,
 }
 
+impl Pool {
+    pub fn iter(&self) -> std::slice::Iter<DirEntry> {
+        self.entries.iter()
+    }
+}
+
 impl Default for Pool {
     /// Returns a new `Pool` containing only the root directory entry.
     fn default() -> Pool {
