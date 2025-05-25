@@ -20,7 +20,7 @@ impl Default for Fat12 {
             allocation_table: AllocationTable::default(),
             pool: Pool::default(),
             cluster_size: 1,    // Size in sectors
-            cluster_count: 340, // Number of clusters in the filesystem
+            cluster_count: 313, // Number of clusters in the filesystem
             sector_size: 512,   // Sector size in bytes
         }
     }
