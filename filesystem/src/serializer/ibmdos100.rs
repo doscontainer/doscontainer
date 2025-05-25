@@ -141,20 +141,21 @@ impl Fat12Serializer for IbmDos100 {
 
             bytes.push((a & 0xFF) as u8); // Low 8 bits of a
 
-            let middle_byte = (((a >> 8) as u8) & 0x0F) | (((b << 4) as u8) & 0xF0);
+            let middle_byte = (((a >> 8) as u8) & 0x0F) | (((b as u8 & 0x0F) << 4) & 0xF0);
+            //let middle_byte = (((a >> 8) as u8) & 0x0F) | (((b << 4) as u8) & 0xF0);
             bytes.push(middle_byte); // High 4 bits of a + low 4 bits of b
 
             bytes.push(u8::try_from(b >> 4).map_err(|_| FileSystemError::RangeLostInTruncation)?); // High 8 bits of b
 
             i += 2;
         }
-
+/* 
         if i < fat_entries.len() {
             let a = fat_entries[i];
             bytes.push((a & 0xFF) as u8);
             bytes.push(((a >> 8) as u8) & 0x0F);
         }
-
+*/
         bytes.resize(fat.cluster_size(), 0);
         Ok(bytes)
     }

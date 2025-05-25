@@ -46,6 +46,7 @@ impl InstallationPlanner {
         filesystem.mksysfile("IBMBIO.COM", 1920).unwrap();
         filesystem.mksysfile("IBMDOS.COM", 6400).unwrap();
         filesystem.mkfile("COMMAND.COM", 3231).unwrap();
+        println!("{:?}", filesystem.allocation_table());
         let fatbytes = IbmDos100::serialize_fat12(&filesystem.allocation_table()).unwrap();
         let databytes = IbmDos100::serialize_directory(
             filesystem.pool(),
@@ -57,6 +58,56 @@ impl InstallationPlanner {
         disk.write_sector(2, &fatbytes).unwrap();
         for (i, chunk) in databytes.chunks(512).enumerate() {
             disk.write_sector(3 + i as u64, chunk).unwrap();
+        }
+
+        let iosys_clusters = filesystem
+            .pool()
+            .entry_by_path(Path::new("IBMBIO.COM"))
+            .unwrap()
+            .cluster_map();
+
+        let iosys_bytes = os.iosys_bytes();
+        let mut offset = 0;
+
+        for cluster in iosys_clusters {
+            let sector = cluster + 5;
+            let mut buffer = [0u8; 512];
+            if offset < iosys_bytes.len() {
+                let end = usize::min(offset + 512, iosys_bytes.len());
+                buffer[..(end-offset)].copy_from_slice(&iosys_bytes[offset..end]);
+            }
+            disk.write_sector(sector as u64, &buffer).unwrap();
+            offset += 512;
+        }
+
+        let msdossys_clusters = filesystem.pool().entry_by_path(Path::new("IBMDOS.COM")).unwrap().cluster_map();
+        let msdossys_bytes = os.msdoss_bytes();
+        let mut offset = 0;
+
+        for cluster in msdossys_clusters {
+            let sector = cluster +5;
+            let mut buffer = [0u8; 512];
+            if offset < msdossys_bytes.len() {
+                let end = usize::min(offset + 512, msdossys_bytes.len());
+                buffer[..(end-offset)].copy_from_slice(&msdossys_bytes[offset..end]);
+            }
+            disk.write_sector(sector as u64, &buffer).unwrap();
+            offset += 512;
+        }
+
+        let commandcom_clusters = filesystem.pool().entry_by_path(Path::new("COMMAND.COM")).unwrap().cluster_map();
+        let commandcom_bytes = os.commandcom_bytes();
+        let mut offset = 0;
+
+        for cluster in commandcom_clusters {
+            let sector = cluster +5;
+            let mut buffer = [0u8; 512];
+            if offset < commandcom_bytes.len() {
+                let end = usize::min(offset + 512, commandcom_bytes.len());
+                buffer[..(end-offset)].copy_from_slice(&commandcom_bytes[offset..end]);
+            }
+            disk.write_sector(sector as u64, &buffer).unwrap();
+            offset += 512;
         }
 
         let layers = manifest.mut_layers();

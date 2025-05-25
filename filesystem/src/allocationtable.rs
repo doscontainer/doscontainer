@@ -26,12 +26,15 @@ pub struct AllocationTable {
 
 impl Default for AllocationTable {
     fn default() -> Self {
-        AllocationTable {
+        let mut table = AllocationTable {
             clusters: BTreeMap::new(),
             cluster_size: 512,
             cluster_count: 340,
             fat_type: FatType::Fat12,
-        }
+        };
+        table.clusters.insert(0, ClusterValue::Reserved);
+        table.clusters.insert(1,ClusterValue::EndOfChain);
+        table
     }
 }
 
@@ -102,10 +105,10 @@ impl AllocationTable {
 
         match self.clusters.get(&index) {
             Some(ClusterValue::Next(_) | ClusterValue::EndOfChain) => {
-                return Err(FileSystemError::ClusterAlreadyAllocated)
+                return Err(FileSystemError::ClusterAlreadyAllocated);
             }
             Some(ClusterValue::Bad | ClusterValue::Reserved) => {
-                return Err(FileSystemError::ClusterNotUsable)
+                return Err(FileSystemError::ClusterNotUsable);
             }
             Some(ClusterValue::Free) | None => {
                 let value = match next {

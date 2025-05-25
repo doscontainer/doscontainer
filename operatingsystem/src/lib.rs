@@ -19,7 +19,10 @@ pub struct OperatingSystem {
     bootsector: [u8; 512],
     jumpcode: [u8; 3],
     msdossys: String,
+    msdossys_bytes: Vec<u8>,
     iosys: String,
+    iosys_bytes: Vec<u8>,
+    commandcom_bytes: Vec<u8>,
     product: OsProduct,
     shortname: OsShortName,
     url: Url,
@@ -91,7 +94,10 @@ impl OperatingSystem {
             (OsVendor::IBM, v) if v == OsVersion::new(1, 0) => Ok(Self {
                 bootsector: *include_bytes!("bootsectors/pcdos-100.bin"),
                 iosys: "IBMBIO.COM".to_string(),
+                iosys_bytes: (*include_bytes!("sysfiles/ibmdos100/IBMBIO.COM")).to_vec(),
                 msdossys: "IBMDOS.COM".to_string(),
+                msdossys_bytes: (*include_bytes!("sysfiles/ibmdos100/IBMDOS.COM")).to_vec(),
+                commandcom_bytes: (*include_bytes!("sysfiles/ibmdos100/COMMAND.COM")).to_vec(),
                 product: OsProduct::PcDos,
                 shortname: OsShortName::IBMDOS100,
                 url: Url::from_str("https://dosk8s-dist.area536.com/ibm-pc-dos-100-bootstrap.zip")
@@ -112,6 +118,9 @@ impl OperatingSystem {
                 vendor,
                 version,
                 jumpcode: [0xEB, 0x27, 0x90],
+                msdossys_bytes: Vec::new(), // TODO
+                iosys_bytes: Vec::new(), // TODO
+                commandcom_bytes: Vec::new(), // TODO
             }),
             // IBM PC-DOS 2.00
             (OsVendor::IBM, v) if v == OsVersion::new(2, 0) => Ok(Self {
@@ -125,6 +134,9 @@ impl OperatingSystem {
                 vendor,
                 version,
                 jumpcode: [0xEB, 0x27, 0x90],
+                msdossys_bytes: Vec::new(), // TODO
+                iosys_bytes: Vec::new(), // TODO
+                commandcom_bytes: Vec::new(), // TODO
             }),
             _ => Err(OsError::UnsupportedOs),
         }
@@ -143,6 +155,18 @@ impl OperatingSystem {
     /// Return the filename this OS uses for the IO.SYS equivalent system file.
     pub fn iosys(&self) -> &str {
         self.iosys.as_str()
+    }
+
+    pub fn msdoss_bytes(&self) -> &[u8] {
+        &self.msdossys_bytes
+    }
+
+    pub fn iosys_bytes(&self) -> &[u8] {
+        &self.iosys_bytes
+    }
+
+    pub fn commandcom_bytes(&self) -> &[u8] {
+        &self.commandcom_bytes
     }
 
     /// Return the default download URL for an operating system zipfile
