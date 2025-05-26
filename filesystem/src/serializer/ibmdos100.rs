@@ -41,7 +41,7 @@ impl DirEntrySerializer for IbmDos100 {
         buf[0..11].copy_from_slice(&name_bytes);
 
         // Attributes
-        // Intercept regular files with the Archive attribute here for PC-DOS 1.00
+        // Intercept regular files with the Archive attribute (0x20) here for PC-DOS 1.00
         // and set to 0x00 (no attribute set).
         if entry.attributes().as_byte() == 0x20 {
             buf[11] = 0x00;
