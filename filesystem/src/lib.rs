@@ -19,7 +19,7 @@ pub type ClusterIndex = usize;
 #[cfg(test)]
 mod tests;
 
-pub(crate) trait ClusterIO {
+pub trait ClusterIO {
     fn write_cluster(&mut self, index: ClusterIndex, data: &[u8]) -> Result<(), FileSystemError>;
     fn cluster_to_sector(&self, index: ClusterIndex) -> usize;
     fn data_region_start(&self) -> usize;
@@ -30,7 +30,7 @@ pub trait FileSystem {
     fn mkfile(
         &mut self,
         path: &str,
-        filesize: usize,
+        data: &[u8],
         creation_time: Option<NaiveDateTime>,
     ) -> Result<(), FileSystemError>;
 
@@ -38,7 +38,7 @@ pub trait FileSystem {
     fn mksysfile(
         &mut self,
         path: &str,
-        filesize: usize,
+        data: &[u8],
         creation_time: Option<NaiveDateTime>,
     ) -> Result<(), FileSystemError>;
 

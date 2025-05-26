@@ -2,10 +2,10 @@ use std::path::Path;
 
 use chrono::NaiveDateTime;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
+use operatingsystem::OperatingSystem;
 
 use crate::{
-    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
-    ClusterIO, ClusterIndex, FileSystem,
+    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool, serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer}, ClusterIO, ClusterIndex, FileSystem
 };
 
 #[derive(Debug)]
@@ -100,6 +100,23 @@ impl<'a, D: Disk> Fat12<'a, D> {
         Ok(filesystem)
     }
 
+    /// THIS HAS TO GO!!
+    pub fn write_crud(&mut self) {
+        let os = operatingsystem::OperatingSystem::from_vendor_version("ibm", "1.00").unwrap();
+        let fatbytes = IbmDos100::serialize_fat12(&self.allocation_table()).unwrap();
+        let databytes = IbmDos100::serialize_directory(
+            self.pool(),
+            self.pool().root_entry().unwrap(),
+        )
+        .unwrap();
+        self.volume.write_sector(0, os.bootsector()).unwrap();
+        self.volume.write_sector(1, &fatbytes).unwrap();
+        self.volume.write_sector(2, &fatbytes).unwrap();
+        for (i, chunk) in databytes.chunks(512).enumerate() {
+            self.volume.write_sector(3 + i as u64, chunk).unwrap();
+        }
+    }
+
     pub fn allocation_table(&self) -> &AllocationTable {
         &self.allocation_table
     }
@@ -135,7 +152,7 @@ impl<'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
     fn mkfile(
         &mut self,
         path_str: &str,
-        filesize: usize,
+        data: &[u8],
         creation_time: Option<NaiveDateTime>,
     ) -> Result<(), FileSystemError> {
         let path = Path::new(path_str);
@@ -156,10 +173,18 @@ impl<'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
 
         entry.set_parent(parent);
 
-        let clusters = self.allocation_table.allocate_entry(filesize)?;
+        let clusters = self.allocation_table.allocate_entry(data.len())?;
         entry.set_cluster_map(&clusters);
         entry.set_start_cluster(clusters[0]);
-        entry.set_filesize(filesize);
+        entry.set_filesize(data.len());
+
+        // Write data to each cluster
+        let cluster_bytes = self.sector_size.as_usize() * self.cluster_size;
+        for (i, &cluster) in clusters.iter().enumerate() {
+            let start = i * cluster_bytes;
+            let end = usize::min(start + cluster_bytes, data.len());
+            self.write_cluster(cluster, &data[start..end])?;
+        }
 
         self.pool.add_entry(entry)?;
 
@@ -169,7 +194,7 @@ impl<'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
     fn mksysfile(
         &mut self,
         path_str: &str,
-        filesize: usize,
+        data: &[u8],
         creation_time: Option<NaiveDateTime>,
     ) -> Result<(), FileSystemError> {
         let path = Path::new(path_str);
@@ -190,10 +215,18 @@ impl<'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
 
         entry.set_parent(parent);
 
-        let clusters = self.allocation_table.allocate_entry(filesize)?;
+        let clusters = self.allocation_table.allocate_entry(data.len())?;
         entry.set_cluster_map(&clusters);
         entry.set_start_cluster(clusters[0]);
-        entry.set_filesize(filesize);
+        entry.set_filesize(data.len());
+
+        // Write data to each cluster
+        let cluster_bytes = self.sector_size.as_usize() * self.cluster_size;
+        for (i, &cluster) in clusters.iter().enumerate() {
+            let start = i * cluster_bytes;
+            let end = usize::min(start + cluster_bytes, data.len());
+            self.write_cluster(cluster, &data[start..end])?;
+        }
 
         self.pool.add_entry(entry)?;
 

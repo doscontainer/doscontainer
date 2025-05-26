@@ -7,3 +7,4 @@ edition = "2021"
 chrono = { workspace = true }
 disk = { path = "../disk" }
 uuid = { workspace = true }
+operatingsystem = { path = "../operatingsystem" }
