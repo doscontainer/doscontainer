@@ -32,6 +32,8 @@ impl Default for AllocationTable {
             cluster_count: 340,
             fat_type: FatType::Fat12,
         };
+        // The first two clusters are *ALWAYS* taken! Write in the
+        // exact on-disk representations in the appropriate serializer.
         table.clusters.insert(0, ClusterValue::Reserved);
         table.clusters.insert(1,ClusterValue::EndOfChain);
         table

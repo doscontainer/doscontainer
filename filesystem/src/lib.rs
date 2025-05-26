@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use chrono::NaiveDateTime;
 use error::FileSystemError;
 
 mod allocationtable;
@@ -20,11 +21,26 @@ mod tests;
 
 pub trait FileSystem {
     /// Create a new file
-    fn mkfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
+    fn mkfile(
+        &mut self,
+        path: &str,
+        filesize: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError>;
 
     /// Create a new system file
-    fn mksysfile(&mut self, path: &str, filesize: usize) -> Result<(), FileSystemError>;
+    fn mksysfile(
+        &mut self,
+        path: &str,
+        filesize: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError>;
 
     /// Create a directory
-    fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError>;
+    fn mkdir(
+        &mut self,
+        path: &str,
+        entries_count: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError>;
 }

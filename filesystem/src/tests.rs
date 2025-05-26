@@ -86,17 +86,17 @@ mod tests {
     fn allocationtable_allocate_cluster() {
         let mut table = AllocationTable::default();
         assert!(table.set_cluster_count(340).is_ok());
-        assert!(table.allocate(1, Some(2)).is_ok());
-        assert!(!table.is_free(1).unwrap());
+        assert!(table.allocate(3, Some(4)).is_ok());
+        assert!(!table.is_free(3).unwrap());
     }
 
     #[test]
     fn allocationtable_allocate_occupied() {
         let mut table = AllocationTable::default();
         assert!(table.set_cluster_count(340).is_ok());
-        assert!(table.allocate(1, Some(2)).is_ok());
+        assert!(table.allocate(3, Some(4)).is_ok());
         assert_eq!(
-            table.allocate(1, Some(3)),
+            table.allocate(3, Some(4)),
             Err(FileSystemError::ClusterAlreadyAllocated)
         );
     }
@@ -140,22 +140,22 @@ mod tests {
     #[test]
     fn new_fat12() {
         let mut fat = Fat12::new(512, 1, 340).unwrap();
-        assert!(fat.mkfile("/COMMAND.COM", 10).is_ok());
+        assert!(fat.mkfile("/COMMAND.COM", 10, None).is_ok());
     }
 
     #[test]
     fn fat12_mkfile_with_length() {
         let data = vec![0u8; 4000];
         let mut fat = Fat12::new(512, 1, 340).unwrap();
-        assert!(fat.mkfile("/COMMAND.COM", data.len()).is_ok());
-        assert!(fat.mkfile("/AUTOEXEC.BAT", data.len()).is_ok());
+        assert!(fat.mkfile("/COMMAND.COM", data.len(), None).is_ok());
+        assert!(fat.mkfile("/AUTOEXEC.BAT", data.len(), None).is_ok());
     }
 
     #[test]
     fn invalid_mkfile_fat12() {
         let mut fat = Fat12::default();
         assert_eq!(
-            fat.mkfile("COMMANDISFARTOOLONG.COM", 10),
+            fat.mkfile("COMMANDISFARTOOLONG.COM", 10, None),
             Err(FileSystemError::FileNameTooLong)
         );
     }
@@ -164,15 +164,15 @@ mod tests {
     fn invalid_dotfiles_fat12() {
         let mut fat = Fat12::default();
         assert_eq!(
-            fat.mkfile("..", 0),
+            fat.mkfile("..", 0, None),
             Err(FileSystemError::CannotCreateDotfiles)
         );
         assert_eq!(
-            fat.mkfile(".", 0),
+            fat.mkfile(".", 0, None),
             Err(FileSystemError::CannotCreateDotfiles)
         );
         assert_eq!(
-            fat.mkfile(".DOTFIL", 0),
+            fat.mkfile(".DOTFIL", 0, None),
             Err(FileSystemError::EmptyFileName)
         );
     }
@@ -276,37 +276,76 @@ mod tests {
     #[test]
     fn fat12_mkdir() {
         let mut filesystem = Fat12::new(512, 1, 340).unwrap();
-        assert!(filesystem.mkdir("/DOS", 2).is_ok());
-        assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221).is_ok());
+        assert!(filesystem.mkdir("/DOS", 2, None).is_ok());
+        assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221, None).is_ok());
     }
 
     #[test]
     fn fat12_mkdir_hugedir() {
         let mut fat = Fat12::new(512, 1, 340).unwrap();
-        assert!(fat.mkdir("/DOS", 600).is_ok());
+        assert!(fat.mkdir("/DOS", 600, None).is_ok());
     }
 
     #[test]
     fn fat12_serialize_empty_ibmdos100() {
         let fat = Fat12::new(512, 1, 340).unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
-        assert_eq!(serializer, vec![0xFE, 0xFF, 0xFF]);
+        assert_eq!(
+            serializer,
+            vec![
+                254, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ]
+        );
     }
 
     #[test]
     // Compares the actual FAT for an IBM PC-DOS 1.00 original boot disk with our serializer
     fn fat12_test_actual_pcdos100() {
         let mut fat = Fat12::new(512, 1, 340).unwrap();
-        fat.mkfile("IBMBIO.COM", 1920).unwrap();
-        fat.mkfile("IBMDOS.COM", 6400).unwrap();
-        fat.mkfile("COMMAND.COM", 3231).unwrap();
+        fat.mkfile("IBMBIO.COM", 1920, None).unwrap();
+        fat.mkfile("IBMDOS.COM", 6400, None).unwrap();
+        fat.mkfile("COMMAND.COM", 3231, None).unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(
             serializer,
             vec![
-                0xFE, 0xFF, 0xFF, 0x03, 0x40, 0x00, 0x05, 0xF0, 0xFF, 0x07, 0x80, 0x00, 0x09, 0xa0,
-                0x00, 0x0b, 0xc0, 0x00, 0x0d, 0xe0, 0x00, 0x0f, 0x00, 0x01, 0x11, 0x20, 0x01,
-                0x0ff, 0x4f, 0x01, 0x15, 0x60, 0x01, 0x17, 0x80, 0x01, 0x19, 0xf0, 0xff
+                254, 255, 255, 3, 64, 0, 5, 240, 255, 7, 128, 0, 9, 160, 0, 11, 192, 0, 13, 224, 0,
+                15, 0, 1, 17, 32, 1, 255, 79, 1, 21, 96, 1, 23, 128, 1, 25, 240, 255, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             ]
         );
     }

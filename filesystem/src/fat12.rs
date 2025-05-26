@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use chrono::NaiveDateTime;
+
 use crate::{
     allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
     FileSystem,
@@ -36,8 +38,6 @@ impl Fat12 {
         filesystem
             .allocation_table
             .set_cluster_count(cluster_count)?;
-        filesystem.allocation_table.reserve(0)?;
-        filesystem.allocation_table.mark_end_of_chain(1)?;
         filesystem.cluster_count = cluster_count;
         filesystem.cluster_size = cluster_size;
         filesystem.sector_size = sector_size;
@@ -76,7 +76,12 @@ impl FileSystem for Fat12 {
     /// Returns `FileSystemError::EmptyFileName` if the filename is empty,
     /// or `FileSystemError::ParentNotFound` if the parent directory doesn't exist,
     /// or errors returned by `DirEntry::new_file` or `pool.add_entry`.
-    fn mkfile(&mut self, path_str: &str, filesize: usize) -> Result<(), FileSystemError> {
+    fn mkfile(
+        &mut self,
+        path_str: &str,
+        filesize: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError> {
         let path = Path::new(path_str);
 
         // Convert Option to Result here
@@ -100,7 +105,12 @@ impl FileSystem for Fat12 {
         Ok(())
     }
 
-        fn mksysfile(&mut self, path_str: &str, filesize: usize) -> Result<(), FileSystemError> {
+    fn mksysfile(
+        &mut self,
+        path_str: &str,
+        filesize: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError> {
         let path = Path::new(path_str);
 
         // Convert Option to Result here
@@ -124,8 +134,12 @@ impl FileSystem for Fat12 {
         Ok(())
     }
 
-
-    fn mkdir(&mut self, path: &str, entries_count: usize) -> Result<(), FileSystemError> {
+    fn mkdir(
+        &mut self,
+        path: &str,
+        entries_count: usize,
+        creation_time: Option<NaiveDateTime>,
+    ) -> Result<(), FileSystemError> {
         let path = Path::new(path);
 
         const DIRENTRY_SIZE: usize = 32;
