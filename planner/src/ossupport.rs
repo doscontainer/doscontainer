@@ -15,14 +15,14 @@ pub static SUPPORTED_OS: &[OsSupport] = &[
         min_ram_kib: 64,
         supported_cpu_families: &[CpuFamily::I8088],
         supported_floppies: &[FloppyType::F525_160],
-        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HCG],
+        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HGC],
     },
     OsSupport {
         version: OsShortName::IBMDOS110,
         min_ram_kib: 64,
         supported_cpu_families: &[CpuFamily::I8088],
         supported_floppies: &[FloppyType::F525_160, FloppyType::F525_180],
-        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HCG],
+        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HGC],
     },
     OsSupport {
         version: OsShortName::IBMDOS200,
@@ -33,6 +33,6 @@ pub static SUPPORTED_OS: &[OsSupport] = &[
             FloppyType::F525_180,
             FloppyType::F525_360,
         ],
-        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HCG]
+        supported_video: &[VideoDevice::CGA, VideoDevice::MDA, VideoDevice::HGC]
     },
 ];

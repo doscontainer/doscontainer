@@ -7,7 +7,7 @@ use std::{fmt, str::FromStr};
 #[allow(clippy::upper_case_acronyms)]
 pub enum VideoDevice {
     MDA,
-    HCG,
+    HGC,
     CGA,
     EGA,
     MCGA,
@@ -24,7 +24,7 @@ impl fmt::Display for VideoDevice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
             VideoDevice::MDA => "IBM Monochrome Display Adapter",
-            VideoDevice::HCG => "Hercules Monochrome",
+            VideoDevice::HGC => "Hercules Graphics Card",
             VideoDevice::CGA => "IBM CGA or compatible",
             VideoDevice::EGA => "IBM EGA or compatible",
             VideoDevice::VGA => "IBM VGA or compatible",
@@ -65,7 +65,7 @@ impl FromStr for VideoDevice {
     /// * `Err(SpecError)` - An error if the string does not match any valid video device name.
     fn from_str(input: &str) -> Result<Self, SpecError> {
         match input.trim().to_lowercase().as_str() {
-            "hcg" | "hercules" => Ok(VideoDevice::HCG),
+            "hcg" | "hercules" => Ok(VideoDevice::HGC),
             "cga" => Ok(VideoDevice::CGA),
             "ega" => Ok(VideoDevice::EGA),
             "mcga" => Ok(VideoDevice::MCGA),
