@@ -93,6 +93,11 @@ impl FileSystem for Fat12 {
             .ok_or(FileSystemError::ParentNotFound)?;
 
         let mut entry = DirEntry::new_file(filename.as_str())?;
+        // If we're given a real creation time, use it. Otherwise it'll be the current host system clock.
+        if let Some(time) = creation_time {
+            entry.set_creation_time(time);
+        }
+
         entry.set_parent(parent);
 
         let clusters = self.allocation_table.allocate_entry(filesize)?;
@@ -122,6 +127,11 @@ impl FileSystem for Fat12 {
             .ok_or(FileSystemError::ParentNotFound)?;
 
         let mut entry = DirEntry::new_sysfile(filename.as_str())?;
+        // If we're given a real creation time, use it. Otherwise it'll be the current host system clock.
+        if let Some(time) = creation_time {
+            entry.set_creation_time(time);
+        }
+
         entry.set_parent(parent);
 
         let clusters = self.allocation_table.allocate_entry(filesize)?;
@@ -153,6 +163,10 @@ impl FileSystem for Fat12 {
         let dirname = Self::get_filename(path).ok_or(FileSystemError::EmptyFileName)?;
 
         let mut entry = DirEntry::new_directory(dirname.as_str())?;
+        // If we're given a real creation time, use it. Otherwise it'll be the current host system clock.
+        if let Some(time) = creation_time {
+            entry.set_creation_time(time);
+        }
 
         // Get the parent directory path (if any)
         let parent_path = path.parent().ok_or(FileSystemError::ParentNotFound)?;

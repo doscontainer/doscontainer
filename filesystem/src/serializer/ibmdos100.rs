@@ -41,7 +41,13 @@ impl DirEntrySerializer for IbmDos100 {
         buf[0..11].copy_from_slice(&name_bytes);
 
         // Attributes
-        buf[11] = entry.attributes().as_byte();
+        // Intercept regular files with the Archive attribute here for PC-DOS 1.00
+        // and set to 0x00 (no attribute set).
+        if entry.attributes().as_byte() == 0x20 {
+            buf[11] = 0x00;
+        } else {
+            buf[11] = entry.attributes().as_byte();
+        }
 
         // 22–23: creation time
         let time = Self::encode_time(entry.creation_time());
@@ -149,13 +155,13 @@ impl Fat12Serializer for IbmDos100 {
 
             i += 2;
         }
-/* 
-        if i < fat_entries.len() {
-            let a = fat_entries[i];
-            bytes.push((a & 0xFF) as u8);
-            bytes.push(((a >> 8) as u8) & 0x0F);
-        }
-*/
+        /*
+                if i < fat_entries.len() {
+                    let a = fat_entries[i];
+                    bytes.push((a & 0xFF) as u8);
+                    bytes.push(((a >> 8) as u8) & 0x0F);
+                }
+        */
         bytes.resize(fat.cluster_size(), 0);
         Ok(bytes)
     }
@@ -165,8 +171,8 @@ impl NameSerializer for IbmDos100 {
     fn serialize_entryname(name: &EntryName) -> Result<[u8; 11], FileSystemError> {
         let mut raw = [b' '; 11];
 
-        let fname = name.filename.to_uppercase();
-        let ext = name.extension.to_uppercase();
+        let fname = name.filename.trim().to_uppercase();
+        let ext = name.extension.trim().to_uppercase();
 
         if fname.len() > 8 || ext.len() > 3 {
             return Err(FileSystemError::FileNameTooLong);
