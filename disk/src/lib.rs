@@ -1,10 +1,10 @@
 use error::DiskError;
 use sectorsize::SectorSize;
 
-mod error;
+pub mod error;
 pub mod raw;
 pub mod sectorsize;
-mod volume;
+pub mod volume;
 
 pub trait Disk {
     fn read_sector(&mut self, lba: u64, buf: &mut [u8]) -> Result<(), DiskError>;

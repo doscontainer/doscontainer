@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use chrono::{NaiveDate, NaiveDateTime};
-use disk::{raw::RawImage, sectorsize::SectorSize, Disk};
+use disk::{raw::RawImage, sectorsize::SectorSize, volume::Volume, Disk};
 use error::PlanError;
 use filesystem::{
     fat12::Fat12,
@@ -42,8 +42,9 @@ impl InstallationPlanner {
         let mut disk = RawImage::new(Path::new("/home/bvdwiel/test.img"), SectorSize::S512, 320)
             .expect("Failed to create disk");
         disk.ibmwipe().unwrap();
+        let mut volume = Volume::new(&mut disk, 0, 320);
         let os = OperatingSystem::from_vendor_version("IBM", "1.00").unwrap();
-        let mut filesystem = Fat12::default();
+        let mut filesystem = Fat12::new(SectorSize::S512, 1, 312, &mut volume).unwrap();
         let date = NaiveDate::from_ymd_opt(1981, 8, 4)
             .unwrap()
             .and_hms_opt(0, 0, 0)
@@ -62,14 +63,14 @@ impl InstallationPlanner {
             filesystem.pool().root_entry().unwrap(),
         )
         .unwrap();
-        disk.write_sector(0, os.bootsector()).unwrap();
-        disk.write_sector(1, &fatbytes).unwrap();
-        disk.write_sector(2, &fatbytes).unwrap();
+        filesystem.volume.write_sector(0, os.bootsector()).unwrap();
+        filesystem.volume.write_sector(1, &fatbytes).unwrap();
+        filesystem.volume.write_sector(2, &fatbytes).unwrap();
         for (i, chunk) in databytes.chunks(512).enumerate() {
-            disk.write_sector(3 + i as u64, chunk).unwrap();
+            filesystem.volume.write_sector(3 + i as u64, chunk).unwrap();
         }
 
-        let iosys_clusters = filesystem
+        let iosys_clusters = &filesystem
             .pool()
             .entry_by_path(Path::new("IBMBIO.COM"))
             .unwrap()
@@ -78,14 +79,14 @@ impl InstallationPlanner {
         let iosys_bytes = os.iosys_bytes();
         let mut offset = 0;
 
-        for cluster in iosys_clusters {
+        for cluster in iosys_clusters.to_vec() {
             let sector = cluster + 5;
             let mut buffer = [0u8; 512];
             if offset < iosys_bytes.len() {
                 let end = usize::min(offset + 512, iosys_bytes.len());
                 buffer[..(end - offset)].copy_from_slice(&iosys_bytes[offset..end]);
             }
-            disk.write_sector(sector as u64, &buffer).unwrap();
+            filesystem.volume.write_sector(sector as u64, &buffer).unwrap();
             offset += 512;
         }
 
@@ -97,14 +98,14 @@ impl InstallationPlanner {
         let msdossys_bytes = os.msdoss_bytes();
         let mut offset = 0;
 
-        for cluster in msdossys_clusters {
+        for cluster in msdossys_clusters.to_vec() {
             let sector = cluster + 5;
             let mut buffer = [0u8; 512];
             if offset < msdossys_bytes.len() {
                 let end = usize::min(offset + 512, msdossys_bytes.len());
                 buffer[..(end - offset)].copy_from_slice(&msdossys_bytes[offset..end]);
             }
-            disk.write_sector(sector as u64, &buffer).unwrap();
+            filesystem.volume.write_sector(sector as u64, &buffer).unwrap();
             offset += 512;
         }
 
@@ -116,14 +117,14 @@ impl InstallationPlanner {
         let commandcom_bytes = os.commandcom_bytes();
         let mut offset = 0;
 
-        for cluster in commandcom_clusters {
+        for cluster in commandcom_clusters.to_vec() {
             let sector = cluster + 5;
             let mut buffer = [0u8; 512];
             if offset < commandcom_bytes.len() {
                 let end = usize::min(offset + 512, commandcom_bytes.len());
                 buffer[..(end - offset)].copy_from_slice(&commandcom_bytes[offset..end]);
             }
-            disk.write_sector(sector as u64, &buffer).unwrap();
+            filesystem.volume.write_sector(sector as u64, &buffer).unwrap();
             offset += 512;
         }
 

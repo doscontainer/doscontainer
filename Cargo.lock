@@ -222,6 +222,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "builder"
+version = "0.1.0"
+dependencies = [
+ "disk",
+ "operatingsystem",
+ "planner",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -680,6 +689,7 @@ name = "filesystem"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.41",
+ "disk",
  "uuid",
 ]
 

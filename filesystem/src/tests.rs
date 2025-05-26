@@ -10,8 +10,32 @@ mod tests {
         serializer::{ibmdos100::IbmDos100, Fat12Serializer},
         FileSystem,
     };
-
+    use disk::{error::DiskError, volume::Volume, Disk};
     use std::{path::Path, str::FromStr};
+
+    struct DummyDisk;
+
+    /// Fake Disk implementation for testing Fat12
+    impl Disk for DummyDisk {
+        fn read_sector(&mut self, _lba: u64, _buffer: &mut [u8]) -> Result<(), DiskError> {
+            Ok(())
+        }
+        fn write_sector(&mut self, _lba: u64, _buffer: &[u8]) -> Result<(), DiskError> {
+            Ok(())
+        }
+        
+        fn ibmwipe(&mut self) -> Result<(), DiskError> {
+            Ok(())
+        }
+        
+        fn sector_count(&self) -> u64 {
+            312
+        }
+        
+        fn sector_size(&self) -> disk::sectorsize::SectorSize {
+            disk::sectorsize::SectorSize::S512
+        }
+    }
 
     #[test]
     fn test_valid_filenames() {
@@ -139,21 +163,27 @@ mod tests {
 
     #[test]
     fn new_fat12() {
-        let mut fat = Fat12::new(512, 1, 340).unwrap();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert!(fat.mkfile("/COMMAND.COM", 10, None).is_ok());
     }
 
     #[test]
     fn fat12_mkfile_with_length() {
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
         let data = vec![0u8; 4000];
-        let mut fat = Fat12::new(512, 1, 340).unwrap();
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert!(fat.mkfile("/COMMAND.COM", data.len(), None).is_ok());
         assert!(fat.mkfile("/AUTOEXEC.BAT", data.len(), None).is_ok());
     }
 
     #[test]
     fn invalid_mkfile_fat12() {
-        let mut fat = Fat12::default();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert_eq!(
             fat.mkfile("COMMANDISFARTOOLONG.COM", 10, None),
             Err(FileSystemError::FileNameTooLong)
@@ -162,7 +192,9 @@ mod tests {
 
     #[test]
     fn invalid_dotfiles_fat12() {
-        let mut fat = Fat12::default();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert_eq!(
             fat.mkfile("..", 0, None),
             Err(FileSystemError::CannotCreateDotfiles)
@@ -275,20 +307,26 @@ mod tests {
 
     #[test]
     fn fat12_mkdir() {
-        let mut filesystem = Fat12::new(512, 1, 340).unwrap();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut filesystem = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert!(filesystem.mkdir("/DOS", 2, None).is_ok());
         assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221, None).is_ok());
     }
 
     #[test]
     fn fat12_mkdir_hugedir() {
-        let mut fat = Fat12::new(512, 1, 340).unwrap();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert!(fat.mkdir("/DOS", 600, None).is_ok());
     }
 
     #[test]
     fn fat12_serialize_empty_ibmdos100() {
-        let fat = Fat12::new(512, 1, 340).unwrap();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(
             serializer,
@@ -319,7 +357,9 @@ mod tests {
     #[test]
     // Compares the actual FAT for an IBM PC-DOS 1.00 original boot disk with our serializer
     fn fat12_test_actual_pcdos100() {
-        let mut fat = Fat12::new(512, 1, 340).unwrap();
+        let mut disk = DummyDisk;
+        let mut volume = Volume::new(&mut disk, 0, 340);
+        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         fat.mkfile("IBMBIO.COM", 1920, None).unwrap();
         fat.mkfile("IBMDOS.COM", 6400, None).unwrap();
         fat.mkfile("COMMAND.COM", 3231, None).unwrap();

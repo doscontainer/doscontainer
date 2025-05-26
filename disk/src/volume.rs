@@ -1,13 +1,14 @@
 use crate::{error::DiskError, Disk};
 
-pub struct Volume<D: Disk> {
-    disk: D,
+#[derive(Debug)]
+pub struct Volume<'a, D: Disk> {
+    disk: &'a mut D,
     start_sector: u64,
     sector_count: u64,
 }
 
-impl<D: Disk> Volume<D> {
-    pub fn new(disk: D, start_sector: u64, sector_count: u64) -> Self {
+impl<'a, D: Disk> Volume<'a, D> {
+    pub fn new(disk: &'a mut D, start_sector: u64, sector_count: u64) -> Self {
         Self {
             disk,
             start_sector,
@@ -117,9 +118,9 @@ mod tests {
     fn test_volume_read_write() {
         let sector_size = 512;
         let disk_sectors = 10;
-        let mock_disk = MockDisk::new(disk_sectors, sector_size);
+        let mut mock_disk = MockDisk::new(disk_sectors, sector_size);
 
-        let mut volume = Volume::new(mock_disk, 2, 5);
+        let mut volume = Volume::new(&mut mock_disk, 2, 5);
 
         // Write to sector 0 of the volume (which maps to sector 2 on the disk)
         let write_data = vec![0xAB; sector_size];
@@ -140,9 +141,9 @@ mod tests {
     fn test_volume_out_of_bounds() {
         let sector_size = 512;
         let disk_sectors = 10;
-        let mock_disk = MockDisk::new(disk_sectors, sector_size);
+        let mut mock_disk = MockDisk::new(disk_sectors, sector_size);
 
-        let mut volume = Volume::new(mock_disk, 8, 2);
+        let mut volume = Volume::new(&mut mock_disk, 8, 2);
 
         let mut buf = vec![0u8; sector_size];
         assert!(volume.read_sector(2, &mut buf).is_err()); // volume sector 2 is out of bounds (max is 1)

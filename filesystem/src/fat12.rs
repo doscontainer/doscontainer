@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use chrono::NaiveDateTime;
+use disk::{sectorsize::SectorSize, volume::Volume, Disk};
 
 use crate::{
     allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
@@ -8,39 +9,30 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Fat12 {
+pub struct Fat12<'a, D: Disk> {
     allocation_table: AllocationTable,
     pool: Pool,
     cluster_size: usize, // Cluster size in sectors
     cluster_count: usize,
-    sector_size: usize,
+    sector_size: SectorSize,
+    pub volume: &'a mut Volume<'a, D>,
 }
 
-impl Default for Fat12 {
-    fn default() -> Self {
-        Fat12 {
-            allocation_table: AllocationTable::default(),
-            pool: Pool::default(),
-            cluster_size: 1,    // Size in sectors
-            cluster_count: 313, // Number of clusters in the filesystem
-            sector_size: 512,   // Sector size in bytes
-        }
-    }
-}
-
-impl Fat12 {
+impl <'a, D: Disk> Fat12<'a, D> {
     pub fn new(
-        sector_size: usize,
+        sector_size: SectorSize,
         cluster_size: usize,
         cluster_count: usize,
+        volume: &'a mut Volume<'a, D>
     ) -> Result<Self, FileSystemError> {
-        let mut filesystem = Fat12::default();
-        filesystem
-            .allocation_table
-            .set_cluster_count(cluster_count)?;
-        filesystem.cluster_count = cluster_count;
-        filesystem.cluster_size = cluster_size;
-        filesystem.sector_size = sector_size;
+        let filesystem = Fat12 {
+            allocation_table: AllocationTable::default(),
+            pool: Pool::default(),
+            cluster_size,
+            cluster_count,
+            sector_size,
+            volume,
+        };
         Ok(filesystem)
     }
 
@@ -66,7 +58,7 @@ impl Fat12 {
     }
 }
 
-impl FileSystem for Fat12 {
+impl <'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
     /// Creates a new file entry at the specified path.
     ///
     /// The path should include the filename. The file will be added
