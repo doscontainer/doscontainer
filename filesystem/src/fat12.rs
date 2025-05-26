@@ -5,7 +5,7 @@ use disk::{sectorsize::SectorSize, volume::Volume, Disk};
 
 use crate::{
     allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool,
-    FileSystem,
+    ClusterIO, ClusterIndex, FileSystem,
 };
 
 #[derive(Debug)]
@@ -15,15 +15,79 @@ pub struct Fat12<'a, D: Disk> {
     cluster_size: usize, // Cluster size in sectors
     cluster_count: usize,
     sector_size: SectorSize,
-    pub volume: &'a mut Volume<'a, D>,
+    volume: &'a mut Volume<'a, D>,
 }
 
-impl <'a, D: Disk> Fat12<'a, D> {
+impl<'a, D: Disk> ClusterIO for Fat12<'a, D> {
+    /// Writes the contents of a cluster at the given cluster index.
+    ///
+    /// Pads the input data with zeros if it is smaller than the expected cluster size.
+    /// Returns an error if the data is too large to fit in a single cluster.
+    ///
+    /// # Parameters
+    /// - `index`: The cluster index to write to. Must be ≥ 2.
+    /// - `data`: The data to write. If shorter than the cluster size, it will be zero-padded.
+    ///
+    /// # Returns
+    /// `Ok(())` if the cluster was written successfully, or an appropriate `FileSystemError`.
+    fn write_cluster(&mut self, index: ClusterIndex, data: &[u8]) -> Result<(), FileSystemError> {
+        let first_sector = self.cluster_to_sector(index);
+        let sector_size_bytes = self.sector_size.as_usize();
+        let sectors_per_cluster = self.cluster_size;
+
+        let expected_len = sector_size_bytes * sectors_per_cluster;
+
+        if data.len() > expected_len {
+            return Err(FileSystemError::ClusterTooLarge);
+        }
+
+        // Allocate buffer with zeroed padding
+        let mut buffer = vec![0u8; expected_len];
+        buffer[..data.len()].copy_from_slice(data);
+
+        for i in 0..sectors_per_cluster {
+            let offset = i * sector_size_bytes;
+            let sector_data = &buffer[offset..offset + sector_size_bytes];
+            self.volume
+                .write_sector(first_sector as u64 + i as u64, sector_data)
+                .map_err(|_| FileSystemError::DiskError)?;
+        }
+
+        Ok(())
+    }
+
+    /// Converts a cluster index to the corresponding starting sector number.
+    ///
+    /// Cluster indices must start from 2, as per FAT12 conventions. This calculation
+    /// assumes a contiguous layout of clusters following the data region start.
+    ///
+    /// # Parameters
+    /// - `index`: The cluster index (must be ≥ 2).
+    ///
+    /// # Returns
+    /// The first sector number corresponding to the start of the given cluster.
+    fn cluster_to_sector(&self, index: ClusterIndex) -> usize {
+        self.data_region_start() + ((index - 2) as usize * self.cluster_size as usize)
+    }
+
+    /// Returns the starting sector number of the data region.
+    ///
+    /// This implementation assumes a PC-DOS 1.00 layout and is hardcoded accordingly.
+    /// Future versions should derive this from the actual BPB or filesystem metadata.
+    ///
+    /// # Returns
+    /// The sector number where the first data cluster begins.
+    fn data_region_start(&self) -> usize {
+        7
+    }
+}
+
+impl<'a, D: Disk> Fat12<'a, D> {
     pub fn new(
         sector_size: SectorSize,
         cluster_size: usize,
         cluster_count: usize,
-        volume: &'a mut Volume<'a, D>
+        volume: &'a mut Volume<'a, D>,
     ) -> Result<Self, FileSystemError> {
         let filesystem = Fat12 {
             allocation_table: AllocationTable::default(),
@@ -58,7 +122,7 @@ impl <'a, D: Disk> Fat12<'a, D> {
     }
 }
 
-impl <'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
+impl<'a, D: disk::Disk> FileSystem for Fat12<'a, D> {
     /// Creates a new file entry at the specified path.
     ///
     /// The path should include the filename. The file will be added

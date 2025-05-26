@@ -5,6 +5,8 @@ pub enum FileSystemError {
     ClusterAlreadyAllocated,
     ClusterNotUsable,
     ClusterOutOfBounds,
+    ClusterTooLarge,
+    DiskError,
     DuplicateEntry,
     EntryCannotHaveChildren,
     EmptyFileName,
