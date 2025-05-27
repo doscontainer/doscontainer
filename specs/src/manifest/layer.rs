@@ -41,8 +41,8 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn dos_vendors(&self) -> &Vec<OsVendor> {
-        &self.dos_vendors
+    pub fn dos_vendors(&self) -> Vec<OsVendor> {
+        self.dos_vendors.clone()
     }
 
     pub fn min_dos(&self) -> Option<OsVersion> {

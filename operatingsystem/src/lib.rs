@@ -99,6 +99,10 @@ impl OperatingSystem {
         self.version
     }
 
+    pub fn vendor(&self) -> OsVendor {
+        self.vendor
+    }
+
     /// Constructs a specific `OperatingSystem` instance from a vendor and version string.
     ///
     /// This method attempts to match the provided vendor and version against known supported

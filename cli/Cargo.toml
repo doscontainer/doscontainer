@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+builder = { path = "../builder" }
 clap = { workspace = true }
 specs = { path = "../specs" }
 planner = { path = "../planner" }

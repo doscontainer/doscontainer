@@ -1,5 +1,5 @@
+use builder::Builder;
 use clap::{Parser, Subcommand};
-use planner::InstallationPlanner;
 use specs::{hwspec::HwSpec, manifest::Manifest};
 use std::path::PathBuf;
 
@@ -48,8 +48,9 @@ fn main() -> Result<(), std::io::Error> {
             let manifest = Manifest::from_toml(manifestpath).expect("Failed loading Manifest.");
 
             // Invoke the Disk Image Planner
-            let planner = planner::InstallationPlanner::new(&spec, manifest);
-            println!("{:?}", planner);
+            let planner = planner::InstallationPlanner::new(spec, manifest).unwrap();
+            let builder = Builder::new(planner);
+            builder.build();
             Ok(())
         }
         Commands::BuildCollection { startdir: _ } => {

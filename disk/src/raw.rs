@@ -5,6 +5,7 @@ use std::path::Path;
 use crate::error::DiskError;
 use crate::{sectorsize::SectorSize, Disk};
 
+#[derive(Debug)]
 pub struct RawImage {
     file: File,
     sector_size: SectorSize,
