@@ -157,7 +157,7 @@ impl OperatingSystem {
         self.iosys.as_str()
     }
 
-    pub fn msdoss_bytes(&self) -> &[u8] {
+    pub fn msdossys_bytes(&self) -> &[u8] {
         &self.msdossys_bytes
     }
 

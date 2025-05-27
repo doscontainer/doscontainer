@@ -53,7 +53,7 @@ impl InstallationPlanner {
             .mksysfile("IBMBIO.COM", os.iosys_bytes(), Some(date))
             .unwrap();
         filesystem
-            .mksysfile("IBMDOS.COM", os.msdoss_bytes(), Some(date))
+            .mksysfile("IBMDOS.COM", os.msdossys_bytes(), Some(date))
             .unwrap();
         filesystem.mkfile("COMMAND.COM", os.commandcom_bytes(), Some(date)).unwrap();
 

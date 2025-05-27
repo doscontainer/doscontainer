@@ -11,6 +11,7 @@ mod tests {
         FileSystem,
     };
     use disk::{error::DiskError, volume::Volume, Disk};
+    use operatingsystem::OperatingSystem;
     use std::{path::Path, str::FromStr};
 
     struct DummyDisk;
@@ -166,17 +167,17 @@ mod tests {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
         let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
-        assert!(fat.mkfile("/COMMAND.COM", 10, None).is_ok());
+        assert!(fat.mkfile("/COMMAND.COM", &[0u8; 10], None).is_ok());
     }
 
     #[test]
     fn fat12_mkfile_with_length() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let data = vec![0u8; 4000];
+        let data = [0u8; 4000];
         let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
-        assert!(fat.mkfile("/COMMAND.COM", data.len(), None).is_ok());
-        assert!(fat.mkfile("/AUTOEXEC.BAT", data.len(), None).is_ok());
+        assert!(fat.mkfile("/COMMAND.COM", &data, None).is_ok());
+        assert!(fat.mkfile("/AUTOEXEC.BAT", &data, None).is_ok());
     }
 
     #[test]
@@ -185,7 +186,7 @@ mod tests {
         let mut volume = Volume::new(&mut disk, 0, 340);
         let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert_eq!(
-            fat.mkfile("COMMANDISFARTOOLONG.COM", 10, None),
+            fat.mkfile("COMMANDISFARTOOLONG.COM", &[0u8; 512], None),
             Err(FileSystemError::FileNameTooLong)
         );
     }
@@ -196,15 +197,15 @@ mod tests {
         let mut volume = Volume::new(&mut disk, 0, 340);
         let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert_eq!(
-            fat.mkfile("..", 0, None),
+            fat.mkfile("..", &[0u8; 512], None),
             Err(FileSystemError::CannotCreateDotfiles)
         );
         assert_eq!(
-            fat.mkfile(".", 0, None),
+            fat.mkfile(".", &[0u8; 512], None),
             Err(FileSystemError::CannotCreateDotfiles)
         );
         assert_eq!(
-            fat.mkfile(".DOTFIL", 0, None),
+            fat.mkfile(".DOTFIL", &[0u8; 512], None),
             Err(FileSystemError::EmptyFileName)
         );
     }
@@ -311,7 +312,8 @@ mod tests {
         let mut volume = Volume::new(&mut disk, 0, 340);
         let mut filesystem = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
         assert!(filesystem.mkdir("/DOS", 2, None).is_ok());
-        assert!(filesystem.mkfile("/DOS/EDIT.EXE", 43221, None).is_ok());
+        let data = [0u8; 43221];
+        assert!(filesystem.mkfile("/DOS/EDIT.EXE", &data, None).is_ok());
     }
 
     #[test]
@@ -360,9 +362,10 @@ mod tests {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
         let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
-        fat.mkfile("IBMBIO.COM", 1920, None).unwrap();
-        fat.mkfile("IBMDOS.COM", 6400, None).unwrap();
-        fat.mkfile("COMMAND.COM", 3231, None).unwrap();
+        let os = OperatingSystem::from_vendor_version("ibm","1.00").unwrap();
+        fat.mkfile("IBMBIO.COM", os.iosys_bytes(), None).unwrap();
+        fat.mkfile("IBMDOS.COM", os.msdossys_bytes(), None).unwrap();
+        fat.mkfile("COMMAND.COM", os.commandcom_bytes(), None).unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(
             serializer,
