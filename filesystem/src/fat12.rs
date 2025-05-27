@@ -2,9 +2,16 @@ use std::path::Path;
 
 use chrono::NaiveDateTime;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
+use operatingsystem::OperatingSystem;
 
 use crate::{
-    allocationtable::AllocationTable, bpb::BiosParameterBlock, direntry::DirEntry, error::FileSystemError, pool::Pool, serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer}, ClusterIO, ClusterIndex, FileSystem
+    allocationtable::AllocationTable,
+    bpb::BiosParameterBlock,
+    direntry::DirEntry,
+    error::FileSystemError,
+    pool::Pool,
+    serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer},
+    ClusterIO, ClusterIndex, FileSystem,
 };
 
 #[derive(Debug)]
@@ -16,6 +23,7 @@ pub struct Fat12<'a, D: Disk> {
     cluster_count: usize,
     sector_size: SectorSize,
     volume: &'a mut Volume<'a, D>,
+    os: OperatingSystem,
 }
 
 impl<'a, D: Disk> ClusterIO for Fat12<'a, D> {
@@ -88,6 +96,7 @@ impl<'a, D: Disk> Fat12<'a, D> {
         cluster_size: usize,
         cluster_count: usize,
         volume: &'a mut Volume<'a, D>,
+        os: OperatingSystem,
     ) -> Result<Self, FileSystemError> {
         let filesystem = Fat12 {
             allocation_table: AllocationTable::default(),
@@ -97,6 +106,7 @@ impl<'a, D: Disk> Fat12<'a, D> {
             cluster_count,
             sector_size,
             volume,
+            os,
         };
         Ok(filesystem)
     }
@@ -108,11 +118,8 @@ impl<'a, D: Disk> Fat12<'a, D> {
     }
 
     pub fn write_rootdir(&mut self) {
-        let databytes = IbmDos100::serialize_directory(
-            self.pool(),
-            self.pool().root_entry().unwrap(),
-        )
-        .unwrap();
+        let databytes =
+            IbmDos100::serialize_directory(self.pool(), self.pool().root_entry().unwrap()).unwrap();
         for (i, chunk) in databytes.chunks(512).enumerate() {
             self.volume.write_sector(3 + i as u64, chunk).unwrap();
         }

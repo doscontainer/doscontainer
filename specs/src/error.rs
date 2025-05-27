@@ -67,7 +67,7 @@ impl fmt::Display for SpecError {
             SpecError::TooManySectors => write!(f, "Too many sectors per track specified"),
             SpecError::TooMuchRamSpecified => {
                 write!(f, "Too much RAM specified (maximum is 4 GiB)")
-            },
+            }
             SpecError::UnsupportedUrlScheme => write!(f, "Unsupported URL scheme"),
             SpecError::InvalidAudioDevice(msg) => {
                 write!(f, "Invalid audio device specified: {}.", msg)

@@ -160,8 +160,7 @@ impl HwSpec {
     /// (i.e., exceeds 4 GiB). This coincides with the theoretical maximum of the 32-bit Intel platform.
     pub fn set_ram(&mut self, ram: &str) -> Result<(), SpecError> {
         const IGNORE_CASE: bool = true;
-        let amount =
-            Byte::parse_str(ram, IGNORE_CASE).map_err(|_| SpecError::InvalidRamString)?;
+        let amount = Byte::parse_str(ram, IGNORE_CASE).map_err(|_| SpecError::InvalidRamString)?;
         self.ram = amount
             .try_into()
             .map_err(|_| SpecError::TooMuchRamSpecified)?;

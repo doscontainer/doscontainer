@@ -24,15 +24,15 @@ mod tests {
         fn write_sector(&mut self, _lba: u64, _buffer: &[u8]) -> Result<(), DiskError> {
             Ok(())
         }
-        
+
         fn ibmwipe(&mut self) -> Result<(), DiskError> {
             Ok(())
         }
-        
+
         fn sector_count(&self) -> u64 {
             312
         }
-        
+
         fn sector_size(&self) -> disk::sectorsize::SectorSize {
             disk::sectorsize::SectorSize::S512
         }
@@ -166,7 +166,14 @@ mod tests {
     fn new_fat12() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            OperatingSystem::from_osshortname(&operatingsystem::OsShortName::IBMDOS100),
+        )
+        .unwrap();
         assert!(fat.mkfile("/COMMAND.COM", &[0u8; 10], None).is_ok());
     }
 
@@ -175,7 +182,16 @@ mod tests {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
         let data = [0u8; 4000];
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         assert!(fat.mkfile("/COMMAND.COM", &data, None).is_ok());
         assert!(fat.mkfile("/AUTOEXEC.BAT", &data, None).is_ok());
     }
@@ -184,7 +200,16 @@ mod tests {
     fn invalid_mkfile_fat12() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         assert_eq!(
             fat.mkfile("COMMANDISFARTOOLONG.COM", &[0u8; 512], None),
             Err(FileSystemError::FileNameTooLong)
@@ -195,7 +220,16 @@ mod tests {
     fn invalid_dotfiles_fat12() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         assert_eq!(
             fat.mkfile("..", &[0u8; 512], None),
             Err(FileSystemError::CannotCreateDotfiles)
@@ -310,7 +344,16 @@ mod tests {
     fn fat12_mkdir() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut filesystem = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut filesystem = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         assert!(filesystem.mkdir("/DOS", 2, None).is_ok());
         let data = [0u8; 43221];
         assert!(filesystem.mkfile("/DOS/EDIT.EXE", &data, None).is_ok());
@@ -320,7 +363,16 @@ mod tests {
     fn fat12_mkdir_hugedir() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         assert!(fat.mkdir("/DOS", 600, None).is_ok());
     }
 
@@ -328,7 +380,16 @@ mod tests {
     fn fat12_serialize_empty_ibmdos100() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
+        let fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(
             serializer,
@@ -361,11 +422,21 @@ mod tests {
     fn fat12_test_actual_pcdos100() {
         let mut disk = DummyDisk;
         let mut volume = Volume::new(&mut disk, 0, 340);
-        let mut fat = Fat12::new(disk::sectorsize::SectorSize::S512, 1, 340, &mut volume).unwrap();
-        let os = OperatingSystem::from_vendor_version("ibm","1.00").unwrap();
+        let mut fat = Fat12::new(
+            disk::sectorsize::SectorSize::S512,
+            1,
+            340,
+            &mut volume,
+            operatingsystem::OperatingSystem::from_osshortname(
+                &operatingsystem::OsShortName::IBMDOS100,
+            ),
+        )
+        .unwrap();
+        let os = OperatingSystem::from_vendor_version("ibm", "1.00").unwrap();
         fat.mkfile("IBMBIO.COM", os.iosys_bytes(), None).unwrap();
         fat.mkfile("IBMDOS.COM", os.msdossys_bytes(), None).unwrap();
-        fat.mkfile("COMMAND.COM", os.commandcom_bytes(), None).unwrap();
+        fat.mkfile("COMMAND.COM", os.commandcom_bytes(), None)
+            .unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
         assert_eq!(
             serializer,

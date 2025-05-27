@@ -1,5 +1,6 @@
 use crate::{
-    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, names::EntryName, pool::Pool,
+    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, names::EntryName,
+    pool::Pool,
 };
 
 pub mod ibmdos100;

@@ -12,7 +12,7 @@ mod metadata;
 mod storage;
 mod tests;
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Manifest {
     version: u32,
     metadata: Option<Metadata>,

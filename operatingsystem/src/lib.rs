@@ -155,8 +155,8 @@ impl OperatingSystem {
                 vendor,
                 version,
                 jumpcode: [0xEB, 0x27, 0x90],
-                msdossys_bytes: Vec::new(), // TODO
-                iosys_bytes: Vec::new(), // TODO
+                msdossys_bytes: Vec::new(),   // TODO
+                iosys_bytes: Vec::new(),      // TODO
                 commandcom_bytes: Vec::new(), // TODO
             }),
             // IBM PC-DOS 2.00
@@ -171,8 +171,8 @@ impl OperatingSystem {
                 vendor,
                 version,
                 jumpcode: [0xEB, 0x27, 0x90],
-                msdossys_bytes: Vec::new(), // TODO
-                iosys_bytes: Vec::new(), // TODO
+                msdossys_bytes: Vec::new(),   // TODO
+                iosys_bytes: Vec::new(),      // TODO
                 commandcom_bytes: Vec::new(), // TODO
             }),
             _ => Err(OsError::UnsupportedOs),

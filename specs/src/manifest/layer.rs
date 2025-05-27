@@ -52,7 +52,7 @@ impl Layer {
     pub fn max_dos(&self) -> Option<OsVersion> {
         self.max_dos
     }
-    
+
     pub fn set_url(&mut self, url: &str) -> Result<(), SpecError> {
         match Url::parse(url) {
             Ok(_) => {
@@ -127,19 +127,14 @@ impl Layer {
     }
 
     fn stage(&mut self) -> Result<(), SpecError> {
-        let zipfile = self
-            .zipfile_path
-            .as_ref()
-            .ok_or(SpecError::TempDirError)?;
+        let zipfile = self.zipfile_path.as_ref().ok_or(SpecError::TempDirError)?;
         let staging_path = tempdir().map_err(|_| SpecError::TempDirError)?;
         let mut archive = ZipArchive::new(zipfile).map_err(|_| SpecError::ZipFileCorrupt)?;
         let zipfile_logdisplay = zipfile.path();
         info!(target: "dosk8s_events", "Start extracting archive {zipfile_logdisplay:?}.");
 
         for i in 0..archive.len() {
-            let mut file = archive
-                .by_index(i)
-                .map_err(|_| SpecError::ZipFileCorrupt)?;
+            let mut file = archive.by_index(i).map_err(|_| SpecError::ZipFileCorrupt)?;
             let target = staging_path.path().join(file.name());
 
             if file.is_dir() {
@@ -196,9 +191,7 @@ impl Layer {
             return Err(SpecError::HttpRequestError);
         }
 
-        let content = response
-            .bytes()
-            .map_err(|_| SpecError::HttpRequestError)?;
+        let content = response.bytes().map_err(|_| SpecError::HttpRequestError)?;
 
         let mut tempfile = NamedTempFile::new().map_err(|_| SpecError::TempDirError)?;
 
@@ -324,9 +317,7 @@ impl Layer {
 
         // Loop over all files in the archive
         for i in 0..archive.len() {
-            let mut file = archive
-                .by_index(i)
-                .map_err(|_| SpecError::ZipFileCorrupt)?;
+            let mut file = archive.by_index(i).map_err(|_| SpecError::ZipFileCorrupt)?;
 
             // We can't CRC-check a directory
             if file.is_dir() {
@@ -368,10 +359,26 @@ impl fmt::Display for Layer {
             writeln!(f, "  Maximum DOS version: {}", max_dos)?;
         }
         if !self.graphics.is_empty() {
-            writeln!(f, "  Graphics support: {}", self.graphics.iter().map(|g| g.to_string()).collect::<Vec<_>>().join(", "))?;
+            writeln!(
+                f,
+                "  Graphics support: {}",
+                self.graphics
+                    .iter()
+                    .map(|g| g.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )?;
         }
         if !self.provides_graphics.is_empty() {
-            writeln!(f, "  Provides support for: {}", self.provides_graphics.iter().map(|g| g.to_string()).collect::<Vec<_>>().join(", "))?;
+            writeln!(
+                f,
+                "  Provides support for: {}",
+                self.provides_graphics
+                    .iter()
+                    .map(|g| g.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )?;
         }
         Ok(())
     }
