@@ -15,6 +15,7 @@ pub mod version;
 
 /// The OperatingSystem enum holds specific fragments of
 /// code and data that apply only to a particular operating system
+#[derive(Debug)]
 pub struct OperatingSystem {
     bootsector: [u8; 512],
     jumpcode: [u8; 3],
@@ -35,6 +36,26 @@ pub enum OsShortName {
     IBMDOS100,
     IBMDOS110,
     IBMDOS200,
+}
+
+impl fmt::Display for OsShortName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OsShortName::IBMDOS100 => write!(f, "IBM PC-DOS 1.00"),
+            OsShortName::IBMDOS110 => write!(f, "IBM PC-DOS 1.10"),
+            OsShortName::IBMDOS200 => write!(f, "IBM PC-DOS 2.00"),
+        }
+    }
+}
+
+impl OsShortName {
+    pub fn vendor(&self) -> OsVendor {
+        match self {
+            Self::IBMDOS100 => OsVendor::IBM,
+            Self::IBMDOS110 => OsVendor::IBM,
+            Self::IBMDOS200 => OsVendor::IBM,
+        }
+    }
 }
 
 impl fmt::Display for OperatingSystem {
@@ -66,6 +87,18 @@ impl<'de> Deserialize<'de> for OsVersion {
 }
 
 impl OperatingSystem {
+    pub fn from_osshortname(shortname: &OsShortName) -> Self {
+        match shortname {
+            OsShortName::IBMDOS100 => Self::from_vendor_version("ibm", "1.00").unwrap(),
+            OsShortName::IBMDOS110 => Self::from_vendor_version("ibm", "1.10").unwrap(),
+            OsShortName::IBMDOS200 => Self::from_vendor_version("ibm", "2.00").unwrap(),
+        }
+    }
+
+    pub fn version(&self) -> OsVersion {
+        self.version
+    }
+
     /// Constructs a specific `OperatingSystem` instance from a vendor and version string.
     ///
     /// This method attempts to match the provided vendor and version against known supported

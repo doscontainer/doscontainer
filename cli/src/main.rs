@@ -49,6 +49,7 @@ fn main() -> Result<(), std::io::Error> {
 
             // Invoke the Disk Image Planner
             let planner = planner::InstallationPlanner::new(&spec, manifest);
+            println!("{:?}", planner);
             Ok(())
         }
         Commands::BuildCollection { startdir: _ } => {

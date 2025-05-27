@@ -2,7 +2,6 @@ use std::path::Path;
 
 use chrono::NaiveDateTime;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
-use operatingsystem::OperatingSystem;
 
 use crate::{
     allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool, serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer}, ClusterIO, ClusterIndex, FileSystem

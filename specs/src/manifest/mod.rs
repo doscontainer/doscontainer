@@ -7,12 +7,12 @@ use serde::Deserialize;
 
 use std::{collections::HashMap, fmt, path::Path};
 
-mod layer;
+pub mod layer;
 mod metadata;
 mod storage;
 mod tests;
 
-#[derive(Deserialize)]
+#[derive(Debug,Deserialize)]
 pub struct Manifest {
     version: u32,
     metadata: Option<Metadata>,

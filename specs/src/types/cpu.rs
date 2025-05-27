@@ -4,7 +4,7 @@ use crate::error::SpecError;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct Cpu {
     family: CpuFamily,
     clock: u8,
@@ -67,7 +67,7 @@ impl FromStr for Cpu {
 /// These CPU families correspond to processors commonly used in older DOS-compatible systems.
 /// Each variant of this enum represents a different CPU model, including various Intel and NEC
 /// processors that were widely used in PCs from the 1980s and 1990s.
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 pub enum CpuFamily {
     /// Intel 8086 CPU, a 16-bit processor that introduced the x86 architecture.
     #[serde(rename = "8086")]

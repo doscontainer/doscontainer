@@ -2,7 +2,7 @@ use std::{fmt, str::FromStr};
 
 use crate::error::OsError;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum OsVendor {
     DigitalResearch,
     FreeDOS,

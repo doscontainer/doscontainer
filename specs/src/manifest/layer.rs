@@ -41,6 +41,18 @@ pub struct Layer {
 }
 
 impl Layer {
+    pub fn dos_vendors(&self) -> &Vec<OsVendor> {
+        &self.dos_vendors
+    }
+
+    pub fn min_dos(&self) -> Option<OsVersion> {
+        self.min_dos
+    }
+
+    pub fn max_dos(&self) -> Option<OsVersion> {
+        self.max_dos
+    }
+    
     pub fn set_url(&mut self, url: &str) -> Result<(), SpecError> {
         match Url::parse(url) {
             Ok(_) => {
