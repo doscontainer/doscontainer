@@ -4,13 +4,14 @@ use chrono::NaiveDateTime;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
 
 use crate::{
-    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, pool::Pool, serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer}, ClusterIO, ClusterIndex, FileSystem
+    allocationtable::AllocationTable, bpb::BiosParameterBlock, direntry::DirEntry, error::FileSystemError, pool::Pool, serializer::{ibmdos100::IbmDos100, DirectorySerializer, Fat12Serializer}, ClusterIO, ClusterIndex, FileSystem
 };
 
 #[derive(Debug)]
 pub struct Fat12<'a, D: Disk> {
     allocation_table: AllocationTable,
     pool: Pool,
+    bpb: BiosParameterBlock,
     cluster_size: usize, // Cluster size in sectors
     cluster_count: usize,
     sector_size: SectorSize,
@@ -90,6 +91,7 @@ impl<'a, D: Disk> Fat12<'a, D> {
     ) -> Result<Self, FileSystemError> {
         let filesystem = Fat12 {
             allocation_table: AllocationTable::default(),
+            bpb: BiosParameterBlock::default(),
             pool: Pool::default(),
             cluster_size,
             cluster_count,
@@ -99,18 +101,18 @@ impl<'a, D: Disk> Fat12<'a, D> {
         Ok(filesystem)
     }
 
-    /// THIS HAS TO GO!!
-    pub fn write_crud(&mut self) {
-        let os = operatingsystem::OperatingSystem::from_vendor_version("ibm", "1.00").unwrap();
+    pub fn write_fat(&mut self) {
         let fatbytes = IbmDos100::serialize_fat12(&self.allocation_table()).unwrap();
+        self.volume.write_sector(1, &fatbytes).unwrap();
+        self.volume.write_sector(2, &fatbytes).unwrap();
+    }
+
+    pub fn write_rootdir(&mut self) {
         let databytes = IbmDos100::serialize_directory(
             self.pool(),
             self.pool().root_entry().unwrap(),
         )
         .unwrap();
-        self.volume.write_sector(0, os.bootsector()).unwrap();
-        self.volume.write_sector(1, &fatbytes).unwrap();
-        self.volume.write_sector(2, &fatbytes).unwrap();
         for (i, chunk) in databytes.chunks(512).enumerate() {
             self.volume.write_sector(3 + i as u64, chunk).unwrap();
         }

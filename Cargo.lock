@@ -226,6 +226,7 @@ name = "builder"
 version = "0.1.0"
 dependencies = [
  "disk",
+ "filesystem",
  "operatingsystem",
  "planner",
  "specs",

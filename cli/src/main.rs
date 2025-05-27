@@ -15,6 +15,8 @@ struct Cli {
 enum Commands {
     /// Build a DOSContainer manifest into a disk image.
     Build {
+        /// Image filename
+        imagepath: PathBuf,
         /// Filename of the HwSpec configuration file, this a TOML file.
         hwspecpath: PathBuf,
         /// Filename of the build manifest.
@@ -38,6 +40,7 @@ fn main() -> Result<(), std::io::Error> {
             Ok(())
         }
         Commands::Build {
+            imagepath,
             hwspecpath,
             manifestpath,
         } => {
@@ -50,7 +53,7 @@ fn main() -> Result<(), std::io::Error> {
             // Invoke the Disk Image Planner
             let planner = planner::InstallationPlanner::new(spec, manifest).unwrap();
             let builder = Builder::new(planner);
-            builder.build();
+            builder.build(&imagepath);
             Ok(())
         }
         Commands::BuildCollection { startdir: _ } => {
