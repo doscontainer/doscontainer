@@ -53,7 +53,7 @@ fn main() -> Result<(), std::io::Error> {
             // Invoke the Disk Image Planner
             let planner = planner::InstallationPlanner::new(spec, manifest).unwrap();
             let builder = Builder::new(planner);
-            builder.build(&imagepath);
+            builder.build(&imagepath).expect("BOOM");
             Ok(())
         }
         Commands::BuildCollection { startdir: _ } => {

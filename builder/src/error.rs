@@ -1,5 +1,6 @@
 use disk::error::DiskError;
 
+#[derive(Debug)]
 pub enum BuildError {
     DiskIoError(DiskError),
     FileSystemError,
