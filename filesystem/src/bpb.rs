@@ -1,5 +1,6 @@
 use chrono::{Datelike, Local, Timelike};
 use disk::sectorsize::SectorSize;
+use specs::types::storage::FloppyType;
 
 #[derive(Debug)]
 pub struct BiosParameterBlock {
@@ -34,6 +35,92 @@ impl Default for BiosParameterBlock {
 }
 
 impl BiosParameterBlock {
+    /// These values may not be correct. Only F525_160 is currently verified from actual systems.
+    pub fn from_floppytype(floppy_type: &FloppyType) -> Self {
+        match floppy_type {
+            FloppyType::F525_160 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 1,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 64,
+                logical_sector_count: 320,
+                media_descriptor: 0xFE,
+                sectors_per_fat: 1,
+            },
+            FloppyType::F525_180 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 1,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 64,
+                logical_sector_count: 360,
+                media_descriptor: 0xFC,
+                sectors_per_fat: 1,
+            },
+            FloppyType::F525_320 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 2,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 112,
+                logical_sector_count: 640,
+                media_descriptor: 0xFF,
+                sectors_per_fat: 2,
+            },
+            FloppyType::F525_360 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 2,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 112,
+                logical_sector_count: 720,
+                media_descriptor: 0xFD,
+                sectors_per_fat: 2,
+            },
+            FloppyType::F525_1200 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 1,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 224,
+                logical_sector_count: 2400,
+                media_descriptor: 0xF9,
+                sectors_per_fat: 7,
+            },
+            FloppyType::F35_720 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 2,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 112,
+                logical_sector_count: 1440,
+                media_descriptor: 0xF9,
+                sectors_per_fat: 3,
+            },
+            FloppyType::F35_1440 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 1,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 224,
+                logical_sector_count: 2880,
+                media_descriptor: 0xF0,
+                sectors_per_fat: 9,
+            },
+            FloppyType::F35_2880 => BiosParameterBlock {
+                bytes_per_sector: 512,
+                sectors_per_cluster: 2,
+                reserved_sectors: 1,
+                fat_count: 2,
+                root_dir_entries: 240,
+                logical_sector_count: 5760,
+                media_descriptor: 0xF0,
+                sectors_per_fat: 9,
+            },
+        }
+    }
+
     pub fn new(
         sector_size: SectorSize,
         sectors_per_cluster: usize,
