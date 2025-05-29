@@ -73,6 +73,40 @@ impl TryFrom<usize> for SectorSize {
     }
 }
 
+impl TryFrom<u64> for SectorSize {
+    type Error = DiskError;
+
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        match value {
+            128 => Ok(SectorSize::S128),
+            256 => Ok(SectorSize::S256),
+            512 => Ok(SectorSize::S512),
+            1024 => Ok(SectorSize::S1024),
+            2048 => Ok(SectorSize::S2048),
+            4096 => Ok(SectorSize::S4096),
+            _ => Err(DiskError::InvalidSectorSize),
+        }
+    }
+}
+
+
+impl TryFrom<i32> for SectorSize {
+    type Error = DiskError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            128 => Ok(SectorSize::S128),
+            256 => Ok(SectorSize::S256),
+            512 => Ok(SectorSize::S512),
+            1024 => Ok(SectorSize::S1024),
+            2048 => Ok(SectorSize::S2048),
+            4096 => Ok(SectorSize::S4096),
+            _ => Err(DiskError::InvalidSectorSize),
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

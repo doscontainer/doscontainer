@@ -42,6 +42,11 @@ impl FloppyType {
             FloppyType::F35_2880 => 80 * 2 * 36,
         }
     }
+
+    /// This is only here because it may become dynamic
+    pub fn sector_size(&self) -> u64 {
+        512
+    }
 }
 
 impl FromStr for Floppy {

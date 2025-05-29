@@ -2,6 +2,7 @@ use disk::error::DiskError;
 
 #[derive(Debug)]
 pub enum BuildError {
+    CanBuildOnlyFloppiesForNow,
     DiskIoError(DiskError),
     FileSystemError,
 }

@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use common::storage::FloppyType;
 use disk::{raw::RawImage, sectorsize::SectorSize, volume::Volume, Disk};
 use error::BuildError;
 use filesystem::{fat12::Fat12, FileSystem};
@@ -20,38 +19,31 @@ impl Builder {
     }
 
     pub fn build(&self, path: &Path) -> Result<(), BuildError> {
-        let floppy_type = self
-            .planner
-            .hwspec()
-            .floppy_type()
-            .unwrap_or(FloppyType::F525_160);
         let os = self.planner.os();
 
-        let mut disk = self.prepare_disk(path, floppy_type.sector_count(), os.vendor())?;
+        let (mut disk, sector_count) = {
+            if let Some(floppy_type) = self.planner.hwspec().floppy_type() {
+                let sector_count = floppy_type.sector_count();
+                let disk = RawImage::new_floppy(path, floppy_type)?;
+                (disk, sector_count)
+            } else {
+                return Err(BuildError::CanBuildOnlyFloppiesForNow);
+            }
+        };
+
+        // Do the IBM thing if we're dealing with their equipment
+        if os.vendor() == OsVendor::IBM {
+            disk.ibmwipe()?;
+        }
+
         self.install_boot_sector(&mut disk, os.bootsector())?;
 
-        let mut volume = Volume::new(&mut disk, 0, 320);
+        let mut volume = Volume::new(&mut disk, 0, sector_count);
         let mut fat = self.create_filesystem(&mut volume)?;
 
         self.write_sysfiles(&mut fat, os)?;
 
         Ok(())
-    }
-
-    fn prepare_disk(
-        &self,
-        path: &Path,
-        sector_count: u64,
-        vendor: OsVendor,
-    ) -> Result<RawImage, BuildError> {
-        let mut disk =
-            RawImage::new(path, SectorSize::S512, sector_count).map_err(BuildError::DiskIoError)?;
-
-        if vendor == OsVendor::IBM {
-            disk.ibmwipe().map_err(BuildError::DiskIoError)?;
-        }
-
-        Ok(disk)
     }
 
     fn install_boot_sector(
@@ -63,7 +55,10 @@ impl Builder {
             .map_err(BuildError::DiskIoError)
     }
 
-    fn create_filesystem<'a, D: Disk>(&self, volume: &'a mut Volume<'a, D>) -> Result<Fat12<'a, D>, BuildError> {
+    fn create_filesystem<'a, D: Disk>(
+        &self,
+        volume: &'a mut Volume<'a, D>,
+    ) -> Result<Fat12<'a, D>, BuildError> {
         Fat12::new(
             SectorSize::S512,
             1,
@@ -71,7 +66,8 @@ impl Builder {
             volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ), None
+            ),
+            None,
         )
         .map_err(|_| BuildError::FileSystemError)
     }
@@ -79,14 +75,14 @@ impl Builder {
     fn write_sysfiles<D: Disk>(
         &self,
         fat: &mut Fat12<D>,
-        os: &OperatingSystem
+        os: &OperatingSystem,
     ) -> Result<(), BuildError> {
         fat.mksysfile("IBMBIO.COM", os.iosys_bytes(), None)
-            .map_err(|_|BuildError::FileSystemError)?;
+            .map_err(|_| BuildError::FileSystemError)?;
         fat.mksysfile("IBMDOS.COM", os.msdossys_bytes(), None)
-            .map_err(|_|BuildError::FileSystemError)?;
+            .map_err(|_| BuildError::FileSystemError)?;
         fat.mkfile("COMMAND.COM", os.commandcom_bytes(), None)
-            .map_err(|_|BuildError::FileSystemError)?;
+            .map_err(|_| BuildError::FileSystemError)?;
 
         fat.write_fat();
         fat.write_rootdir();
