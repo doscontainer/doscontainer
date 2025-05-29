@@ -2,14 +2,12 @@
 mod tests {
     use crate::{
         hwspec::{
-            cpu::{Cpu, CpuFamily},
-            storage::Floppy,
             HwSpec,
         },
-        types::audio::AudioDevice,
     };
     use std::io::Write;
     use std::str::FromStr;
+    use common::{audio::AudioDevice, cpu::{Cpu, CpuFamily}, storage::Floppy};
     use tempfile::NamedTempFile;
 
     #[test]

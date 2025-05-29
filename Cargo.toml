@@ -1,5 +1,5 @@
 [workspace]
-members = ["builder", "cli", "disk", "filesystem", "operatingsystem", "specs", "planner"]
+members = ["builder", "cli", "common", "disk", "filesystem", "operatingsystem", "specs", "planner"]
 resolver = "2"
 
 [workspace.dependencies]

@@ -225,11 +225,11 @@ dependencies = [
 name = "builder"
 version = "0.1.0"
 dependencies = [
+ "common",
  "disk",
  "filesystem",
  "operatingsystem",
  "planner",
- "specs",
 ]
 
 [[package]]
@@ -415,6 +415,13 @@ name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
+
+[[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "config"
@@ -633,6 +640,7 @@ dependencies = [
 name = "disk"
 version = "0.2.0"
 dependencies = [
+ "common",
  "tempfile",
 ]
 
@@ -692,6 +700,7 @@ name = "filesystem"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.41",
+ "common",
  "disk",
  "operatingsystem",
  "specs",
@@ -1403,6 +1412,7 @@ name = "planner"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.41",
+ "common",
  "disk",
  "filesystem",
  "operatingsystem",
@@ -1853,6 +1863,7 @@ version = "0.1.0"
 dependencies = [
  "attohttpc",
  "byte-unit",
+ "common",
  "config",
  "crc32fast",
  "directories",

@@ -1,7 +1,8 @@
+use common::storage::FloppyType;
 use error::PlanError;
 use operatingsystem::OperatingSystem;
 use ossupport::{OsSupport, SUPPORTED_OS};
-use specs::{hwspec::HwSpec, manifest::Manifest, types::storage::FloppyType};
+use specs::{hwspec::HwSpec, manifest::Manifest};
 
 mod error;
 mod ossupport;

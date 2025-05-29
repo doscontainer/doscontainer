@@ -1,5 +1,5 @@
+use common::{cpu::CpuFamily, storage::FloppyType, video::VideoDevice};
 use operatingsystem::{vendor::OsVendor, version::OsVersion, OsShortName};
-use specs::types::{cpu::CpuFamily, storage::FloppyType, video::VideoDevice};
 
 #[derive(Debug)]
 pub struct OsSupport {

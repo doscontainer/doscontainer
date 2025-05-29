@@ -1,9 +1,13 @@
 use crate::{
-    allocationtable::AllocationTable, direntry::DirEntry, error::FileSystemError, names::EntryName,
-    pool::Pool,
+    allocationtable::AllocationTable, bpb::BiosParameterBlock, direntry::DirEntry,
+    error::FileSystemError, names::EntryName, pool::Pool,
 };
 
 pub mod ibmdos100;
+
+pub trait BpbSerializer {
+    fn serialize_bpb(bpb: &BiosParameterBlock) -> Result<Vec<u8>, FileSystemError>;
+}
 
 pub trait DirEntrySerializer {
     fn serialize_direntry(entry: &DirEntry) -> Result<Vec<u8>, FileSystemError>;

@@ -171,7 +171,7 @@ mod tests {
             1,
             340,
             &mut volume,
-            OperatingSystem::from_osshortname(&operatingsystem::OsShortName::IBMDOS100),
+            OperatingSystem::from_osshortname(&operatingsystem::OsShortName::IBMDOS100), None
         )
         .unwrap();
         assert!(fat.mkfile("/COMMAND.COM", &[0u8; 10], None).is_ok());
@@ -189,7 +189,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         assert!(fat.mkfile("/COMMAND.COM", &data, None).is_ok());
@@ -207,7 +207,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ),None
         )
         .unwrap();
         assert_eq!(
@@ -227,7 +227,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         assert_eq!(
@@ -351,7 +351,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         assert!(filesystem.mkdir("/DOS", 2, None).is_ok());
@@ -370,7 +370,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         assert!(fat.mkdir("/DOS", 600, None).is_ok());
@@ -387,7 +387,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         let serializer = IbmDos100::serialize_fat12(fat.allocation_table()).unwrap();
@@ -429,7 +429,7 @@ mod tests {
             &mut volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .unwrap();
         let os = OperatingSystem::from_vendor_version("ibm", "1.00").unwrap();

@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use chrono::NaiveDateTime;
+use common::storage::FloppyType;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
 use operatingsystem::OperatingSystem;
 
@@ -97,18 +98,23 @@ impl<'a, D: Disk> Fat12<'a, D> {
         cluster_count: usize,
         volume: &'a mut Volume<'a, D>,
         os: OperatingSystem,
+        floppy_type: Option<FloppyType>,
     ) -> Result<Self, FileSystemError> {
-        let filesystem = Fat12 {
+        let bpb = match floppy_type {
+            Some(ft) => BiosParameterBlock::from_floppytype(&ft),
+            None => BiosParameterBlock::default(),
+        };
+
+        Ok(Fat12 {
             allocation_table: AllocationTable::default(),
-            bpb: BiosParameterBlock::default(),
+            bpb,
             pool: Pool::default(),
             cluster_size,
             cluster_count,
             sector_size,
             volume,
             os,
-        };
-        Ok(filesystem)
+        })
     }
 
     pub fn write_fat(&mut self) {

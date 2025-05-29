@@ -1,7 +1,8 @@
 use serde::Deserialize;
 
-use crate::error::SpecError;
 use std::{fmt, str::FromStr};
+
+use crate::error::CommonError;
 
 #[derive(Debug, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
@@ -47,7 +48,7 @@ impl<'de> Deserialize<'de> for VideoDevice {
 }
 
 impl FromStr for VideoDevice {
-    type Err = SpecError;
+    type Err = CommonError;
 
     /// Converts a string into the corresponding `VideoDevice` variant.
     ///
@@ -63,7 +64,7 @@ impl FromStr for VideoDevice {
     ///
     /// * `Ok(VideoDevice)` - The corresponding video device if the string matches a valid video device name.
     /// * `Err(SpecError)` - An error if the string does not match any valid video device name.
-    fn from_str(input: &str) -> Result<Self, SpecError> {
+    fn from_str(input: &str) -> Result<Self, CommonError> {
         match input.trim().to_lowercase().as_str() {
             "hcg" | "hercules" => Ok(VideoDevice::HGC),
             "cga" => Ok(VideoDevice::CGA),
@@ -72,7 +73,7 @@ impl FromStr for VideoDevice {
             "vga" => Ok(VideoDevice::VGA),
             "svga" => Ok(VideoDevice::SVGA),
             "xga" => Ok(VideoDevice::XGA),
-            _ => Err(SpecError::InvalidVideoDevice),
+            _ => Err(CommonError::InvalidVideoDevice),
         }
     }
 }

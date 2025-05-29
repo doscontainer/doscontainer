@@ -1,3 +1,5 @@
+use common::audio::AudioDevice;
+use common::video::VideoDevice;
 use ftp::{FtpError, FtpStream};
 use log::info;
 use operatingsystem::vendor::OsVendor;
@@ -12,8 +14,6 @@ use url::Url;
 use zip::ZipArchive;
 
 use crate::error::SpecError;
-use crate::types::audio::AudioDevice;
-use crate::types::video::VideoDevice;
 
 #[derive(Debug, Default, Deserialize)]
 pub struct Layer {

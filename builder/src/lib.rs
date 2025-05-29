@@ -1,11 +1,11 @@
 use std::path::Path;
 
+use common::storage::FloppyType;
 use disk::{raw::RawImage, sectorsize::SectorSize, volume::Volume, Disk};
 use error::BuildError;
 use filesystem::{fat12::Fat12, FileSystem};
 use operatingsystem::{vendor::OsVendor, OperatingSystem};
 use planner::InstallationPlanner;
-use specs::types::storage::FloppyType;
 
 mod error;
 
@@ -71,7 +71,7 @@ impl Builder {
             volume,
             operatingsystem::OperatingSystem::from_osshortname(
                 &operatingsystem::OsShortName::IBMDOS100,
-            ),
+            ), None
         )
         .map_err(|_| BuildError::FileSystemError)
     }

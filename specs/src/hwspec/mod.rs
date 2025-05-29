@@ -3,22 +3,19 @@ use std::path::Path;
 use std::str::FromStr;
 
 use byte_unit::Byte;
+use common::audio::AudioDevice;
+use common::audio::AudioDeviceType;
+use common::cpu::Cpu;
+use common::storage::Floppy;
+use common::storage::FloppyType;
+use common::video::VideoDevice;
 use config::Config;
 use config::File;
 use config::FileFormat;
-use cpu::Cpu;
 use serde::{Deserialize, Deserializer};
 use serde_with::serde_as;
 use serde_with::OneOrMany;
-use storage::Floppy;
-use storage::FloppyType;
-
 use crate::error::SpecError;
-use crate::types::audio::AudioDevice;
-use crate::types::audio::AudioDeviceType;
-use crate::types::cpu;
-use crate::types::storage;
-use crate::types::video::VideoDevice;
 
 mod tests;
 
@@ -109,7 +106,7 @@ impl HwSpec {
     }
 
     pub fn set_cpu(&mut self, cpu: &str) -> Result<(), SpecError> {
-        self.cpu = Cpu::from_str(cpu)?;
+        self.cpu = Cpu::from_str(cpu).map_err(|_| SpecError::InvalidCpu)?;
         Ok(())
     }
 

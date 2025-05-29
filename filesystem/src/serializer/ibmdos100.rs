@@ -8,10 +8,18 @@ use crate::{
     pool::Pool,
 };
 
-use super::{DirEntrySerializer, DirectorySerializer, Fat12Serializer, NameSerializer};
+use super::{BpbSerializer, DirEntrySerializer, DirectorySerializer, Fat12Serializer, NameSerializer};
 
 #[allow(dead_code)]
 pub struct IbmDos100 {}
+
+impl BpbSerializer for IbmDos100 {
+    /// PC-DOS 1.00 does not have the BIOS Parameter Block yet. This function is here to prevent
+    /// attempts at using it anyway.
+    fn serialize_bpb(_bpb: &crate::bpb::BiosParameterBlock) -> Result<Vec<u8>, FileSystemError> {
+        Err(FileSystemError::BpbNotSupported)
+    }
+}
 
 impl IbmDos100 {
     pub fn encode_time(dt: NaiveDateTime) -> u16 {

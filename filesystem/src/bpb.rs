@@ -1,6 +1,6 @@
 use chrono::{Datelike, Local, Timelike};
+use common::storage::FloppyType;
 use disk::sectorsize::SectorSize;
-use specs::types::storage::FloppyType;
 
 #[derive(Debug)]
 pub struct BiosParameterBlock {

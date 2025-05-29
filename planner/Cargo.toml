@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = { workspace = true }
+common = { path = "../common" }
 disk = { path = "../disk" }
 filesystem = { path = "../filesystem" }
 specs = { path = "../specs" }

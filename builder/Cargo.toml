@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+common = { path = "../common" }
 disk = { path = "../disk" }
 filesystem = { path = "../filesystem" }
 operatingsystem = { path = "../operatingsystem" }
-specs = { path = "../specs" }
 planner = { path = "../planner" }

@@ -7,6 +7,7 @@ edition = "2021"
 attohttpc = { workspace = true }
 byte-unit = { workspace = true }
 config = { workspace = true }
+common = { path = "../common" }
 crc32fast = { workspace = true }
 directories = { workspace = true }
 ftp = { workspace = true }
