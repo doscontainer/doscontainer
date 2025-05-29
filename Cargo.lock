@@ -703,7 +703,6 @@ dependencies = [
  "common",
  "disk",
  "operatingsystem",
- "specs",
  "uuid",
 ]
 

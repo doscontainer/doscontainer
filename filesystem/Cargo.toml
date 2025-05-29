@@ -9,4 +9,3 @@ common = { path = "../common" }
 disk = { path = "../disk" }
 uuid = { workspace = true }
 operatingsystem = { path = "../operatingsystem" }
-specs = { path = "../specs" }

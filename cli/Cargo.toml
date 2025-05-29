@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 builder = { path = "../builder" }
 clap = { workspace = true }
-specs = { path = "../specs" }
 planner = { path = "../planner" }
+specs = { path = "../specs" }
