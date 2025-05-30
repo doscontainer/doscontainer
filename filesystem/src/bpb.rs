@@ -2,6 +2,8 @@ use chrono::{Datelike, Local, Timelike};
 use common::storage::FloppyType;
 use disk::sectorsize::SectorSize;
 
+use crate::error::FileSystemError;
+
 #[derive(Debug)]
 pub struct BiosParameterBlock {
     bytes_per_sector: usize,
@@ -151,6 +153,22 @@ impl BiosParameterBlock {
             filesystem_type: todo!(), */
         }
     }
+
+    pub fn set_sectors_per_cluster(&mut self, sector_count: usize) -> Result<(), FileSystemError> {
+        match sector_count {
+            1 => self.sectors_per_cluster = 1,
+            2 => self.sectors_per_cluster = 2,
+            4 => self.sectors_per_cluster = 4,
+            8 => self.sectors_per_cluster = 8,
+            16 => self.sectors_per_cluster = 16,
+            32 => self.sectors_per_cluster = 32,
+            64 => self.sectors_per_cluster = 64,
+            128 => self.sectors_per_cluster = 128,
+            _ => return Err(FileSystemError::InvalidSectorsPerCluster),
+        }
+        Ok(())
+    }
+
     pub fn generate_volume_serial_number() -> u32 {
         let now = Local::now();
 

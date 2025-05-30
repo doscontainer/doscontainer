@@ -44,6 +44,8 @@ impl FloppyType {
     }
 
     /// This is only here because it may become dynamic
+    /// if we ever support 8" floppies, which had 128KB
+    /// sectors.
     pub fn sector_size(&self) -> u64 {
         512
     }

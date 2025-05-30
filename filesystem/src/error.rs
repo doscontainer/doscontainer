@@ -19,6 +19,7 @@ pub enum FileSystemError {
     InvalidCharInName,
     InvalidClusterIndex,
     InvalidPath,
+    InvalidSectorsPerCluster,
     NotEnoughFreeClusters,
     ParentNotFound,
     RangeLostInTruncation,
