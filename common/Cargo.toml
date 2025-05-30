@@ -6,3 +6,4 @@ description = "DOSContainer common data types."
 
 [dependencies]
 serde = { workspace = true }
+thiserror = { workspace = true }
