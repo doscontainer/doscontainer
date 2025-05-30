@@ -5,6 +5,7 @@ use error::BuildError;
 use filesystem::{fat12::Fat12, FileSystem};
 use operatingsystem::{vendor::OsVendor, OperatingSystem};
 use planner::InstallationPlanner;
+use specs::manifest::layer::Layer;
 
 mod error;
 
@@ -18,7 +19,7 @@ impl Builder {
         Builder { planner }
     }
 
-    pub fn build(&self, path: &Path) -> Result<(), BuildError> {
+    pub fn build(&mut self, path: &Path) -> Result<(), BuildError> {
         let os = self.planner.os();
 
         let (mut disk, sector_count) = {
@@ -40,8 +41,6 @@ impl Builder {
 
         let mut volume = Volume::new(&mut disk, 0, sector_count);
         let mut fat = self.create_filesystem(&mut volume)?;
-
-        self.write_sysfiles(&mut fat, os)?;
 
         Ok(())
     }

@@ -20,6 +20,10 @@ impl InstallationPlanner {
         &self.hwspec
     }
 
+    pub fn manifest(&self) -> &Manifest {
+        &self.manifest
+    }
+
     pub fn os(&self) -> &OperatingSystem {
         &self.os
     }
