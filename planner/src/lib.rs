@@ -2,7 +2,7 @@ use common::storage::Floppy;
 use error::PlanError;
 use operatingsystem::OperatingSystem;
 use ossupport::{OsSupport, SUPPORTED_OS};
-use specs::{hwspec::HwSpec, manifest::Manifest};
+use specs::{hwspec::HwSpec, manifest::{layer::Layer, Manifest}};
 
 mod error;
 mod ossupport;
@@ -10,6 +10,7 @@ mod ossupport;
 #[derive(Debug)]
 pub struct InstallationPlanner {
     hwspec: HwSpec,
+    layers: Vec<Layer>,
     manifest: Manifest,
     os: OperatingSystem,
     floppy: Option<Floppy>,
@@ -81,8 +82,15 @@ impl InstallationPlanner {
         Ok(InstallationPlanner {
             floppy: hwspec.floppy_type(),
             hwspec,
+            layers: Vec::new(),
             manifest,
             os: OperatingSystem::from_osshortname(&selected.shortname),
         })
+    }
+
+    /// Examine the layers in the manifest, determine which ones are applicable to the
+    /// build we're planning, and add clones of them to our struct.
+    fn select_layers(&mut self, os: &OperatingSystem, manifest: &Manifest) {
+        
     }
 }
