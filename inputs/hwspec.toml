@@ -1,0 +1,14 @@
+ram = "512KiB"
+video = "cga"
+dos_vendor = "ibm"
+
+
+[floppy]
+floppy_type = "160k"
+
+[cpu]
+family = "8088"
+clock = 4
+
+[[audio]]
+device = "bleeper"
