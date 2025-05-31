@@ -75,9 +75,9 @@ impl Builder {
         fat: &mut Fat12<D>,
         os: &OperatingSystem,
     ) -> Result<(), BuildError> {
-        fat.mksysfile("IBMBIO.COM", os.iosys_bytes(), None)
+        fat.mksysfile(os.iosys(), os.iosys_bytes(), None)
             .map_err(|_| BuildError::FileSystemError)?;
-        fat.mksysfile("IBMDOS.COM", os.msdossys_bytes(), None)
+        fat.mksysfile(os.msdossys(), os.msdossys_bytes(), None)
             .map_err(|_| BuildError::FileSystemError)?;
         fat.mkfile("COMMAND.COM", os.commandcom_bytes(), None)
             .map_err(|_| BuildError::FileSystemError)?;
