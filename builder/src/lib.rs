@@ -5,7 +5,6 @@ use error::BuildError;
 use filesystem::{fat12::Fat12, FileSystem};
 use operatingsystem::{vendor::OsVendor, OperatingSystem};
 use planner::InstallationPlanner;
-use specs::manifest::layer::Layer;
 
 mod error;
 

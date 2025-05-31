@@ -1,4 +1,4 @@
-use common::storage::FloppyType;
+use common::storage::Floppy;
 use error::PlanError;
 use operatingsystem::OperatingSystem;
 use ossupport::{OsSupport, SUPPORTED_OS};
@@ -12,7 +12,7 @@ pub struct InstallationPlanner {
     hwspec: HwSpec,
     manifest: Manifest,
     os: OperatingSystem,
-    floppy: Option<FloppyType>,
+    floppy: Option<Floppy>,
 }
 
 impl InstallationPlanner {

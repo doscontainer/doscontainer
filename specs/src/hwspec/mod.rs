@@ -7,7 +7,6 @@ use common::audio::AudioDevice;
 use common::audio::AudioDeviceType;
 use common::cpu::Cpu;
 use common::storage::Floppy;
-use common::storage::FloppyType;
 use common::video::VideoDevice;
 use config::Config;
 use config::File;
@@ -172,9 +171,9 @@ impl HwSpec {
         self.ram
     }
 
-    pub fn floppy_type(&self) -> Option<FloppyType> {
+    pub fn floppy_type(&self) -> Option<Floppy> {
         if let Some(disk) = &self.floppy {
-            Some(disk.floppy_type())
+            Some(*disk)
         } else {
             None
         }

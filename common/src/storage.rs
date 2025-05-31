@@ -1,24 +1,11 @@
 use std::{fmt, str::FromStr};
 
-use serde::de::{self, Deserializer};
 use serde::Deserialize;
 
 use crate::error::CommonError;
 
-#[derive(Debug, Deserialize)]
-pub struct Floppy {
-    #[serde(deserialize_with = "deserialize_floppy_type")]
-    floppy_type: FloppyType,
-}
-
-impl Floppy {
-    pub fn floppy_type(&self) -> FloppyType {
-        self.floppy_type
-    }
-}
-
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
-pub enum FloppyType {
+pub enum Floppy {
     F525_160,
     F525_320,
     F525_180,
@@ -29,17 +16,17 @@ pub enum FloppyType {
     F35_2880,
 }
 
-impl FloppyType {
+impl Floppy {
     pub fn sector_count(&self) -> u64 {
         match self {
-            FloppyType::F525_160 => 40 * 1 * 8,
-            FloppyType::F525_180 => 40 * 1 * 9,
-            FloppyType::F525_320 => 40 * 2 * 8,
-            FloppyType::F525_360 => 40 * 2 * 9,
-            FloppyType::F525_1200 => 80 * 2 * 15,
-            FloppyType::F35_720 => 80 * 2 * 9,
-            FloppyType::F35_1440 => 80 * 2 * 18,
-            FloppyType::F35_2880 => 80 * 2 * 36,
+            Floppy::F525_160 => 40 * 1 * 8,
+            Floppy::F525_180 => 40 * 1 * 9,
+            Floppy::F525_320 => 40 * 2 * 8,
+            Floppy::F525_360 => 40 * 2 * 9,
+            Floppy::F525_1200 => 80 * 2 * 15,
+            Floppy::F35_720 => 80 * 2 * 9,
+            Floppy::F35_1440 => 80 * 2 * 18,
+            Floppy::F35_2880 => 80 * 2 * 36,
         }
     }
 
@@ -52,15 +39,6 @@ impl FloppyType {
 }
 
 impl FromStr for Floppy {
-    type Err = CommonError;
-
-    fn from_str(input: &str) -> Result<Self, CommonError> {
-        let floppy_type = FloppyType::from_str(input)?;
-        Ok(Self { floppy_type })
-    }
-}
-
-impl FromStr for FloppyType {
     type Err = CommonError;
 
     fn from_str(input: &str) -> Result<Self, CommonError> {
@@ -81,15 +59,7 @@ impl FromStr for FloppyType {
     }
 }
 
-fn deserialize_floppy_type<'de, D>(deserializer: D) -> Result<FloppyType, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s: String = String::deserialize(deserializer)?;
-    FloppyType::from_str(&s).map_err(de::Error::custom)
-}
-
-impl fmt::Display for FloppyType {
+impl fmt::Display for Floppy {
     /// Provides a user-friendly string representation of a floppy disk type.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
@@ -103,11 +73,5 @@ impl fmt::Display for FloppyType {
             Self::F35_2880 => "3.5\" extended density 2.88MB",
         };
         write!(f, "{}", label)
-    }
-}
-
-impl fmt::Display for Floppy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.floppy_type)
     }
 }

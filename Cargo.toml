@@ -17,6 +17,7 @@ serde_with = { version = "3" }
 serde_yaml = "0.9"
 sha2 = "0.10"
 tempfile = "3"
+thiserror = "1"
 toml = "0.8"
 url = { version = "2.5", features = ["serde"] }
 uuid = { version = "1.13", features = ["v4", "fast-rng", "macro-diagnostics"] }

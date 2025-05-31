@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use chrono::NaiveDateTime;
-use common::storage::FloppyType;
+use common::storage::Floppy;
 use disk::{sectorsize::SectorSize, volume::Volume, Disk};
 use operatingsystem::OperatingSystem;
 
@@ -98,7 +98,7 @@ impl<'a, D: Disk> Fat12<'a, D> {
         cluster_count: usize,
         volume: &'a mut Volume<'a, D>,
         os: OperatingSystem,
-        floppy_type: Option<FloppyType>,
+        floppy_type: Option<Floppy>,
     ) -> Result<Self, FileSystemError> {
         let bpb = match floppy_type {
             Some(ft) => BiosParameterBlock::from_floppytype(&ft),

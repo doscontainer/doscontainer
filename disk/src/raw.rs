@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
-use common::storage::FloppyType;
+use common::storage::Floppy;
 
 use crate::error::DiskError;
 use crate::{sectorsize::SectorSize, Disk};
@@ -12,15 +12,15 @@ pub struct RawImage {
     file: File,
     sector_size: SectorSize,
     sector_count: u64,
-    floppy_type: Option<FloppyType>,
+    floppy: Option<Floppy>,
 }
 
 impl RawImage {
-    pub fn floppy_type(&self) -> Option<&FloppyType> {
-        self.floppy_type.as_ref()
+    pub fn floppy_type(&self) -> Option<&Floppy> {
+        self.floppy.as_ref()
     }
     
-    pub fn new_floppy(path: &Path, floppy_type: FloppyType) -> Result<Self, DiskError> {
+    pub fn new_floppy(path: &Path, floppy_type: Floppy) -> Result<Self, DiskError> {
         // Try to create a new file, fail if it already exists
         let file = File::options()
             .read(true)
@@ -37,7 +37,7 @@ impl RawImage {
             file,
             sector_size: SectorSize::try_from(floppy_type.sector_size())?,
             sector_count: floppy_type.sector_count(),
-            floppy_type: Some(floppy_type),
+            floppy: Some(floppy_type),
         })
     }
     pub fn new(path: &Path, sector_size: SectorSize, sector_count: u64) -> Result<Self, DiskError> {
@@ -57,7 +57,7 @@ impl RawImage {
             file,
             sector_size,
             sector_count,
-            floppy_type: None,
+            floppy: None,
         })
     }
 }
